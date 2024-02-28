@@ -1,0 +1,35 @@
+import './polyfills';
+import './global.css';
+import '@rainbow-me/rainbowkit/styles.css';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
+import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { WagmiProvider, http } from 'wagmi';
+import { arbitrum, base, mainnet, optimism, polygon, zora } from 'wagmi/chains';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+export const wagmiConfig = getDefaultConfig({
+  appName: 'BorrowSwap',
+  projectId: 'YOUR_PROJECT_ID',
+  chains: [mainnet, polygon, optimism, arbitrum, base, zora],
+  transports: {
+    [mainnet.id]: http(),
+    [polygon.id]: http(),
+  }
+});
+
+const queryClient = new QueryClient();
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider>
+          <App />
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
+  </React.StrictMode>,
+);
