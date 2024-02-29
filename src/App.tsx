@@ -1,7 +1,7 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import Card from './components/Card';
 import Navbar from './components/Navbar';
-import type { UnilendV2State } from './states/store';
+
 
 import { useEffect } from 'react';
 import { fetchGraphQlData, getTokenPrice } from './api/axios/calls';

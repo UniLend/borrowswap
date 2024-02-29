@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import { getTokenPrice } from '../api/axios/calls';
 import {store} from '../states/store'
 import { setPools, setTokens } from '../states/unilendV2Reducer';
 export function fromBigNumber(bignumber: any) {
@@ -32,11 +33,7 @@ export function fromBigNumber(bignumber: any) {
     return false;
   };
   
-  export const getTokenPrice = (data: any, address: any) => {
-    return data[String(address).toUpperCase()]
-      ? data[String(address).toUpperCase()]
-      : 1;
-  };
+
 
  export const loadPoolsWithGraph = async (data: any, chain: any) => {
   
@@ -46,6 +43,7 @@ export function fromBigNumber(bignumber: any) {
       const tokenList: any = {};
       const poolsData = Array.isArray(data.pools) && data.pools;
       const tokenPrice = await getTokenPrice(data, chain)
+  console.log('tokenPrice', tokenPrice);
   
       for (const pool of poolsData) {
    
