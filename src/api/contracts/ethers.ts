@@ -21,10 +21,10 @@ export function clientToProvider(client: Client<Transport, Chain> | { transport?
 
 /** Action to convert a viem Public Client to an ethers.js Provider. */
 export function getEthersProvider(
-  config: Config,
   { chainId }: { chainId?: number } = {},
 ) {
-  const client = getClient(config, { chainId })
+
+  const client = getClient(wagmiConfig, { chainId })
   return clientToProvider(client || { transport: '', chain: '' })
 }
 
@@ -43,10 +43,9 @@ export function clientToSigner(client: Client<Transport, Chain, Account>) {
 
 /** Action to convert a Viem Client to an ethers.js Signer. */
 export async function getEthersSigner(
-  config: Config,
   { chainId }: { chainId?: number } = {},
 ) {
-  const client = await getConnectorClient(config, { chainId })
+  const client = await getConnectorClient(wagmiConfig, { chainId })
   return clientToSigner(client)
 }
 
@@ -55,8 +54,8 @@ export async function getEtherContract(
   abi: any,
   chainId?: number,
 ) {
-  const signer = await getEthersSigner( wagmiConfig, { chainId });
-  const provider = getEthersProvider( wagmiConfig, { chainId });
+  const signer = await getEthersSigner(  { chainId });
+  const provider = getEthersProvider(  { chainId });
 
   const contract = new ethers.Contract(
     address,

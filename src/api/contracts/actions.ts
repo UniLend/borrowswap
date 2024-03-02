@@ -1,7 +1,9 @@
-import { borrowswapABI, erc20Abi } from "./abi";
-import { writeContract } from "wagmi/actions";
+import { borrowswapABI, erc20Abi, helperAbi } from "./abi";
+import { readContracts, writeContract } from "wagmi/actions";
 import { getEtherContract } from "./ethers";
 import { decimal2Fixed, fixed2Decimals, fromBigNumber } from "../../helpers";
+import { readContract } from '@wagmi/core'
+import { wagmiConfig } from "../../main";
 
 export const contracts = {};
 
@@ -62,4 +64,60 @@ export const getAllowance = async (
   );
 
   return fromBigNumber(allowance);
+};
+
+
+export const getPoolData = (poolAddress: string) => {
+
+}
+
+
+export const getPoolBasicData = async (
+  helperContract: any,
+  poolAddress: string,
+  poolData: any,
+  poolTokens: any,
+) => {
+  let pool;
+  if (helperContract) {
+    try {
+      const instance = getEtherContract(helperContract, helperAbi )
+
+      
+      // const data = await instance.getPoolData(poolAddress);
+      // pool = {
+      //   ...poolData,
+      //   _address: poolAddress,
+      //   ltv: Number(Number(fromBigNumber(data.ltv)) - 0.01),
+      //   lb: fromBigNumber(data.lb),
+      //   rf: fromBigNumber(data.rf),
+      //   token0: {
+      //     _symbol: data._symbol0,
+      //     _address: data._token0,
+      //     _decimals: fromBigNumber(data._decimals0),
+      //     liquidity: fromBigNumber(data._token0Liquidity),
+      //     liquidityFixed: fixed2Decimals(
+      //       data._token0Liquidity,
+      //       data._decimals0,
+      //     ),
+      //     ...poolTokens.token0,
+      //   },
+      //   token1: {
+      //     _symbol: data._symbol1,
+      //     _address: data._token1,
+      //     _decimals: fromBigNumber(data._decimals1),
+      //     liquidity: fromBigNumber(data._token1Liquidity),
+      //     liquidityFixed: fixed2Decimals(
+      //       data._token1Liquidity,
+      //       data._decimals1,
+      //     ),
+      //     ...poolTokens.token1,
+      //   },
+      // };
+      return pool;
+    } catch (error) {
+      // console.error(error);
+      throw error;
+    }
+  }
 };
