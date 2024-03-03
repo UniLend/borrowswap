@@ -36,11 +36,12 @@ export default function Card() {
     isOpen: false,
     operation: "",
   });
-  const [selectedTokens, setSelectedTokens] = useState({
+  const [selectedTokens, setSelectedTokens] = useState<any>({
     lend: null,
     borrow: null,
     receive: null,
   });
+  const [selectedLTV, setSelectedLTV] = useState<number>(0);
   console.log("selectedTokens", selectedTokens);
 
   const handleLendAmount = (amount: string) => {
@@ -49,6 +50,10 @@ export default function Card() {
 
   const handleReceiveAmount = (amount: string) => {
     setReceiveAmount(amount);
+  };
+
+  const handleLTV = (value: number) => {
+    setSelectedLTV(value);
   };
 
   const handleSelectLendToken = (token: string) => {
@@ -161,13 +166,13 @@ export default function Card() {
           value={lendAmount}
           onChange={(e: any) => handleLendAmount(e.target.value)}
           onMaxClick={() => console.log("Max Clicked")}
-          buttonText='UFT'
+          buttonText={selectedTokens?.lend?.symbol}
           onClick={() => handleOpenTokenList("lend")}
         />
         <div className='swap_route'>
           <p className='paragraph06 '>You borrow</p>
           <ButtonWithDropdown
-            buttonText='UFT'
+            buttonText={selectedTokens?.borrow?.symbol}
             onClick={() => handleOpenTokenList("borrow")}
           />
         </div>
@@ -178,18 +183,18 @@ export default function Card() {
           value={receiveAmount}
           onChange={(e: any) => handleReceiveAmount(e.target.value)}
           onMaxClick={() => console.log("Max Clicked")}
-          buttonText='UFT'
+          buttonText={selectedTokens?.receive?.symbol}
           onClick={() => handleOpenTokenList("receive")}
         />
         <div className='range_container'>
           <div>
             <p className='paragraph06 '>New LTV</p>
-            <p className='paragraph06'>30%/75%</p>
+            <p className='paragraph06'>{selectedLTV}%/75%</p>
           </div>
           <Slider
-            // value=
+            value={selectedLTV}
             defaultValue={50}
-            onChange={() => console.log("change LTV")}
+            onChange={() => handleLTV}
             min={5}
             max={80}
             className='range_slider'
