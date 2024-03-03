@@ -3,7 +3,7 @@ import { Input, Button, Slider, Modal } from "antd";
 import { FaChevronDown } from "react-icons/fa";
 import "./index.scss";
 import uftLogo from "../../assets/uft.svg";
-import TokenListModal from "./TokenListModal";
+import TokenListModal from "../Common/TokenListModal";
 import BorrowLoader from "../Loader/BorrowLoader";
 
 export default function SwapCard() {
@@ -41,7 +41,7 @@ export default function SwapCard() {
           </div>
         </div>
         {/* SWAP */}
-        <div className='swap_guide'>
+        <div className='swap_route'>
           <p className='paragraph06 '>You borrow</p>
           <div className='btn_with_dropdown center'>
             <div onClick={() => console.log("dropdown")} className='token_tab'>

@@ -33,8 +33,8 @@ function App() {
   return (
     <div>
       <Navbar />
-      {/* <Card /> */}
-      <SwapCard />
+      <Card />
+      {/* <SwapCard /> */}
     </div>
   );
 }

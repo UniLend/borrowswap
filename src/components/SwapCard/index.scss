@@ -55,6 +55,15 @@
       display: flex;
       justify-content: space-between;
 
+      .amount_container_right {
+        gap: 8px;
+
+        .paragraph06 {
+          text-align: left;
+          width: fit-content;
+        }
+      }
+
       .amount_container_left {
         gap: 8px;
         flex: 0.9;
@@ -89,10 +98,14 @@
           margin: 0;
           height: 20px;
         }
+
+        p {
+          text-align: left;
+        }
       }
     }
 
-    .swap_guide {
+    .swap_route {
       display: flex;
       flex-direction: column;
       align-items: center;
