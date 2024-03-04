@@ -19,6 +19,7 @@
 
 .swap_card_component {
   width: 100%;
+  min-height: 732px;
   height: calc(100vh - 130px);
   display: flex;
   justify-content: center;
@@ -29,7 +30,7 @@
     box-sizing: border-box;
     display: block;
     max-width: 600px;
-    width: 86%;
+    width: 88%;
     background-color: var(--dark-bg);
     border-radius: 16px;
     padding: 45px;
@@ -166,7 +167,7 @@
 
   @media ($mobile) {
     height: calc(100vh - 80px);
-
+    min-height: auto;
     .swap_card {
       margin: 60px 0;
       padding: 24px;
