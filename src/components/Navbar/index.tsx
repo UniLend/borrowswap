@@ -1,8 +1,10 @@
-import { ConnectButton } from '@rainbow-me/rainbowkit'
-import React from 'react'
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import React from "react";
 
 export default function Navbar() {
   return (
-    <div>     <ConnectButton /></div>
-  )
+    <div style={{ height: "60px" }}>
+      <ConnectButton />
+    </div>
+  );
 }

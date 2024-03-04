@@ -1,0 +1,62 @@
+@import "/src/theme";
+
+@font-face {
+  font-family: "Helvetica Neue LT Pro";
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+  src: url("/src/fonts/HELVETICANEUELTPROEX.OTF") format("opentype");
+  ascent-override: 90%;
+  vertical-align: text-bottom;
+}
+
+.light {
+  @each $name, $color in $light {
+    --#{$name}: #{$color};
+  }
+}
+
+.dark,
+body {
+  @each $name, $color in $dark {
+    --#{$name}: #{$color};
+  }
+  font-family: "Helvetica Neue LT Pro" !important;
+}
+
+.light {
+  background-color: var(--bg-color);
+}
+
+html,
+body {
+  margin: 0px;
+  padding: 0px;
+}
+body {
+  font-family: "Helvetica Neue LT Pro" !important;
+  background-color: var(--bg-color);
+  font-stretch: normal !important;
+}
+
+html,
+body,
+#root {
+  height: max-content;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+}
+// .app_container {
+//   width: 100%;
+//   max-width: 1920px;
+//   min-height: calc(100vh - 124px);
+//   margin: auto;
+//   position: relative;
+//   background-attachment: fixed;
+// }
+button {
+  font-family: "Helvetica Neue LT Pro" !important;
+}
