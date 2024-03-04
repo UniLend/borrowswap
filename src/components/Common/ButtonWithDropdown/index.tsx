@@ -2,6 +2,7 @@ import React from "react";
 import { FaChevronDown } from "react-icons/fa";
 import { FiChevronDown } from "react-icons/fi";
 import "./index.scss";
+import { getTokenSymbol } from "../../../utils";
 
 interface ButtonWithDropdownProps {
   buttonText: string;
@@ -21,7 +22,7 @@ const ButtonWithDropdown: React.FC<ButtonWithDropdownProps> = ({
       className={`btn_with_dropdown ${className}`}
     >
       <div onClick={() => console.log("dropdown")} className='token_tab'>
-        <img src='' alt='logo' />
+        <img src={getTokenSymbol(buttonText)} alt='logo' />
         <h2>{buttonText}</h2>
       </div>
       <div onClick={() => console.log("handle dropdown")} className='dropdown'>

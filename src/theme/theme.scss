@@ -64,10 +64,17 @@ $dark: (
     linear-gradient(
       to bottom right,
       rgba(52, 44, 101, 1),
-      rgba(110, 86, 255, 0.9),
-      rgba(108, 84, 255, 0.87),
-      rgba(32, 13, 148, 0.83)
+      rgba(110, 86, 255, 1),
+      rgba(108, 84, 255, 1),
+      rgba(32, 13, 148, 1)
     ),
+  // linear-gradient(
+  //   to bottom right,
+  //   rgba(52, 44, 101, 1),
+  //   rgba(110, 86, 255, 0.9),
+  //   rgba(108, 84, 255, 0.87),
+  //   rgba(32, 13, 148, 0.83)
+  // ),
   popup-shadow: -3px 5px 36px 3px #20004c,
   pure-black: #ffffff,
   pure-white: #141414,
