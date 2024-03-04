@@ -2,10 +2,12 @@
 
 .dark {
   > div {
-    background: url("/src/assets/blue-bg.svg");
+    // background: url("/src/assets/blue-bg.svg");
+    background: url("/src/assets/div.gr--blue.svg");
     background-position: center;
     background-repeat: no-repeat;
-    background-size: cover;
+    // background-size: cover;
+    background-size: 2000px;
   }
 }
 .light {
