@@ -5,6 +5,7 @@ import { erc20Abi } from "viem";
 import { useWriteContract, useAccount, useReadContract } from "wagmi";
 import {
   getAllowance,
+  getPoolBasicData,
   handleApproval,
   handleSwap,
 } from "../../api/contracts/actions";
@@ -17,6 +18,8 @@ import useWalletHook from "../../api/hooks/useWallet";
 import TokenListModal from "../Common/TokenListModal";
 import AmountContainer from "../Common/AmountContainer";
 import ButtonWithDropdown from "../Common/ButtonWithDropdown";
+import { contractAddresses } from "../../api/contracts/address";
+import BorrowLoader from "../Loader/BorrowLoader";
 
 export default function Card() {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
@@ -25,10 +28,9 @@ export default function Card() {
     token1: "0",
     token2: "0",
   });
-  const { address, isConnected } = useWalletHook();
+  const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState("");
   const [receiveAmount, setReceiveAmount] = useState("");
-
   const [lendingTokens, setLendingTokens] = useState<Array<any>>([]);
   const [borrowingTokens, setBorrowingTokens] = useState<Array<any>>([]);
   const [lendToken, setLendToken] = useState({ address: "" });
@@ -36,13 +38,14 @@ export default function Card() {
     isOpen: false,
     operation: "",
   });
+  const [isBorrowProgressModal, setIsBorrowProgressModal] =
+    useState<boolean>(false);
   const [selectedTokens, setSelectedTokens] = useState<any>({
     lend: null,
     borrow: null,
     receive: null,
   });
-  const [selectedLTV, setSelectedLTV] = useState<number>(0);
-  console.log("selectedTokens", selectedTokens);
+  const [selectedLTV, setSelectedLTV] = useState<number>(50);
 
   const handleLendAmount = (amount: string) => {
     setLendAmount(amount);
@@ -56,11 +59,16 @@ export default function Card() {
     setSelectedLTV(value);
   };
 
-  const handleSelectLendToken = (token: string) => {
-    const lendToken = tokenList[token.toUpperCase() as keyof typeof tokenList];
-    setLendToken(lendToken);
-    console.log(lendToken, token, tokenList);
+  const handleOpenTokenList = (operation: string) => {
+    setTokenListStatus({ isOpen: true, operation });
+  };
 
+  // const handleSelectLendToken = (token: string) => {
+  //   const lendToken = tokenList[token.toUpperCase() as keyof typeof tokenList];
+  //   setLendToken(lendToken);
+  //   console.log(lendToken, token, tokenList);
+
+  const handleSelectLendToken = (token: string) => {
     const tokenPools = Object.values(poolList).filter((pool) => {
       if (pool.token0.address == token || pool.token1.address == token) {
         return true;
@@ -78,11 +86,34 @@ export default function Card() {
     setBorrowingTokens(borrowTokens);
   };
 
-  const handleSelectBorrowToken = (token: string) => {
+  // const handleSwapTransaction = async () => {
+  //   const hash = await handleSwap(lendAmount);
+  // };
+  // const checkAllowance = async () => {
+  //   const token1Allowance = await getAllowance(
+  //     "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
+  //     address
+  //   );
+  //   const token2Allowance = await getAllowance(
+  //     "0x172370d5cd63279efa6d502dab29171933a610af",
+  //     address
+  //   );
+
+  //   console.log(token1Allowance, token2Allowance);
+  //   setTokenAllowance({
+  //     token1: fixed2Decimals(token1Allowance).toString(),
+  //     token2: token2Allowance,
+  //   });
+  // };
+
+  // const handleOpenTokenList = (operation: string) => {
+  //   setTokenListStatus({ isOpen: true, operation });
+  // };
+  const handleSelectBorrowToken = async (token: string) => {
     const borrowToken =
       tokenList[token.toUpperCase() as keyof typeof tokenList];
 
-    const tokenPools = Object.values(poolList).find((pool) => {
+    const tokenPool = Object.values(poolList).find((pool) => {
       if (
         (pool.token1.address == token &&
           pool.token0.address == lendToken?.address) ||
@@ -93,7 +124,31 @@ export default function Card() {
       }
     });
 
-    console.log(borrowToken, tokenPools);
+    console.log(borrowToken, tokenPool);
+    const contracts =
+      contractAddresses[chain?.id as keyof typeof contractAddresses];
+    const data = await getPoolBasicData(
+      contracts,
+      tokenPool.pool,
+      tokenPool,
+      address
+    );
+  };
+  const getOprationToken = () => {
+    if (tokenListStatus.operation === "lend") {
+      return lendingTokens;
+    } else if (tokenListStatus.operation === "borrow") {
+      return borrowingTokens;
+    } else if (tokenListStatus.operation === "receive") {
+      // TODO: return receive tokens
+      return [];
+    } else {
+      return [];
+    }
+  };
+
+  const handleCloseTokenList = () => {
+    setTokenListStatus({ isOpen: false, operation: "" });
   };
 
   const handleAllowance = async (tokenAddress: string) => {
@@ -102,6 +157,7 @@ export default function Card() {
 
   const handleSwapTransaction = async () => {
     const hash = await handleSwap(lendAmount);
+    setIsBorrowProgressModal(true);
   };
   const checkAllowance = async () => {
     const token1Allowance = await getAllowance(
@@ -116,30 +172,14 @@ export default function Card() {
     console.log(token1Allowance, token2Allowance);
     setTokenAllowance({
       token1: fixed2Decimals(token1Allowance).toString(),
-      token2: token2Allowance,
+      token2: String(token2Allowance),
     });
   };
 
-  const handleOpenTokenList = (operation: string) => {
-    setTokenListStatus({ isOpen: true, operation });
-  };
-
-  const handleCloseTokenList = () => {
-    setTokenListStatus({ isOpen: false, operation: "" });
-  };
-
-  const getOprationToken = () => {
-    if (tokenListStatus.operation === "lend") {
-      return lendingTokens;
-    } else if (tokenListStatus.operation === "borrow") {
-      return borrowingTokens;
-    } else if (tokenListStatus.operation === "receive") {
-      // TODO: return receive tokens
-      return [];
-    } else {
-      return [];
-    }
-  };
+  useEffect(() => {
+    const tokensArray = Object.values(tokenList);
+    setLendingTokens(tokensArray);
+  }, [unilendV2Data]);
 
   const handleTokenSelection = (token: any) => {
     setSelectedTokens({
@@ -194,59 +234,15 @@ export default function Card() {
           <Slider
             value={selectedLTV}
             defaultValue={50}
-            onChange={() => handleLTV}
+            onChange={(value) => handleLTV(value)}
             min={5}
-            max={80}
+            max={75}
             className='range_slider'
           />
         </div>
-        <div className='button_container'>
-          {Number(lendAmount) > 0 ? (
-            Number(lendAmount) > Number(tokenAllowance.token1) ||
-            Number(lendAmount) > Number(tokenAllowance.token2) ? (
-              <>
-                <Button
-                  className={`${
-                    Number(lendAmount) < Number(tokenAllowance.token1)
-                      ? "approved"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    handleAllowance(
-                      "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a"
-                    )
-                  }
-                >
-                  {Number(lendAmount) < Number(tokenAllowance.token1)
-                    ? "Approved"
-                    : "Approve 1"}
-                </Button>
-                <Button
-                  className={`${
-                    Number(lendAmount) < Number(tokenAllowance.token2)
-                      ? "approved"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    handleAllowance(
-                      "0x172370d5cd63279efa6d502dab29171933a610af"
-                    )
-                  }
-                >
-                  {Number(lendAmount) < Number(tokenAllowance.token2)
-                    ? "Approved"
-                    : "Approve 2"}
-                </Button>
-              </>
-            ) : (
-              <Button onClick={handleSwapTransaction}>Borrow</Button>
-            )
-          ) : (
-            <Button className='primary_btn' disabled>
-              Enter Amount
-            </Button>
-          )}
-        </div>
+        <Button className='primary_btn' onClick={handleSwapTransaction}>
+          Borrow
+        </Button>
       </div>
       <Modal
         className='antd_modal_overlay'
@@ -260,6 +256,16 @@ export default function Card() {
           tokenList={getOprationToken()}
           onSelectToken={(token: any) => handleTokenSelection(token)}
         />
+      </Modal>
+      <Modal
+        className='antd_popover_content'
+        centered
+        onCancel={() => setIsBorrowProgressModal(false)}
+        open={isBorrowProgressModal}
+        footer={null}
+        closable={false}
+      >
+        <BorrowLoader />
       </Modal>
     </div>
   );

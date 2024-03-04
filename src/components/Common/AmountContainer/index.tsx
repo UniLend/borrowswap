@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./index.scss";
 import { Input, Button } from "antd";
 import ButtonWithDropdown from "../ButtonWithDropdown";
@@ -22,14 +22,26 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
   balance,
   className,
 }) => {
+  const [inputValue, setInputValue] = useState(value);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const parsedValue = value === "." ? "0" + value : value;
+    if (/^[.]?[0-9]*[.]?[0-9]*$/.test(parsedValue) || parsedValue === "") {
+      setInputValue(parsedValue);
+      onChange({
+        target: { value: parsedValue },
+      } as React.ChangeEvent<HTMLInputElement>);
+    }
+  };
+
   return (
     <div className={`amount_container ${className}`}>
       <div className='amount_container_left amount_div'>
         <Input
-          value={value}
+          value={inputValue}
           placeholder='0'
-          // type='number'
-          onChange={onChange}
+          onChange={handleInputChange} // Use the custom handler
         />
         <Button onClick={onMaxClick} className='max_btn' type='text'>
           Max
@@ -43,6 +55,7 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
   );
 };
 
+// Default Props
 AmountContainer.defaultProps = {
   value: "",
   onChange: () => console.log("onChange"),

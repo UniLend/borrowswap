@@ -25,6 +25,8 @@ function App() {
   });
 
   useEffect(() => {
+    console.log("data", data);
+
     if (chain?.id) {
       loadPoolsWithGraph(data, chain);
     }

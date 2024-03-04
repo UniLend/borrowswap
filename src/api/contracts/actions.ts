@@ -1,7 +1,7 @@
 import { borrowswapABI, erc20Abi, helperAbi } from "./abi";
 import { readContracts, writeContract } from "wagmi/actions";
 import { getEtherContract } from "./ethers";
-import { decimal2Fixed, fixed2Decimals, fromBigNumber } from "../../helpers";
+import { add, decimal2Fixed, div, fixed2Decimals, fromBigNumber, greaterThan, mul, toAPY } from '../../helpers/index';
 import { readContract } from '@wagmi/core'
 import { wagmiConfig } from "../../main";
 
@@ -63,7 +63,9 @@ export const getAllowance = async (
     "0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E"
   );
 
-  return fromBigNumber(allowance);
+  const bal = await instance.balanceOf(user);
+
+  return { allowance: fromBigNumber(allowance), balance: fromBigNumber(bal)};
 };
 
 
@@ -72,51 +74,233 @@ export const getPoolData = (poolAddress: string) => {
 }
 
 
-export const getPoolBasicData = async (
-  helperContract: any,
+export const  getPoolBasicData = async (
+  contracts: any,
   poolAddress: string,
   poolData: any,
-  poolTokens: any,
+  userAddress: any
 ) => {
-  let pool;
-  if (helperContract) {
+
+    
+
+  let pool = {...poolData};
+  if (true) {
     try {
-      const instance = getEtherContract(helperContract, helperAbi )
+      
+      const instance = await getEtherContract(contracts.helperAddress, helperAbi )
+
+         const [token0, token1] = await Promise.all([getAllowance(pool.token0.address, userAddress), getAllowance(pool.token1.address, userAddress)]);
 
       
-      // const data = await instance.getPoolData(poolAddress);
-      // pool = {
-      //   ...poolData,
-      //   _address: poolAddress,
-      //   ltv: Number(Number(fromBigNumber(data.ltv)) - 0.01),
-      //   lb: fromBigNumber(data.lb),
-      //   rf: fromBigNumber(data.rf),
-      //   token0: {
-      //     _symbol: data._symbol0,
-      //     _address: data._token0,
-      //     _decimals: fromBigNumber(data._decimals0),
-      //     liquidity: fromBigNumber(data._token0Liquidity),
-      //     liquidityFixed: fixed2Decimals(
-      //       data._token0Liquidity,
-      //       data._decimals0,
-      //     ),
-      //     ...poolTokens.token0,
-      //   },
-      //   token1: {
-      //     _symbol: data._symbol1,
-      //     _address: data._token1,
-      //     _decimals: fromBigNumber(data._decimals1),
-      //     liquidity: fromBigNumber(data._token1Liquidity),
-      //     liquidityFixed: fixed2Decimals(
-      //       data._token1Liquidity,
-      //       data._decimals1,
-      //     ),
-      //     ...poolTokens.token1,
-      //   },
-      // };
+         console.log(token0, token1);
+         
+        //  pool.token0.;
+        //  pool.token0.;
+   
+        //  pool.token1.balance = fromBigNumber(token1.balance);
+        //  pool.token1.balanceFixed = fixed2Decimals(
+        //   token1.balance,
+        //    poolData.token1.decimals,
+        //  );
+        //  pool.token0.allowance = fromBigNumber(token0.allowance);
+        //  pool.token0.allowanceFixed = fixed2Decimals(
+        //   token0.allowance,
+        //    poolData.token0.decimals,
+        //  );
+   
+        //  pool.token1.allowance = fromBigNumber(token1.allowance);
+        //  pool.token1.allowanceFixed = fixed2Decimals(
+        //   token1.allowance,
+        //    poolData.token1.decimals,
+        //  );
+   
+         
+         
+        const data = await instance.getPoolFullData(
+          contracts.positionAddress,
+           poolAddress,
+           userAddress
+        )
+      
+
+
+      const totLiqFull0 = add(
+        div(mul(pool.token0.liquidity, 100), pool.rf),
+        fromBigNumber(data._totalBorrow0),
+      );
+
+      const totLiqFull1 = add(
+        div(mul(pool.token1.liquidity, 100), pool.rf),
+        fromBigNumber(data._totalBorrow1),
+      );
+      pool = {
+        ...pool,
+        token0: {
+          ...pool?.token0,
+          balance : fromBigNumber(token0.balance),
+          balanceFixed : fixed2Decimals(
+              token0.balance,
+               pool.token0.decimals,
+             ),
+            allowance: fromBigNumber(token0.allowance),
+            allowanceFixed: fixed2Decimals(
+              token0.allowance,
+              pool.token0.decimals
+            ) ,
+          borrowBalance: fromBigNumber(data._borrowBalance0),
+          borrowBalanceFixed: fixed2Decimals(
+            data._borrowBalance0,
+            pool.token0.decimals,
+          ),
+          borrowShare: fromBigNumber(data._borrowShare0),
+          borrowSharefixed: fixed2Decimals(
+            data._borrowShare0,
+            poolData.token0.decimals,
+          ),
+
+          healthFactor18: fromBigNumber(data._healthFactor0),
+          healthFactorFixed: fixed2Decimals(data._healthFactor0, 18),
+          healthFactor: greaterThan(
+            fixed2Decimals(data._healthFactor0, 18),
+            100,
+          )
+            ? '100'
+            : Number(fixed2Decimals(data._healthFactor0, 18)).toFixed(2),
+
+          interest: fromBigNumber(data._interest0),
+          interestFixed: fixed2Decimals(
+            data._interest0,
+            pool.token0.decimals,
+          ),
+
+          lendBalance: fromBigNumber(data._lendBalance0),
+          lendBalanceFixed: fixed2Decimals(
+            data._lendBalance0,
+            pool.token0.decimals,
+          ),
+
+          lendShare: fromBigNumber(data._lendShare0),
+          lendShareFixed: fixed2Decimals(
+            data._lendShare0,
+            pool.token0.decimals            ,
+          ),
+
+          totalBorrow: fromBigNumber(data._totalBorrow0),
+          totalBorrowFixed: fixed2Decimals(
+            data._totalBorrow0,
+            pool.token0.decimals,
+          ),
+
+          totalBorrowShare: fromBigNumber(data._totalBorrowShare0),
+          totalBorrowShareFixed: fixed2Decimals(
+            data._totalBorrowShare0,
+            pool.token0.decimals,
+          ),
+
+          totalLendShare: fromBigNumber(data._totalLendShare0),
+          totalLendShareFixed: fixed2Decimals(
+            data._totalLendShare0,
+            pool.token0.decimals,
+          ),
+          totalLiqFull: totLiqFull0,
+          utilRate: Number(
+            mul(div(fromBigNumber(data._totalBorrow0), totLiqFull0), 100),
+          ).toFixed(2),
+          borrowAPY: toAPY(
+            fixed2Decimals(data._interest0, poolData.token0.decimals),
+          ),
+
+          lendAPY: div(
+            toAPY(fixed2Decimals(data._interest0, poolData.token0.decimals)),
+            div(totLiqFull0, fromBigNumber(data._totalBorrow0)),
+          ),
+        },
+        token1: {
+          ...poolData?.token1,
+          balance : fromBigNumber(token1.balance),
+          balanceFixed : fixed2Decimals(
+              token1.balance,
+               pool.token0.decimals,
+             ),
+            allowance: fromBigNumber(token1.allowance) ,
+            allowanceFixed: fixed2Decimals(
+              token1.allowance,
+              pool.token0.decimals
+            ).toString() ,
+          borrowBalance: fromBigNumber(data._borrowBalance1),
+          borrowBalanceFixed: fixed2Decimals(
+            data._borrowBalance1,
+            poolData.token1.decimals,
+          ),
+
+          borrowShare: fromBigNumber(data._borrowShare1),
+          borrowSharefixed: fixed2Decimals(
+            data._borrowShare1,
+            poolData.token1.decimals,
+          ),
+
+          healthFactor18: fromBigNumber(data._healthFactor1),
+          healthFactorFixed: fixed2Decimals(data._healthFactor1, 18),
+          healthFactor: greaterThan(
+            fixed2Decimals(data._healthFactor1, 18),
+            100,
+          )
+            ? '100'
+            : Number(fixed2Decimals(data._healthFactor1, 18)).toFixed(2),
+
+          interest: fromBigNumber(data._interest1),
+          interestFixed: fixed2Decimals(
+            data._interest0,
+            poolData.token0.decimals,
+          ),
+
+          lendBalance: fromBigNumber(data._lendBalance1),
+          lendBalanceFixed: fixed2Decimals(
+            data._lendBalance1,
+            poolData.token1.decimals,
+          ),
+
+          lendShare: fromBigNumber(data._lendShare1),
+          lendShareFixed: fixed2Decimals(
+            data._lendShare1,
+            poolData.token1.decimals,
+          ),
+
+          totalBorrow: fromBigNumber(data._totalBorrow1),
+          totalBorrowFixed: fixed2Decimals(
+            data._totalBorrow1,
+            poolData.token1.decimals,
+          ),
+
+          totalBorrowShare: fromBigNumber(data._totalBorrowShare1),
+          totalBorrowShareFixed: fixed2Decimals(
+            data._totalBorrowShare1,
+            poolData.token1.decimals,
+          ),
+
+          totalLendShare: fromBigNumber(data._totalLendShare1),
+          totalLendShareFixed: fixed2Decimals(
+            data._totalLendShare1,
+            poolData.token1.decimals,
+          ),
+          totalLiqFull: totLiqFull1,
+          utilRate: Number(
+            mul(div(fromBigNumber(data._totalBorrow1), totLiqFull1), 100),
+          ).toFixed(4),
+          borrowAPY: toAPY(
+            fixed2Decimals(data._interest1, poolData.token1.decimals),
+          ),
+          lendAPY: div(
+            toAPY(fixed2Decimals(data._interest1, poolData.token1.decimals)),
+            div(totLiqFull1, fromBigNumber(data._totalBorrow1)),
+          ),
+        },
+      }
+
+      console.log("poolData", pool, poolData);
       return pool;
     } catch (error) {
-      // console.error(error);
+       console.error(error);
       throw error;
     }
   }
