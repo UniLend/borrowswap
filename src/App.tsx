@@ -23,6 +23,8 @@ const {data, isLoading, refetch} = useQuery({queryKey: ['pools'], queryFn:  asyn
 
 
 useEffect(() => {
+  console.log("data", data);
+  
 if(chain?.id){
   loadPoolsWithGraph( data, chain)
 }

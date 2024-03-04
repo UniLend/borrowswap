@@ -1,7 +1,10 @@
 import { ethers } from 'ethers';
+import BigNumber from 'bignumber.js';
 import { getTokenPrice } from '../api/axios/calls';
 import {store} from '../states/store'
 import { setPools, setTokens } from '../states/unilendV2Reducer';
+
+
 export function fromBigNumber(bignumber: any) {
     return ethers.BigNumber.from(bignumber).toString();
   }
@@ -20,8 +23,7 @@ export function fromBigNumber(bignumber: any) {
     const amt = amount?._hex ? amount?._hex : amount;
     const dec = fromBigNumber(decimals);
 
-    
-    return  (Number((amt)) / (10 ** Number(dec)));
+     return  (Number((amt)) / (10 ** Number(dec)));
   }
 
   export const checkOpenPosition = (position: any)  => {
@@ -111,3 +113,67 @@ export function fromBigNumber(bignumber: any) {
       
     }
   };
+  
+  export function add(amount: any, amount1: any) {
+    return new BigNumber(amount).plus(amount1).toFixed();
+  }
+
+  export function sub(amount: any, amount1: any) {
+    return new BigNumber(amount).minus(amount1).toFixed();
+  }
+  
+  export function div(amount: any, amount1: any) {
+    return new BigNumber(amount).dividedBy(amount1).toFixed();
+  }
+  
+  export function mul(amount: any, amount1: any) {
+    return new BigNumber(amount).multipliedBy(amount1).toFixed();
+  }
+
+  export function greaterThan(amount: any, amount1: any) {
+    return new BigNumber(amount).isGreaterThan(amount1);
+  }
+
+  export function toAPY(n: any) {
+    return numberFormat(mul(n, 4 * 60 * 24 * 365), 2);
+  }
+
+  export function count_leading_zeros(x: any) {
+    let splitted = x.split('');
+    let i = 0;
+    while (splitted.shift() == 0) {
+      i += 1;
+    }
+    return i;
+  }
+  export function numberFormat(x: any, po: any) {
+    var parts = x.toString().split('.');
+    if (parts.length > 1) {
+      if (parseInt(parts[0]) > 1000) {
+        parts[1] = parts[1].substring(0, 0);
+      } else if (parseInt(parts[0]) > 100) {
+        parts[1] = parts[1].substring(0, 2);
+      } else if (parseInt(parts[0]) > 10) {
+        parts[1] = parts[1].substring(0, 3);
+      } else if (parseInt(parts[0]) > 0) {
+        parts[1] = parts[1].substring(0, 4);
+      } else {
+        var startingZeros = count_leading_zeros(parts[1]);
+        parts[1] = parts[1].substring(0, startingZeros + 5);
+      }
+    }
+  
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  
+    if (parts[1]) {
+      if (po > 0) {
+        parts[1] = parts[1].substring(0, po);
+      } else if (parts[1].length == 1) {
+        parts[1] = parts[1] + '0';
+      }
+      return parts.join('.');
+    } else {
+      parts[1] = '00';
+      return parts.join('.');
+    }
+  }

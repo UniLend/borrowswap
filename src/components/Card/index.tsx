@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { erc20Abi } from "viem";
 import { useWriteContract, useAccount, useReadContract } from "wagmi";
-import {getAllowance, handleApproval, handleSwap} from '../../api/contracts/actions'
+import {getAllowance, getPoolBasicData, handleApproval, handleSwap} from '../../api/contracts/actions'
 import { fixed2Decimals } from "../../helpers";
 import type { UnilendV2State } from '../../states/store';
 import { wagmiConfig } from "../../main";
 import { useSelector, useDispatch } from 'react-redux'
 import "./index.scss";
 import useWalletHook from "../../api/hooks/useWallet";
+import { contractAddresses } from "../../api/contracts/address";
 
 export default function Card() {
 const unilendV2Data = useSelector((state: UnilendV2State)=> state.unilendV2)
 const { tokenList, poolList} = unilendV2Data;
 const [ tokenAllowance, setTokenAllowance ] = useState({ token1: '0', token2: '0' })
-const { address , isConnected} = useWalletHook()
+const { address , isConnected, chain} = useWalletHook()
 const [lendAmount, setLendAmount] = useState('')
 
 const [lendingTokens, setLendingTokens] = useState<Array<any>>([])
@@ -23,6 +24,7 @@ const [lendToken, setLendToken] = useState({address: ''})
 const handleLendAmount = (amount: string) => {
  setLendAmount((amount)  )
 }
+
 
 
 
@@ -52,26 +54,28 @@ setBorrowingTokens(borrowTokens)
 
 }
 
-const handleSelectBorrowToken = (token: string) => {
+const handleSelectBorrowToken = async (token: string) => {
   const borrowToken = tokenList[token.toUpperCase() as keyof typeof tokenList]
 
-  const tokenPools = Object.values(poolList).find((pool) => {
+  const tokenPool = Object.values(poolList).find((pool) => {
     if((pool.token1.address == token && pool.token0.address == lendToken?.address) || (pool.token0.address == token && pool.token1.address == lendToken?.address) ){
       return true
      }
 })
 
-console.log( borrowToken, tokenPools  );
+console.log( borrowToken, tokenPool  );
+const contracts = contractAddresses[chain?.id as keyof typeof contractAddresses ]
+const data = await getPoolBasicData(contracts, tokenPool.pool, tokenPool , address)
 
 
-}
+}   
 
 const handleAllowance = async (tokenAddress: string) => {
 const hash = await handleApproval(tokenAddress, address, lendAmount)
-
+ 
 }
 
-const handleSwapTransaction = async () => {
+const handleSwapTransaction = async ()  => {
   const hash = await handleSwap(lendAmount)
 }
 const checkAllowance = async () => {
@@ -81,7 +85,7 @@ const checkAllowance = async () => {
   console.log(token1Allowance, token2Allowance);
   setTokenAllowance({
     token1: fixed2Decimals(token1Allowance).toString(),
-    token2: token2Allowance
+    token2: String(token2Allowance)
   })
   
 }
@@ -133,15 +137,15 @@ setLendingTokens(tokensArray)
             </select>
         </div>
         <div className="button_container">
-          {
+          {/* {
             (Number(lendAmount)> 0 )  ? (Number(lendAmount) > Number(tokenAllowance.token1) || (Number(lendAmount) > Number(tokenAllowance.token2)))? <>
 
             <button className={`${Number(lendAmount) < Number(tokenAllowance.token1) ? 'approved': ''}`} onClick={()=>handleAllowance('0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a')}  >{Number(lendAmount) < Number(tokenAllowance.token1) ? 'Approved': 'Approve 1' }</button>
             <button className={`${Number(lendAmount) < Number(tokenAllowance.token2) ? 'approved': ''}`} onClick={()=>handleAllowance('0x172370d5cd63279efa6d502dab29171933a610af')} >{Number(lendAmount) < Number(tokenAllowance.token2) ? 'Approved': 'Approve 2' }</button>
            </>: <button onClick={handleSwapTransaction} >Borrow</button>  :
             <button disabled >Enter Amount</button>   
-          }
-           
+          } */}
+           <button onClick={handleSwapTransaction} >Borrow</button>
         </div>
       </div>
     </div>
