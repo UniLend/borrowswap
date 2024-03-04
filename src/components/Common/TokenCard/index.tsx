@@ -27,6 +27,7 @@ const TokenCard: React.FC<TokenCardProps> = ({ token, onClick }) => {
           <span>{token.symbol}</span>
         </div>
       </div>
+      {/* TODO: update token pool data */}
       <div className='pool_details'>
         <div className='pool_logo'>
           <img src={token.logo} alt='' />

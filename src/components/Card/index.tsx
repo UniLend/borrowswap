@@ -86,29 +86,6 @@ export default function Card() {
     setBorrowingTokens(borrowTokens);
   };
 
-  // const handleSwapTransaction = async () => {
-  //   const hash = await handleSwap(lendAmount);
-  // };
-  // const checkAllowance = async () => {
-  //   const token1Allowance = await getAllowance(
-  //     "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
-  //     address
-  //   );
-  //   const token2Allowance = await getAllowance(
-  //     "0x172370d5cd63279efa6d502dab29171933a610af",
-  //     address
-  //   );
-
-  //   console.log(token1Allowance, token2Allowance);
-  //   setTokenAllowance({
-  //     token1: fixed2Decimals(token1Allowance).toString(),
-  //     token2: token2Allowance,
-  //   });
-  // };
-
-  // const handleOpenTokenList = (operation: string) => {
-  //   setTokenListStatus({ isOpen: true, operation });
-  // };
   const handleSelectBorrowToken = async (token: string) => {
     const borrowToken =
       tokenList[token.toUpperCase() as keyof typeof tokenList];
@@ -265,7 +242,8 @@ export default function Card() {
         footer={null}
         closable={false}
       >
-        <BorrowLoader />
+        {/* TODO: updaet spend ans swap tokens here */}
+        <BorrowLoader spendToken={"UFT"} SwapToken={"UFT"} progress={25} />
       </Modal>
     </div>
   );

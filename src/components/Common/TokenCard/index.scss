@@ -11,6 +11,7 @@
   justify-content: space-between;
   align-items: center;
   border-radius: 12px;
+  gap: 4px;
 
   .tokens_details {
     flex: 0.7;
@@ -93,7 +94,7 @@
     }
 
     .pool_details {
-      max-width: 64px;
+      max-width: 70px;
       .pool_logo {
         img {
           width: 16px;
