@@ -1,9 +1,26 @@
-import { ethers } from "ethers";
+import { ethers,  BigNumber as bigNumber } from "ethers";
 import BigNumber from "bignumber.js";
 import { getTokenPrice } from "../api/axios/calls";
 import { store } from "../states/store";
 import { setPools, setTokens } from "../states/unilendV2Reducer";
 import { getTokenSymbol } from "../utils";
+
+
+
+const READABLE_FORM_LEN = 4
+
+export function fromReadableAmount(
+  amount: number,
+  decimals: number
+): bigNumber {
+  return ethers.utils.parseUnits(amount.toString(), decimals)
+}
+
+export function toReadableAmount(rawAmount: number, decimals: number): string {
+  return ethers.utils
+    .formatUnits(rawAmount, decimals)
+    .slice(0, READABLE_FORM_LEN)
+}
 
 export function fromBigNumber(bignumber: any) {
   return ethers.BigNumber.from(bignumber).toString();
