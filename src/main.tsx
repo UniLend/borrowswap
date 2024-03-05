@@ -4,18 +4,63 @@ import '@rainbow-me/rainbowkit/styles.css';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-
-import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { injected} from 'wagmi/connectors'
+import infinityLogo from "./assets/infinity-logo.svg"
+// import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import {
+  RainbowKitProvider,
+  getDefaultWallets,
+  getDefaultConfig,
+} from "@rainbow-me/rainbowkit";
 import { WagmiProvider, http } from 'wagmi';
-import { arbitrum, base, mainnet, optimism, polygon, zora } from 'wagmi/chains';
+import { arbitrum, base, mainnet, optimism, polygon, zora, polygonMumbai } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { store } from './states/store'
 import { Provider } from 'react-redux'
+import { myCustomTheme } from "./theme/customWalletTheme";
+import {
+  rabbyWallet,
+  trustWallet,
+  ledgerWallet,
+  okxWallet,
+  coin98Wallet
+} from "@rainbow-me/rainbowkit/wallets";
+
+const { wallets } = getDefaultWallets();
+
+// const infinityWallet = ({ chains, projectId }) => ({
+//   id: 'Infinity',
+//   name: 'Infinity Wallet',
+//   iconUrl: infinityLogo,
+//   iconBackground: '#fff',
+//   createConnector: () => {
+//     const connector = new injected({
+//       chains: chains,
+//       options: {
+//         name: 'Injected',
+//         shimDisconnect: true,
+//       },
+//     });
+//     return {
+//       connector,
+//     };
+//   },
+// });
+
+
+
 
 export const wagmiConfig = getDefaultConfig({
   appName: 'BorrowSwap',
   projectId: 'YOUR_PROJECT_ID',
-  chains: [mainnet, polygon, optimism, arbitrum, base, zora],
+  chains: [mainnet, polygon, arbitrum, polygonMumbai],
+  wallets: [
+    ...wallets,
+    {
+      groupName: "Recommended",
+      wallets: [rabbyWallet, trustWallet, okxWallet, coin98Wallet],
+    },
+  ],
   transports: {
     [mainnet.id]: http(),
     [polygon.id]: http(),
@@ -29,7 +74,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <Provider store={store}>
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider>
+        <RainbowKitProvider modalSize="compact" theme={myCustomTheme}>
           <App />
         </RainbowKitProvider>
       </QueryClientProvider>
