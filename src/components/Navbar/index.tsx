@@ -304,13 +304,13 @@ console.log(availableChain)
                     );
                   }
 
-                  // if (chain && chain.unsupported) {
-                  //   return (
-                  //     <button onClick={openChainModal} type="button">
-                  //       Wrong network
-                  //     </button>
-                  //   );
-                  // }
+                  if (chain && chain.unsupported) {
+                    return (
+                      <button onClick={openChainModal} type="button">
+                        Wrong network
+                      </button>
+                    );
+                  }
 
                   return (
                     <div
