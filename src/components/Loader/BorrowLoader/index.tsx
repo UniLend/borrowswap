@@ -6,7 +6,7 @@ import "./index.scss";
 interface BorrowLoaderProps {
   spendToken: string;
   SwapToken: string;
-  progress: number;
+  progress: 1 | 2 | 3 | 4 | 5;
 }
 
 const BorrowLoader: React.FC<BorrowLoaderProps> = ({
@@ -25,8 +25,11 @@ const BorrowLoader: React.FC<BorrowLoaderProps> = ({
   };
 
   const rangeStyle = {
-    width: `${progress}%`,
-    background: `linear-gradient(to right, var(--main-light) ${progress}%, var(--button-border) ${progress}%)`,
+    width: `${progress * 20}%`,
+    background: `linear-gradient(to right, var(--main-light) ${
+      progress * 20
+    }%, var(--button-border) ${progress * 20}%)`,
+    transition: "width 0.5s ease",
   };
 
   return (
@@ -50,7 +53,7 @@ const BorrowLoader: React.FC<BorrowLoaderProps> = ({
 BorrowLoader.defaultProps = {
   spendToken: "TOKEN1",
   SwapToken: "TOKEN2",
-  progress: 20,
+  progress: 1,
 };
 
 export default BorrowLoader;

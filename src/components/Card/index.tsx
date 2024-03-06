@@ -21,8 +21,16 @@ import ButtonWithDropdown from "../Common/ButtonWithDropdown";
 import { contractAddresses } from "../../api/contracts/address";
 import BorrowLoader from "../Loader/BorrowLoader";
 
+enum ActiveOperation {
+  BRROW = "Borrow_Swap",
+  REPAY = "Swap_Repay",
+}
+
 export default function Card() {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
+  const [activeOperation, setActiveOperation] = useState<ActiveOperation>(
+    ActiveOperation.REPAY
+  );
   const { tokenList, poolList } = unilendV2Data;
   const [tokenAllowance, setTokenAllowance] = useState({
     token1: "0",
@@ -61,6 +69,10 @@ export default function Card() {
 
   const handleOpenTokenList = (operation: string) => {
     setTokenListStatus({ isOpen: true, operation });
+  };
+
+  const handleSwitchOperation = (operation: ActiveOperation) => {
+    setActiveOperation(operation);
   };
 
   // const handleSelectLendToken = (token: string) => {
@@ -177,49 +189,108 @@ export default function Card() {
   return (
     <div className='swap_card_component'>
       <div className='swap_card'>
-        <p className='paragraph06 label'>You Pay</p>
-        <AmountContainer
-          balance='125.25'
-          value={lendAmount}
-          onChange={(e: any) => handleLendAmount(e.target.value)}
-          onMaxClick={() => console.log("Max Clicked")}
-          buttonText={selectedTokens?.lend?.symbol}
-          onClick={() => handleOpenTokenList("lend")}
-        />
-        <div className='swap_route'>
-          <p className='paragraph06 '>You borrow</p>
-          <ButtonWithDropdown
-            buttonText={selectedTokens?.borrow?.symbol}
-            onClick={() => handleOpenTokenList("borrow")}
-          />
+        <div className='tab_switcher'>
+          <Button
+            onClick={() => handleSwitchOperation(ActiveOperation.BRROW)}
+            className={`tab_btn ${
+              activeOperation === "Borrow_Swap" ? "active" : ""
+            }`}
+          >
+            Borrow & Swap
+          </Button>
+          <Button
+            onClick={() => handleSwitchOperation(ActiveOperation.REPAY)}
+            className={`tab_btn ${
+              activeOperation === "Swap_Repay" ? "active" : ""
+            }`}
+          >
+            Swap & Repay
+          </Button>
         </div>
         {/*  */}
-        <p className='paragraph06 label you_receive'>You Receive</p>
-        <AmountContainer
-          balance='125.25'
-          value={receiveAmount}
-          onChange={(e: any) => handleReceiveAmount(e.target.value)}
-          onMaxClick={() => console.log("Max Clicked")}
-          buttonText={selectedTokens?.receive?.symbol}
-          onClick={() => handleOpenTokenList("receive")}
-        />
-        <div className='range_container'>
-          <div>
-            <p className='paragraph06 '>New LTV</p>
-            <p className='paragraph06'>{selectedLTV}%/75%</p>
-          </div>
-          <Slider
-            value={selectedLTV}
-            defaultValue={50}
-            onChange={(value) => handleLTV(value)}
-            min={5}
-            max={75}
-            className='range_slider'
-          />
-        </div>
-        <Button className='primary_btn' onClick={handleSwapTransaction}>
-          Borrow
-        </Button>
+        {activeOperation === ActiveOperation.BRROW && (
+          <>
+            <p className='paragraph06 label'>You Pay</p>
+            <AmountContainer
+              balance='125.25'
+              value={lendAmount}
+              onChange={(e: any) => handleLendAmount(e.target.value)}
+              onMaxClick={() => console.log("Max Clicked")}
+              // buttonText={selectedTokens?.lend?.symbol}
+              buttonText={"USDC"}
+              onClick={() => handleOpenTokenList("lend")}
+              isShowMaxBtn
+            />
+            <div className='swap_route'>
+              <p className='paragraph06 '>You borrow</p>
+              <ButtonWithDropdown
+                buttonText={selectedTokens?.borrow?.symbol}
+                onClick={() => handleOpenTokenList("borrow")}
+                className={"transparent_btn"}
+              />
+            </div>
+            <p className='paragraph06 label'>You Receive</p>
+            <AmountContainer
+              balance='125.25'
+              value={receiveAmount}
+              onChange={(e: any) => handleReceiveAmount(e.target.value)}
+              onMaxClick={() => console.log("Max Clicked")}
+              buttonText={selectedTokens?.receive?.symbol}
+              onClick={() => handleOpenTokenList("receive")}
+            />
+            <div className='range_container'>
+              <div>
+                <p className='paragraph06 '>New LTV</p>
+                <p className='paragraph06'>{selectedLTV}%/75%</p>
+              </div>
+              <Slider
+                value={selectedLTV}
+                defaultValue={50}
+                onChange={(value) => handleLTV(value)}
+                min={5}
+                max={75}
+                className='range_slider'
+              />
+            </div>
+            <Button className='primary_btn' onClick={handleSwapTransaction}>
+              Borrow
+            </Button>
+          </>
+        )}
+        {activeOperation === ActiveOperation.REPAY && (
+          <>
+            <div className='swap_route'>
+              <p className='paragraph06 '>Select Pool</p>
+              <ButtonWithDropdown
+                buttonText={selectedTokens?.borrow?.symbol}
+                onClick={() => handleOpenTokenList("borrow")}
+                className={"transparent_btn"}
+              />
+            </div>
+            <p className='paragraph06 label'>You Pay</p>
+            <AmountContainer
+              balance='125.25'
+              value={lendAmount}
+              onChange={(e: any) => handleLendAmount(e.target.value)}
+              onMaxClick={() => console.log("Max Clicked")}
+              buttonText={selectedTokens?.lend?.symbol}
+              onClick={() => handleOpenTokenList("lend")}
+            />
+            <p className='paragraph06 label'>You Receive</p>
+            <AmountContainer
+              balance='125.25'
+              value={receiveAmount}
+              onChange={(e: any) => handleReceiveAmount(e.target.value)}
+              onMaxClick={() => console.log("Max Clicked")}
+              buttonText={selectedTokens?.receive?.symbol}
+              onClick={() => handleOpenTokenList("receive")}
+              isShowMaxBtn
+            />
+            <Button className='primary_btn' onClick={handleSwapTransaction}>
+              Borrow
+            </Button>
+          </>
+        )}
       </div>
       <Modal
         className='antd_modal_overlay'
@@ -243,7 +314,7 @@ export default function Card() {
         closable={false}
       >
         {/* TODO: updaet spend ans swap tokens here */}
-        <BorrowLoader spendToken={"UFT"} SwapToken={"UFT"} progress={25} />
+        <BorrowLoader spendToken={"UFT"} SwapToken={"UFT"} progress={2} />
       </Modal>
     </div>
   );

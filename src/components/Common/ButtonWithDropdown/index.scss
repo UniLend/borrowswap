@@ -22,7 +22,7 @@
     color: var(--always-white) !important;
 
     h2 {
-      margin: 0;
+      margin: 0 0 2px 0;
       padding-top: 2px;
       font-size: $font-size-xsm;
       color: var(--always-white);
@@ -57,6 +57,38 @@
   }
 }
 
+@media only screen and (max-width: 1440px) {
+  .btn_with_dropdown {
+    width: 108px;
+    height: 36px;
+    margin: 0;
+    .token_tab {
+      height: 36px;
+      padding: 4px 8px 4px 8px;
+
+      h2 {
+        font-size: $font-size-xxsm;
+      }
+
+      img {
+        width: 18px;
+        height: 18px;
+        margin: 6px 4px;
+      }
+    }
+
+    .dropdown {
+      height: 36px;
+      padding: 0 2px 0 0;
+
+      .dropicon {
+        width: 20px;
+        height: 10px;
+      }
+    }
+  }
+}
+
 @media ($mobile) {
   .btn_with_dropdown {
     width: 96px;
@@ -80,6 +112,7 @@
 
     .dropdown {
       height: 32px;
+      padding: 0 2px 0 0;
 
       .dropicon {
         width: 20px;

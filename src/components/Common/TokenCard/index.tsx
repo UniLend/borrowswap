@@ -23,8 +23,9 @@ const TokenCard: React.FC<TokenCardProps> = ({ token, onClick }) => {
       <div className='tokens_details'>
         <img src={token.logoURI || token.logo} alt='' />
         <div>
-          <h3>{token.name}</h3>
-          <span>{token.symbol}</span>
+          <h3>{token.symbol}</h3>
+          {/* <span>{token.symbol}</span> */}
+          <span>Borrow APY: 30%</span>
         </div>
       </div>
       {/* TODO: update token pool data */}
@@ -33,7 +34,7 @@ const TokenCard: React.FC<TokenCardProps> = ({ token, onClick }) => {
           <img src={token.logo} alt='' />
           <img src={token.logo} alt='' />
         </div>
-        <p className='paragraph03'>LTV: 30%</p>
+        <p className='paragraph06'>LTV: 30%</p>
       </div>
     </div>
   );
