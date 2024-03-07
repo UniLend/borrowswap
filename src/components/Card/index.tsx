@@ -9,7 +9,7 @@ import {
   handleApproval,
   handleSwap,
 } from "../../api/contracts/actions";
-import { fixed2Decimals } from "../../helpers";
+import { decimal2Fixed, fixed2Decimals } from "../../helpers";
 import type { UnilendV2State } from "../../states/store";
 import { wagmiConfig } from "../../main";
 import { useSelector, useDispatch } from "react-redux";
@@ -20,6 +20,8 @@ import AmountContainer from "../Common/AmountContainer";
 import ButtonWithDropdown from "../Common/ButtonWithDropdown";
 import { contractAddresses } from "../../api/contracts/address";
 import BorrowLoader from "../Loader/BorrowLoader";
+import { quote } from "../../api/uniswap/quotes";
+import { getQuote } from "../../api/axios/calls";
 
 export default function Card() {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
@@ -134,7 +136,7 @@ export default function Card() {
 
   const handleSwapTransaction = async () => {
     const hash = await handleSwap(lendAmount);
-    setIsBorrowProgressModal(true);
+    // setIsBorrowProgressModal(true);
   };
   const checkAllowance = async () => {
     const token1Allowance = await getAllowance(
@@ -163,16 +165,37 @@ export default function Card() {
       ...selectedTokens,
       [tokenListStatus.operation]: token,
     });
+    console.log("token", token);
+    
     setTokenListStatus({ isOpen: false, operation: "" });
   };
 
+  const handleQuote = async() => {
+    try {
+      const value = await getQuote( decimal2Fixed(0.091) )
+      const v3 = await quote(0.091)
+      console.log("unilend value", value, v3, decimal2Fixed(0.091));
+    } catch (error) {
+      console.log("error", {error});
+      
+    }
+  
+  }
+
   useEffect(() => {
-    console.log("unilend", unilendV2Data);
+   
 
     const tokensArray = Object.values(tokenList);
 
+    if(address && isConnected){
+      setTimeout(() => {
+        handleQuote()
+      }, 3000);
+    }
+ 
+   
     setLendingTokens(tokensArray);
-  }, [unilendV2Data]);
+  }, [isConnected]);
 
   return (
     <div className='swap_card_component'>
@@ -217,7 +240,7 @@ export default function Card() {
             className='range_slider'
           />
         </div>
-        <Button className='primary_btn' onClick={handleSwapTransaction}>
+        <Button className='primary_btn' onClick={()=> handleSwapTransaction()}>
           Borrow
         </Button>
       </div>

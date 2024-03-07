@@ -12,17 +12,18 @@ export const QUOTER_CONTRACT_ADDRESS =
 // Currencies and Tokens
 
 export const WETH_TOKEN = new Token(
-  SUPPORTED_CHAINS[1],
-  '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+  137,
+  '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
   18,
-  'WETH',
-  'Wrapped Ether'
 )
+export const CURV_TOKEN = new Token(
+    137,
+    '0x172370d5Cd63279eFa6d502DAB29171933a610AF',
+    18,
+  )
 
-export const USDC_TOKEN = new Token(
-  SUPPORTED_CHAINS[1],
-  '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+export const USDT_TOKEN = new Token(
+  137,
+  '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
   6,
-  'USDC',
-  'USD//C'
 )

@@ -1,103 +1,151 @@
-import axios from 'axios';
-import { ethers } from 'ethers';
-import { aggregatorV3InterfaceABI } from '../contracts/abi';
-import { getEthersProvider } from '../contracts/ethers';
+import axios from "axios";
+import { ethers } from "ethers";
+import { aggregatorV3InterfaceABI } from "../contracts/abi";
+import { getEthersProvider } from "../contracts/ethers";
 
 export const fetchGraphQlData = async (chainId: number, FILMS_QUERY: any) => {
-    const graphURL = {
-      80001: 'https://api.thegraph.com/subgraphs/name/shubham-rathod1/my_unilend',
-      137: 'https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-polygon',
-      // 137: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-polygon-2",
-      1442: 'https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-zkevm',
-      1: 'https://api.thegraph.com/subgraphs/name/shubham-rathod1/mainnet-1',
-      42161:
-        'https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-arbritrum',
-    };
-  
-    if (Object.keys(graphURL).includes(String(chainId))) {
-      try {
-        const data = await axios({
-          url: graphURL[chainId as keyof typeof graphURL || 1],
-          method: 'POST',
-          data: {
-            query: FILMS_QUERY,
+  const graphURL = {
+    80001: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/my_unilend",
+    137: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-polygon",
+    // 137: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-polygon-2",
+    1442: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-zkevm",
+    1: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/mainnet-1",
+    42161:
+      "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-arbritrum",
+  };
+
+  if (Object.keys(graphURL).includes(String(chainId))) {
+    try {
+      const data = await axios({
+        url: graphURL[(chainId as keyof typeof graphURL) || 1],
+        method: "POST",
+        data: {
+          query: FILMS_QUERY,
+        },
+      });
+
+      return data.data.data;
+    } catch (err) {
+      console.log("Graph Error:", err);
+    }
+  }
+};
+
+export const getEthToUsd = async () => {
+  const url = "https://api.coinbase.com/v2/exchange-rates?currency=ETH";
+
+  try {
+    const response = await axios.get(url);
+    return response.data.data.rates.USD;
+  } catch (error) {
+    console.error(`Failed to retrieve USD data.`);
+  }
+};
+
+export const fetchEthRateForAddresses = async (
+  addresses: Array<any>,
+  chainId: any
+) => {
+  const provider = getEthersProvider();
+  try {
+    const tokensObject = await Promise.all(
+      addresses?.map(async (addr: any) => {
+        const priceFeed = new ethers.Contract(
+          addr.source,
+          aggregatorV3InterfaceABI,
+          provider
+        );
+
+        try {
+          const roundData = await priceFeed.latestRoundData();
+          // return ETH price of each token
+          return {
+            [addr.id]: roundData.answer.toString(),
+          };
+        } catch (error) {
+          console.error(`Error fetching round data for address ${addr}: `);
+          return null;
+        }
+      })
+    );
+
+    // Use reduce to filter out null results and create the final object
+    return tokensObject.reduce(
+      (acc, obj) => (obj ? { ...acc, ...obj } : acc),
+      {}
+    );
+  } catch (error) {
+    console.error("Error fetching round data:");
+    throw error;
+  }
+};
+
+export const getTokenPrice = async (data: any, chain: any) => {
+  const usdPrice = await getEthToUsd();
+  const temp: any = await fetchEthRateForAddresses(
+    data?.assetOracles,
+    chain?.id
+  );
+  type tplotOptions = {
+    [key: string]: any;
+  };
+  const result: tplotOptions = {};
+
+  for (const key in temp) {
+    if (temp.hasOwnProperty(key)) {
+      result[key] = (temp[key] / 10 ** 18) * usdPrice;
+      // if (supportedNetworks[chain?.id]?.baseCurrency === 'USD') {
+      //   result[key] = temp[key] / 10 ** 8;
+      // } else {
+      //   result[key] = (temp[key] / 10 ** 18) * usdPrice;
+      //   result['0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'] = usdPrice;
+      // }
+    }
+  }
+
+  return result;
+};
+
+export const getQuote = async (amountIn: string) => {
+  try {
+    const data = await axios({
+      method: "post",
+      url: "https://interface.gateway.uniswap.org/v2/quote",
+      data: {
+        amount: amountIn,
+        configs: [
+          {
+            recipient: "0x84c6d5Df8a5e3ab9859708dA7645cC58176a26C0",
+            routingType: "DUTCH_LIMIT",
+            swapper: "0x84c6d5Df8a5e3ab9859708dA7645cC58176a26C0",
+            useSyntheticQuotes: false,
           },
-        });
-  
-        return data.data.data;
-      } catch (err) {
-        console.log('Graph Error:', err);
+          {
+            enableFeeOnTransferFeeFetching: true,
+            protocols: [ "V3"],
+            enableUniversalRouter: true,
+            recipient: "0x84c6d5Df8a5e3ab9859708dA7645cC58176a26C0",
+            routingType: "CLASSIC",
+          },
+        ],
+        intent: "quote",
+        sendPortionEnabled: true,
+        tokenIn: "0x172370d5Cd63279eFa6d502DAB29171933a610AF",
+        tokenInChainId: 137,
+        tokenOut: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+        tokenOutChainId: 137,
+        type: "EXACT_INPUT",
+      },
+      headers:{
+        "Content-Type" : "application/json",
+        "Accept": 'application/json, text/plain, */*'
       }
-    }
-  };
+    });
 
-  export const getEthToUsd = async () => {
-    const url = 'https://api.coinbase.com/v2/exchange-rates?currency=ETH';
-  
-    try {
-      const response = await axios.get(url);
-      return response.data.data.rates.USD;
-    } catch (error) {
-      console.error(`Failed to retrieve USD data.`);
-    }
-  };
+    return {quoteDecimals:data.data.quote.quoteDecimals, quote : data.data.quote.quote   };
+  } catch (error) {
+    console.log("quote", {error});
+    
+  }
 
-  export const fetchEthRateForAddresses = async (addresses: Array<any>, chainId: any) => {
-    const provider = getEthersProvider();
-    try {
-      const tokensObject = await Promise.all(
-        addresses?.map(async (addr: any) => {
-          const priceFeed = new ethers.Contract(
-            addr.source,
-            aggregatorV3InterfaceABI,
-            provider,
-          );
-  
-          try {
-            const roundData = await priceFeed.latestRoundData();
-            // return ETH price of each token
-            return {
-              [addr.id]: roundData.answer.toString(),
-            };
-          } catch (error) {
-            console.error(
-              `Error fetching round data for address ${addr}: `,
-            );
-            return null;
-          }
-        }),
-      );
-  
-      // Use reduce to filter out null results and create the final object
-      return tokensObject.reduce(
-        (acc, obj) => (obj ? { ...acc, ...obj } : acc),
-        {},
-      );
-    } catch (error) {
-      console.error('Error fetching round data:');
-      throw error;
-    }
-  };
-  
-  export const getTokenPrice = async (data: any, chain: any) => {
-    const usdPrice = await getEthToUsd();
-    const temp: any = await fetchEthRateForAddresses(data?.assetOracles, chain?.id);
-    type tplotOptions = {
-        [key: string]: any
-    }
-    const result: tplotOptions = {};
-  
-    for (const key in temp) {
-      if (temp.hasOwnProperty(key)) {
-        result[key] = (temp[key] / 10 ** 18) * usdPrice
-        // if (supportedNetworks[chain?.id]?.baseCurrency === 'USD') {
-        //   result[key] = temp[key] / 10 ** 8;
-        // } else {
-        //   result[key] = (temp[key] / 10 ** 18) * usdPrice;
-        //   result['0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'] = usdPrice;
-        // }
-      }
-    }
-   
-    return result;
-  };
+};
