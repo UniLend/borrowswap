@@ -214,3 +214,24 @@ export const getBorrowAmount = (amount: any, ltv: any , collateralToken: any, se
 
 
 }
+
+// const checkAllowance = async () => {
+//   const token1Allowance = await getAllowance(
+//     "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
+//     address
+//   );
+//   const token2Allowance = await getAllowance(
+//     "0x172370d5cd63279efa6d502dab29171933a610af",
+//     address
+//   );
+
+
+//   setTokenAllowance({
+//     token1: fixed2Decimals(token1Allowance).toString(),
+//     token2: String(token2Allowance),
+//   });
+// };
+
+// const handleAllowance = async (tokenAddress: string) => {
+//   const hash = await handleApproval(tokenAddress, address, lendAmount);
+// };
