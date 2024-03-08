@@ -28,7 +28,6 @@ import {
   ledgerWallet,
   okxWallet,
   coin98Wallet,
-  phantomWallet
 } from "@rainbow-me/rainbowkit/wallets";
 
 const { wallets } = getDefaultWallets();
@@ -63,7 +62,7 @@ export const wagmiConfig = getDefaultConfig({
     ...wallets,
     {
       groupName: "Recommended",
-      wallets: [rabbyWallet, trustWallet, okxWallet, coin98Wallet, phantomWallet],
+      wallets: [rabbyWallet, trustWallet, okxWallet, coin98Wallet],
     },
   ],
   transports: {
