@@ -145,7 +145,7 @@ export const networks = {
 export const supportedNetworks = {
   1: {
     chainId: 1,
-    chainName: 'Ethereum Mainnet',
+    chainName: 'Ethereum',
     nativeCurrency: {
       name: 'Ether',
       symbol: 'ETH',
@@ -179,7 +179,7 @@ export const supportedNetworks = {
 
   137: {
     chainId: 137,
-    chainName: 'Polygon Mainnet',
+    chainName: 'Polygon',
     nativeCurrency: {
       name: 'MATIC',
       symbol: 'MATIC',

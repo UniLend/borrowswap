@@ -1,8 +1,8 @@
 import "./styles/index.scss";
 import React, { useState, useEffect } from "react";
 import logo from "../../assets/logo.svg";
-import ethlogo from "../../assets/eth.svg"
-import arblogo from "../../assets/arbitrum-logo.svg"
+import ethlogo from "../../assets/eth.svg";
+import arblogo from "../../assets/arbitrum-logo.svg";
 import { Button, Popover, Modal } from "antd";
 import { FiLock } from "react-icons/fi";
 import { FaChevronDown } from "react-icons/fa";
@@ -15,23 +15,25 @@ import { setUser } from "../../states/unilendV2Reducer";
 import useWalletHook from "../../api/hooks/useWallet";
 import { useConnectModal, ConnectButton } from "@rainbow-me/rainbowkit";
 import { ChangeNetwork, supportedNetworks } from "../../api/networks/networks";
-import { connectWallet } from "../../api/services/wallet";
 import { useDisconnect } from "wagmi";
-import { switchNetworkLib } from '../../api/lib/functions';
-
+import { switchNetworkLib } from "../../api/lib/functions";
+import {connectWallet} from "../../api/services/wallet"
 import {
   fromWei,
   removeFromSessionStorage,
   saveToSessionStorage,
-  shortenAddress
+  shortenAddress,
 } from "../../api/utils";
-
+import {
+  useAccountEffect,
+  useSwitchChain
+} from "wagmi";
 export default function Navbar() {
+
   const user = useSelector((state) => state.user);
-  console.log(user);
   const { openConnectModal } = useConnectModal();
-  const { chain, isConnected, address, status } = useWalletHook();
-  console.log("chain", chain?.id)
+  const { chain, isConnected, address, status, chainId, isReconnected } =  useWalletHook();
+  console.log("chain", chainId);
   const { disconnect } = useDisconnect();
   const pathname = window.location.pathname;
   const [wrongNetworkModal, setWrongNetworkModal] = useState(false);
@@ -39,11 +41,8 @@ export default function Navbar() {
   const availableChain = Object.values(supportedNetworks).map(
     (net) => net.chainId
   );
-console.log(availableChain)
-  // const [currentUser, setCurrentUser] = useState({
-  //   ...user,
-  //   domain: shortenAddress(user?.address),
-  // });
+  console.log(availableChain);
+
   const [visible, setVisible] = useState(false);
   const [isHaveAccess, setIsHaveAccess] = useState(true);
   const [isNetworkVisible, setIsNetworkVisible] = useState(false);
@@ -51,13 +50,12 @@ console.log(availableChain)
   const dispatch = useDispatch();
   const currentUser = address;
 
-  const handleDisconnect = async () => {
-    console.log("click on disconnect");
-    await disconnect();
-    // removeFromSessionStorage('user');
-    // localStorage.clear();
-    // window.location.reload();
-  };
+  useAccountEffect({
+    onConnect(data) {
+      const userData = data;
+      console.log("userData", data);
+    },
+  });
 
   const handleOpenWalletModal = () => {
     // setIsWalletModalVisible(true);
@@ -90,67 +88,44 @@ console.log(availableChain)
     }
   }, []);
 
-  const handleConnect = async (action, recursion) => {
-    try {
-      setIsWalletModalVisible(false);
-      const user = await connectWallet(action);
-      console.log("user", user);
-      window.location.reload();
-      // handleDomain(user);
-      dispatch(setUser(user));
-    } catch (error) {}
-  };
-
-  const handleCloseModal = () => {
-    setWrongNetworkModal(false);
-  };
 
 
+
+//Handle chain Not availble Modal  
   useEffect(() => {
-
-    if (chain === undefined) {
-      console.log("chain not supported");
+    if (chainId && !availableChain.includes(chainId)) {
       setWrongNetworkModal(true);
     } else {
       setWrongNetworkModal(false);
     }
     // handleDomain(user);
-  }, [user]);
+  }, [isReconnected]);
 
   const handleSwitchNetwork = async (id) => {
     try {
       const network = await switchNetworkLib({
         chainId: id,
       });
-      window.location.href = window.location.origin;
-      // window.location.reload();
       setWrongNetworkModal(false);
+      window.location.reload();
     } catch (error) {
-      console.log('switchError', { error });
+      console.log("switchError", { error });
       await ChangeNetwork(id);
-    }
-
-    const connector = localStorage.getItem('wagmi.wallet');
-    if (connector == 'walletConnect') {
-      setTimeout(() => {
-        window.location.reload();
-        //removeFromSessionStorage('user')
-      }, 1000);
     }
   };
 
   const WalletModalBody = () => {
     return (
-      <div className='walletModel'>
+      <div className="walletModel">
         <h1>Wrong Network</h1>
         <p>UniLend V2 is on Ethereum Mainnet only. Please Switch Network.</p>
-        <div className='networks'>
+        <div className="networks">
           <div onClick={() => handleSwitchNetwork(1)}>
-            <img src={ethlogo} alt='Etherium' />
+            <img src={ethlogo} alt="Etherium" />
             <p>Ethereum</p>
           </div>
           <div onClick={() => handleSwitchNetwork(42161)}>
-            <img src={arblogo} alt='Etherium' />
+            <img src={arblogo} alt="Etherium" />
             <p>Arbitrum</p>
           </div>
           {/* <div onClick={() => handleSwitchNetwork(1442)}>
@@ -205,7 +180,7 @@ console.log(availableChain)
             <p></p>
           </div>
           <h4>{shortenAddress(currentUser)}</h4>
-          <Button className="btn_class" onClick={() => handleDisconnect()}>
+          <Button className="btn_class" onClick={() => disconnect()}>
             Disconnect
           </Button>
         </div>
@@ -238,28 +213,6 @@ console.log(availableChain)
             <img src={logo} alt="unilend_logo" />
           </a>
         </div>
-        <div className="nav_routes">
-          <nav>
-            {/* <a
-              href='/pools'
-              className={`${pathname === '/pools' ? 'active' : ''}`}
-            >
-              Pools
-            </a> */}
-
-            <a href="#" className="disable_route">
-              Rewards
-              <LockOutlined style={{ marginLeft: "5px" }} />
-            </a>
-
-            <a
-              href="/history"
-              className={`${pathname === "/history" ? "active" : ""}`}
-            >
-              History
-            </a>
-          </nav>
-        </div>
       </div>
       <div className="last_container">
         <ConnectButton.Custom>
@@ -272,8 +225,6 @@ console.log(availableChain)
             authenticationStatus,
             mounted,
           }) => {
-            // Note: If your app doesn't use authentication, you
-            // can remove all 'authenticationStatus' checks
             const ready = mounted && authenticationStatus !== "loading";
             const connected =
               ready &&
@@ -306,17 +257,21 @@ console.log(availableChain)
 
                   if (chain && chain.unsupported) {
                     return (
-                      <button onClick={openChainModal} type="button">
-                        Wrong network
-                      </button>
+                      <div
+                        className="unsupported-btn"
+                        style={{ marginTop: "8px" }}
+                      >
+                        <button onClick={openChainModal} type="button">
+                          Not Supported Network
+                        </button>
+                        <div className="network_address">
+                          <div className="address">{account.displayName}</div>
+                        </div>
+                      </div>
                     );
                   }
-
                   return (
-                    <div
-                      className="wallet_connection"
-                      
-                    >
+                    <div className="wallet_connection">
                       <Popover
                         content={<SortContent />}
                         trigger="click"
@@ -332,10 +287,9 @@ console.log(availableChain)
                                 <img
                                   alt={chain.name ?? "Chain icon"}
                                   src={chain.iconUrl}
-                                  style={{ width: 30, height: 30 }}
+                                  style={{ width: 28, height: 28 }}
                                 />
                               )}
-                              
                               <p> {chain.name} </p>
                               <FaChevronDown />
                             </div>
@@ -366,7 +320,7 @@ console.log(availableChain)
         </ConnectButton.Custom>
       </div>
       <Modal
-        className='antd_modal_overlaywrong'
+        className="antd_modal_overlaywrong"
         open={wrongNetworkModal}
         centered
         footer={null}

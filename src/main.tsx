@@ -13,11 +13,15 @@ import {
   getDefaultConfig,
 } from "@rainbow-me/rainbowkit";
 import { WagmiProvider, http } from 'wagmi';
-import { arbitrum, base, mainnet, optimism, polygon, zora, polygonMumbai } from 'wagmi/chains';
+import {  mainnet, polygon } from 'wagmi/chains';
+import { mumbaiTestnet, arbitrum } from './api/networks/Chains';
+
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { store } from './states/store'
 import { Provider } from 'react-redux'
 import { myCustomTheme } from "./theme/customWalletTheme";
+// import {wagmiConfig} from "./config.ts"
 import {
   rabbyWallet,
   trustWallet,
@@ -53,7 +57,7 @@ const { wallets } = getDefaultWallets();
 export const wagmiConfig = getDefaultConfig({
   appName: 'BorrowSwap',
   projectId: 'YOUR_PROJECT_ID',
-  chains: [mainnet, polygon, arbitrum, polygonMumbai],
+  chains: [mainnet, polygon, arbitrum, mumbaiTestnet],
   wallets: [
     ...wallets,
     {

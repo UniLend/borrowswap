@@ -1,4 +1,4 @@
-@import '/src/theme';
+@import "/src/theme";
 
 .nav_container {
   height: 60px;
@@ -101,7 +101,45 @@
       font-size: $font-size-sm;
       font-weight: $font-weight-semi-bold;
       border: 0px;
+      padding: 15px;
     }
+    @media ($mobile) {
+      font-size: $font-size-xsm;
+    }
+  }
+  .unsupported-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    button {
+      color: var(--light-red);
+      background-color: transparent;
+      border-radius: 5px;
+      height: 45px;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-semi-bold;
+      border: 0px;
+      padding: 15px;
+    }
+    .network_address {
+      color: var(--pure-black);
+      background-color: var(--low-dark-bg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+   
+      .address {
+        border-radius: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: var(--main);
+        color: var(--always-white);
+        height: 36px;
+        padding: 0 15px;
+      }
+    }
+
     @media ($mobile) {
       font-size: $font-size-xsm;
     }
@@ -150,7 +188,7 @@
         background-color: var(--main);
         color: var(--always-white);
         height: 36px;
-        padding: 0 10px;
+        padding: 0 15px;
       }
       p {
         margin: 5px;
@@ -316,7 +354,7 @@
     border-radius: 12px;
 
     &:before {
-      content: '';
+      content: "";
       position: absolute;
       top: 0;
       right: 0;
@@ -359,7 +397,7 @@
       max-width: 120px;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: 'nowrap';
+      white-space: "nowrap";
       color: var(--pure-black);
     }
     div {
@@ -436,7 +474,7 @@
     border-radius: 16px;
 
     &:before {
-      content: '';
+      content: "";
       position: absolute;
       top: 0;
       right: 0;
@@ -687,7 +725,7 @@
       border-radius: 10px;
 
       &:before {
-        content: '';
+        content: "";
         position: absolute;
         top: 0;
         right: 0;
@@ -773,7 +811,6 @@
 }
 
 .sort_dropDownnew {
-
   .ant-popover-arrow {
     display: none;
   }
@@ -786,7 +823,7 @@
     border-radius: 12px;
 
     &:before {
-      content: '';
+      content: "";
       position: absolute;
       top: 0;
       right: 0;
@@ -798,7 +835,6 @@
       background: var(--popup-border);
     }
 
-   
     .ant-popover-inner {
       border-radius: 11px;
       background: var(--popup-back-color);
