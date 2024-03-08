@@ -1,7 +1,7 @@
-import { borrowswapABI, erc20Abi, helperAbi } from "./abi";
+import { borrowswapABI, coreAbi, erc20Abi, helperAbi } from "./abi";
 import { readContracts, writeContract } from "wagmi/actions";
 import { getEtherContract } from "./ethers";
-import { add, decimal2Fixed, div, fixed2Decimals, fromBigNumber, greaterThan, mul, toAPY } from '../../helpers/index';
+import { add, decimal2Fixed, div, fixed2Decimals, fromBigNumber, greaterThan, mul, sub, toAPY } from '../../helpers/index';
 import { readContract } from '@wagmi/core'
 import { wagmiConfig } from "../../main";
 
@@ -21,7 +21,7 @@ export const handleApproval = async (
       ? maxAllow
       : (Number(amount) * 10 ** 18).toString();
 
-  const { hash } = await instance.approve(
+  const { hash } = await instance?.approve(
     "0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E",
     Amount
   );
@@ -39,7 +39,7 @@ console.log(  amount , fixed2Decimals(borrowAmount),
 decimal2Fixed(amount),
  borrowAmount );
 
-  const {hash} = instance.InitBorrow(
+  const {hash} = instance?.InitBorrow(
     '0x784c4a12f82204e5fb713b055de5e8008d5916b6',
     '0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a',
     '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
@@ -52,18 +52,20 @@ decimal2Fixed(amount),
   return hash
 }
 
+
+
 export const getAllowance = async (
   address: string,
   user: `0x${string}` | undefined
 ) => {
   const instance = await getEtherContract(address, erc20Abi);
 
-  const allowance = await instance.allowance(
+  const allowance = await instance?.allowance(
     user,
     "0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E"
   );
 
-  const bal = await instance.balanceOf(user);
+  const bal = await instance?.balanceOf(user);
 
   return { allowance: fromBigNumber(allowance), balance: fromBigNumber(bal)};
 };
@@ -78,65 +80,90 @@ export const  getPoolBasicData = async (
   contracts: any,
   poolAddress: string,
   poolData: any,
-  userAddress: any
+  userAddress: any,
+  selectedTokens: any
 ) => {
 
-    
+   const borrowToken = selectedTokens.lend.address == poolData.token0.address ? poolData.token1: poolData.token0;
+   
+   console.log("borrow", borrowToken);
+   
 
   let pool = {...poolData};
   if (true) {
     try {
       
       const instance = await getEtherContract(contracts.helperAddress, helperAbi )
-
-         const [token0, token1] = await Promise.all([getAllowance(pool.token0.address, userAddress), getAllowance(pool.token1.address, userAddress)]);
-
-      
-         console.log(token0, token1);
-         
-        //  pool.token0.;
-        //  pool.token0.;
-   
-        //  pool.token1.balance = fromBigNumber(token1.balance);
-        //  pool.token1.balanceFixed = fixed2Decimals(
-        //   token1.balance,
-        //    poolData.token1.decimals,
-        //  );
-        //  pool.token0.allowance = fromBigNumber(token0.allowance);
-        //  pool.token0.allowanceFixed = fixed2Decimals(
-        //   token0.allowance,
-        //    poolData.token0.decimals,
-        //  );
-   
-        //  pool.token1.allowance = fromBigNumber(token1.allowance);
-        //  pool.token1.allowanceFixed = fixed2Decimals(
-        //   token1.allowance,
-        //    poolData.token1.decimals,
-        //  );
-   
-         
-         
-        const data = await instance.getPoolFullData(
+      const oracleInstance = await getEtherContract(contracts.coreAddress, coreAbi)
+         const [token0, token1, data] = await Promise.all([getAllowance(pool.token0.address, userAddress), getAllowance(pool.token1.address, userAddress), instance?.getPoolFullData(
           contracts.positionAddress,
            poolAddress,
            userAddress
         )
-      
 
+      ]);
+
+      let token0Price = 0
+      let token1Price = 0
+      
+      if(poolData.token0.decimals == 6 || poolData.token1.decimals == 6){
+        let oracleData = await oracleInstance?.getOraclePrice(poolData.token1.address, poolData.token0.address, decimal2Fixed(1, poolData.token1.decimals))
+       const Price = fixed2Decimals(oracleData, poolData.token0.decimals);
+
+       token1Price = Price;
+       token0Price = (1 / Price);
+      } else {
+        let oracleData = await oracleInstance?.getOraclePrice(poolData.token0.address, poolData.token1.address, decimal2Fixed(1, poolData.token0.decimals))
+        const Price = fixed2Decimals(oracleData, poolData.token0.decimals);
+ 
+        token0Price = Price;
+        token1Price = (1 / Price);
+      }
+
+
+
+     
 
       const totLiqFull0 = add(
-        div(mul(pool.token0.liquidity, 100), pool.rf),
+        div(mul(pool.liquidity0
+          , 100), pool.rf),
         fromBigNumber(data._totalBorrow0),
       );
 
       const totLiqFull1 = add(
-        div(mul(pool.token1.liquidity, 100), pool.rf),
+        div(mul(pool.liquidity1, 100), pool.rf),
         fromBigNumber(data._totalBorrow1),
       );
+   let collateral0 = mul(
+    div(
+      mul(
+        Number(mul(Number(fromBigNumber(data._borrowBalance1)), Number(token1Price))) / poolData.maxLTV,
+        100,
+      ),
+      10 ** poolData.token1.decimals,
+    ),
+    10 ** poolData.token0.decimals,
+  )
+  let  collateral1 = mul(
+    div(
+      mul(
+        Number(mul(Number(fromBigNumber(data._borrowBalance0)), Number(token0Price))) / poolData.maxLTV
+        ,
+        100,
+      ),
+      10 ** poolData.token0.decimals,
+    ),
+    10 ** poolData.token1.decimals,
+  )
+    let redeem0 = sub(fromBigNumber(data._lendBalance0), collateral0)
+     let redeem1 = sub(fromBigNumber(data._lendBalance1), collateral1)
+
+      
       pool = {
         ...pool,
         token0: {
           ...pool?.token0,
+          priceRatio : token0Price,
           balance : fromBigNumber(token0.balance),
           balanceFixed : fixed2Decimals(
               token0.balance,
@@ -214,9 +241,14 @@ export const  getPoolBasicData = async (
             toAPY(fixed2Decimals(data._interest0, poolData.token0.decimals)),
             div(totLiqFull0, fromBigNumber(data._totalBorrow0)),
           ),
+          collateralBalance : collateral0 ,
+          collateralBalanceFixed: fixed2Decimals( collateral0, poolData.token0.decimals),
+          redeemBalance: Number(redeem0) > 0? redeem0: 0,
+          redeemBalanceFixed: fixed2Decimals(Number(redeem0) > 0? redeem0: 0, poolData.token0.decimals)
         },
         token1: {
           ...poolData?.token1,
+          priceRatio : token1Price,
           balance : fromBigNumber(token1.balance),
           balanceFixed : fixed2Decimals(
               token1.balance,
@@ -294,10 +326,15 @@ export const  getPoolBasicData = async (
             toAPY(fixed2Decimals(data._interest1, poolData.token1.decimals)),
             div(totLiqFull1, fromBigNumber(data._totalBorrow1)),
           ),
+          collateralBalance : collateral1,
+          collateralBalanceFixed: fixed2Decimals( collateral1, poolData.token1.decimals),
+          redeemBalance: Number(redeem1)> 0? redeem1: 0,
+          redeemBalanceFixed: fixed2Decimals( Number(redeem1)> 0? redeem1: 0, poolData.token1.decimals) 
         },
       }
 
-      console.log("poolData", pool, poolData);
+
+      console.log("poolData", pool);
       return pool;
     } catch (error) {
        console.error(error);

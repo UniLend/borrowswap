@@ -90,14 +90,14 @@ export const loadPoolsWithGraph = async (data: any, chain: any) => {
         token0: {
           ...pool.token0,
           address: pool?.token0?.id,
-
+          logo: getTokenSymbol(pool.token0.symbol),
           priceUSD: tokenPrice[pool?.token0?.id] * pool.token0.decimals,
           pricePerToken: tokenPrice[pool?.token0?.id],
         },
         token1: {
           ...pool.token1,
           address: pool?.token1?.id,
-
+          logo: getTokenSymbol(pool.token1.symbol),
           priceUSD: tokenPrice[pool?.token1?.id] * pool.token1.decimals,
           pricePerToken: tokenPrice[pool?.token1?.id],
         },
@@ -186,4 +186,30 @@ export function numberFormat(x: any, po: any) {
     parts[1] = "00";
     return parts.join(".");
   }
+}
+
+export function getCurrentLTV(selectedToken: any, collateralToken: any) {
+  const prevLTV =
+    Number(selectedToken.borrowBalanceFixed) > 0
+      ? Number(selectedToken.borrowBalanceFixed) /
+        (Number(collateralToken.lendBalanceFixed) *
+          Number(collateralToken.priceRatio))
+      : 0;
+
+      
+  return (Number(prevLTV.toFixed(4)) *100).toFixed(2);
+}
+
+
+export const getBorrowAmount = (amount: any, ltv: any , collateralToken: any, selectedToken: any) => {
+  
+  const borrowed = Number(amount) * Number(Number(getCurrentLTV(selectedToken, collateralToken))/100);
+
+  const borrowAmount = (Number(amount) * Number(collateralToken.priceRatio)) * (ltv/100) 
+
+  
+  return borrowAmount;
+
+
+
 }

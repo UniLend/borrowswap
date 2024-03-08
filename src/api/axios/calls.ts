@@ -106,7 +106,7 @@ export const getTokenPrice = async (data: any, chain: any) => {
   return result;
 };
 
-export const getQuote = async (amountIn: string) => {
+export const getQuote = async (amountIn: string, user: any, tokenIn: any, tokenOut: any) => {
   try {
     const data = await axios({
       method: "post",
@@ -115,24 +115,24 @@ export const getQuote = async (amountIn: string) => {
         amount: amountIn,
         configs: [
           {
-            recipient: "0x84c6d5Df8a5e3ab9859708dA7645cC58176a26C0",
+            recipient: user,
             routingType: "DUTCH_LIMIT",
-            swapper: "0x84c6d5Df8a5e3ab9859708dA7645cC58176a26C0",
+            swapper: user,
             useSyntheticQuotes: false,
           },
           {
             enableFeeOnTransferFeeFetching: true,
             protocols: [ "V3"],
             enableUniversalRouter: true,
-            recipient: "0x84c6d5Df8a5e3ab9859708dA7645cC58176a26C0",
+            recipient: user,
             routingType: "CLASSIC",
           },
         ],
         intent: "quote",
         sendPortionEnabled: true,
-        tokenIn: "0x172370d5Cd63279eFa6d502DAB29171933a610AF",
+        tokenIn: tokenIn,
         tokenInChainId: 137,
-        tokenOut: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+        tokenOut: tokenOut,
         tokenOutChainId: 137,
         type: "EXACT_INPUT",
       },

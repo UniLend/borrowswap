@@ -9,7 +9,7 @@ import {
   handleApproval,
   handleSwap,
 } from "../../api/contracts/actions";
-import { decimal2Fixed, fixed2Decimals } from "../../helpers";
+import { decimal2Fixed, fixed2Decimals, getBorrowAmount, getCurrentLTV } from "../../helpers";
 import type { UnilendV2State } from "../../states/store";
 import { wagmiConfig } from "../../main";
 import { useSelector, useDispatch } from "react-redux";
@@ -32,6 +32,7 @@ export default function Card() {
   });
   const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState("");
+  const [borrowAmount, setBorrowAmount] = useState(0)
   const [receiveAmount, setReceiveAmount] = useState("");
   const [lendingTokens, setLendingTokens] = useState<Array<any>>([]);
   const [borrowingTokens, setBorrowingTokens] = useState<Array<any>>([]);
@@ -47,7 +48,9 @@ export default function Card() {
     borrow: null,
     receive: null,
   });
-  const [selectedLTV, setSelectedLTV] = useState<number>(50);
+  const [selectedLTV, setSelectedLTV] = useState<number>(5);
+  const [unilendPool, setUnilendPool] = useState(null as any | null);
+  const [currentLTV, setCurrentLTV] = useState('0')
 
   const handleLendAmount = (amount: string) => {
     setLendAmount(amount);
@@ -84,35 +87,83 @@ export default function Card() {
         return pool.token0;
       }
     });
-
+   console.log('borrowTokens', borrowTokens);
+   
     setBorrowingTokens(borrowTokens);
   };
 
+
+
+
+  const handleLTVSlider = (value: number) => {
+     
+      if(selectedLTV > Number(unilendPool.maxLTV)){
+        setSelectedLTV(Number(unilendPool.maxLTV)-1)
+      } else
+      if(selectedLTV== Number(currentLTV) ){
+        setSelectedLTV(selectedLTV-1)
+      } else {
+        setSelectedLTV(value)
+      }
+
+     const borrowAmount = getBorrowAmount(lendAmount, value,  selectedTokens.lend, selectedTokens.borrow,)
+     setBorrowAmount(borrowAmount)
+  }
+
   const handleSelectBorrowToken = async (token: string) => {
-    const borrowToken =
-      tokenList[token.toUpperCase() as keyof typeof tokenList];
+
 
     const tokenPool = Object.values(poolList).find((pool) => {
       if (
         (pool.token1.address == token &&
-          pool.token0.address == lendToken?.address) ||
+          pool.token0.address == selectedTokens.lend?.address) ||
         (pool.token0.address == token &&
-          pool.token1.address == lendToken?.address)
+          pool.token1.address == selectedTokens.lend?.address)
       ) {
         return true;
       }
     });
 
-    console.log(borrowToken, tokenPool);
+    console.log("tokenPool", tokenPool);
+    
+
     const contracts =
       contractAddresses[chain?.id as keyof typeof contractAddresses];
     const data = await getPoolBasicData(
       contracts,
       tokenPool.pool,
       tokenPool,
-      address
+      address,
+      selectedTokens
     );
+    if(data.token0.address == selectedTokens.lend.address){
+      setSelectedTokens({
+        ...selectedTokens,
+        ["lend"]: data.token0,
+        ["borrow"]: data.token1,
+      });
+      const currentLtv = getCurrentLTV(data.token1, data.token0)
+      console.log("ltv", Number(currentLtv));
+      setCurrentLTV(currentLtv);
+       handleLTV(Number(currentLtv));
+    } else {
+      setSelectedTokens({
+        ...selectedTokens,
+        ["lend"]: data.token1,
+        ["borrow"]: data.token0,
+      });
+      const currentLtv = getCurrentLTV(data.token0, data.token1)
+      setCurrentLTV(currentLtv);
+      handleLTV(Number(currentLtv));
+    }
+
+    setUnilendPool(data)
   };
+
+  useEffect(()=> {
+ console.log("selectedTokens",selectedTokens );
+ 
+  }, [selectedTokens])
   const getOprationToken = () => {
     if (tokenListStatus.operation === "lend") {
       return lendingTokens;
@@ -166,15 +217,19 @@ export default function Card() {
       [tokenListStatus.operation]: token,
     });
     console.log("token", token);
-    
+    if(tokenListStatus.operation =='lend'){
+      handleSelectLendToken(token.address)
+    } else if(tokenListStatus.operation =='borrow'){
+      handleSelectBorrowToken(token.address)
+    }
     setTokenListStatus({ isOpen: false, operation: "" });
   };
 
   const handleQuote = async() => {
     try {
-      const value = await getQuote( decimal2Fixed(0.091) )
-      const v3 = await quote(0.091)
-      console.log("unilend value", value, v3, decimal2Fixed(0.091));
+      const value = await getQuote(decimal2Fixed(borrowAmount, selectedTokens.borrow.decimals), address, selectedTokens.borrow.address, '0xc2132D05D31c914a87C6611C10748AEb04B58e8F')
+    
+      console.log("unilend value", value);
     } catch (error) {
       console.log("error", {error});
       
@@ -182,16 +237,24 @@ export default function Card() {
   
   }
 
+  useEffect(()=> {
+
+    if(selectedTokens?.borrow && borrowAmount){
+      handleQuote()
+    }
+
+  }, [selectedTokens?.borrow])
+
   useEffect(() => {
    
 
     const tokensArray = Object.values(tokenList);
 
-    if(address && isConnected){
-      setTimeout(() => {
-        handleQuote()
-      }, 3000);
-    }
+    // if(address && isConnected){
+    //   setTimeout(() => {
+    //     handleQuote()
+    //   }, 3000);
+    // }
  
    
     setLendingTokens(tokensArray);
@@ -227,16 +290,21 @@ export default function Card() {
           onClick={() => handleOpenTokenList("receive")}
         />
         <div className='range_container'>
+
+        <div>
+            <p className='paragraph06 '>Current LTV</p>
+            <p className='paragraph06'>{currentLTV}%</p>
+          </div>
           <div>
             <p className='paragraph06 '>New LTV</p>
-            <p className='paragraph06'>{selectedLTV}%/75%</p>
+            <p className='paragraph06'>{selectedLTV}%/{unilendPool?.maxLTV || '75'}%</p>
           </div>
           <Slider
             value={selectedLTV}
-            defaultValue={50}
-            onChange={(value) => handleLTV(value)}
+           
+            onChange={(value) => handleLTVSlider(value)}
             min={5}
-            max={75}
+            max={unilendPool?.maxLTV || 75}
             className='range_slider'
           />
         </div>
