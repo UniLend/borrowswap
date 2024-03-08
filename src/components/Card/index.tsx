@@ -51,6 +51,7 @@ export default function Card() {
   const [selectedLTV, setSelectedLTV] = useState<number>(5);
   const [unilendPool, setUnilendPool] = useState(null as any | null);
   const [currentLTV, setCurrentLTV] = useState('0')
+  const [b2rRatio, setb2rRatio] = useState(1)
 
   const handleLendAmount = (amount: string) => {
     setLendAmount(amount);
@@ -87,7 +88,7 @@ export default function Card() {
         return pool.token0;
       }
     });
-   console.log('borrowTokens', borrowTokens);
+ 
    
     setBorrowingTokens(borrowTokens);
   };
@@ -108,6 +109,8 @@ export default function Card() {
 
      const borrowAmount = getBorrowAmount(lendAmount, value,  selectedTokens.lend, selectedTokens.borrow,)
      setBorrowAmount(borrowAmount)
+     console.log("borrowAmount", borrowAmount, borrowAmount * b2rRatio);
+     setReceiveAmount((borrowAmount * b2rRatio).toString())
   }
 
   const handleSelectBorrowToken = async (token: string) => {
@@ -123,8 +126,6 @@ export default function Card() {
         return true;
       }
     });
-
-    console.log("tokenPool", tokenPool);
     
 
     const contracts =
@@ -133,9 +134,10 @@ export default function Card() {
       contracts,
       tokenPool.pool,
       tokenPool,
-      address,
-      selectedTokens
+      address
     );
+    console.log("poolData", data);
+    
     if(data.token0.address == selectedTokens.lend.address){
       setSelectedTokens({
         ...selectedTokens,
@@ -143,7 +145,7 @@ export default function Card() {
         ["borrow"]: data.token1,
       });
       const currentLtv = getCurrentLTV(data.token1, data.token0)
-      console.log("ltv", Number(currentLtv));
+
       setCurrentLTV(currentLtv);
        handleLTV(Number(currentLtv));
     } else {
@@ -160,10 +162,6 @@ export default function Card() {
     setUnilendPool(data)
   };
 
-  useEffect(()=> {
- console.log("selectedTokens",selectedTokens );
- 
-  }, [selectedTokens])
   const getOprationToken = () => {
     if (tokenListStatus.operation === "lend") {
       return lendingTokens;
@@ -199,7 +197,7 @@ export default function Card() {
       address
     );
 
-    console.log(token1Allowance, token2Allowance);
+ 
     setTokenAllowance({
       token1: fixed2Decimals(token1Allowance).toString(),
       token2: String(token2Allowance),
@@ -216,7 +214,7 @@ export default function Card() {
       ...selectedTokens,
       [tokenListStatus.operation]: token,
     });
-    console.log("token", token);
+ 
     if(tokenListStatus.operation =='lend'){
       handleSelectLendToken(token.address)
     } else if(tokenListStatus.operation =='borrow'){
@@ -227,9 +225,9 @@ export default function Card() {
 
   const handleQuote = async() => {
     try {
-      const value = await getQuote(decimal2Fixed(borrowAmount, selectedTokens.borrow.decimals), address, selectedTokens.borrow.address, '0xc2132D05D31c914a87C6611C10748AEb04B58e8F')
-    
-      console.log("unilend value", value);
+      const value = await getQuote(decimal2Fixed(1, selectedTokens.borrow.decimals), address, selectedTokens.borrow.address, '0xdac17f958d2ee523a2206206994597c13d831ec7', chain?.id)
+      setb2rRatio(value?.quoteDecimals)
+  
     } catch (error) {
       console.log("error", {error});
       
@@ -239,11 +237,18 @@ export default function Card() {
 
   useEffect(()=> {
 
-    if(selectedTokens?.borrow && borrowAmount){
+    if(selectedTokens?.borrow ){
       handleQuote()
     }
 
   }, [selectedTokens?.borrow])
+
+  useEffect(()=> {
+
+  console.log("received", receiveAmount);
+  
+
+  }, [receiveAmount])
 
   useEffect(() => {
    
@@ -265,7 +270,7 @@ export default function Card() {
       <div className='swap_card'>
         <p className='paragraph06 label'>You Pay</p>
         <AmountContainer
-          balance='125.25'
+          balance={selectedTokens?.lend?.balanceFixed}
           value={lendAmount}
           onChange={(e: any) => handleLendAmount(e.target.value)}
           onMaxClick={() => console.log("Max Clicked")}

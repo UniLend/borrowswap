@@ -58,16 +58,25 @@ export const getAllowance = async (
   address: string,
   user: `0x${string}` | undefined
 ) => {
-  const instance = await getEtherContract(address, erc20Abi);
+  try {
 
-  const allowance = await instance?.allowance(
-    user,
-    "0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E"
-  );
+    const instance = await getEtherContract(address, erc20Abi);
 
-  const bal = await instance?.balanceOf(user);
+    const allowance = await instance?.allowance(
+      user,
+      "0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E"
+    );
+  
+     const bal = await instance?.balanceOf(user);
+  console.log("allow", instance, bal);
+  
+    return { allowance: fromBigNumber(allowance), balance: fromBigNumber(bal)};
+  } catch (error) {
+    console.log(error);
+    
+    throw error
+  }
 
-  return { allowance: fromBigNumber(allowance), balance: fromBigNumber(bal)};
 };
 
 
@@ -81,12 +90,9 @@ export const  getPoolBasicData = async (
   poolAddress: string,
   poolData: any,
   userAddress: any,
-  selectedTokens: any
 ) => {
 
-   const borrowToken = selectedTokens.lend.address == poolData.token0.address ? poolData.token1: poolData.token0;
-   
-   console.log("borrow", borrowToken);
+  //  console.log(contracts, poolAddress, poolData, userAddress);
    
 
   let pool = {...poolData};
@@ -100,8 +106,9 @@ export const  getPoolBasicData = async (
            poolAddress,
            userAddress
         )
-
       ]);
+     // const token0 = await getAllowance(pool.token0.address, userAddress)
+
 
       let token0Price = 0
       let token1Price = 0

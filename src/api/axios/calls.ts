@@ -106,7 +106,7 @@ export const getTokenPrice = async (data: any, chain: any) => {
   return result;
 };
 
-export const getQuote = async (amountIn: string, user: any, tokenIn: any, tokenOut: any) => {
+export const getQuote = async (amountIn: string, user: any, tokenIn: any, tokenOut: any, chainId=1) => {
   try {
     const data = await axios({
       method: "post",
@@ -122,7 +122,7 @@ export const getQuote = async (amountIn: string, user: any, tokenIn: any, tokenO
           },
           {
             enableFeeOnTransferFeeFetching: true,
-            protocols: [ "V3"],
+            protocols: [ "V2", "V3"],
             enableUniversalRouter: true,
             recipient: user,
             routingType: "CLASSIC",
@@ -131,9 +131,9 @@ export const getQuote = async (amountIn: string, user: any, tokenIn: any, tokenO
         intent: "quote",
         sendPortionEnabled: true,
         tokenIn: tokenIn,
-        tokenInChainId: 137,
+        tokenInChainId: chainId,
         tokenOut: tokenOut,
-        tokenOutChainId: 137,
+        tokenOutChainId: chainId,
         type: "EXACT_INPUT",
       },
       headers:{

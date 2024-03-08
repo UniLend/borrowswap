@@ -207,6 +207,7 @@ export const getBorrowAmount = (amount: any, ltv: any , collateralToken: any, se
 
   const borrowAmount = (Number(amount) * Number(collateralToken.priceRatio)) * (ltv/100) 
 
+
   
   return borrowAmount;
 

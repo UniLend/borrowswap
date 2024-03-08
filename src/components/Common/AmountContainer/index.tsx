@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./index.scss";
 import { Input, Button } from "antd";
 import ButtonWithDropdown from "../ButtonWithDropdown";
@@ -34,6 +34,11 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
       } as React.ChangeEvent<HTMLInputElement>);
     }
   };
+
+  useEffect(()=> {
+console.log("value", value, inputValue);
+setInputValue(value)
+  },[value])
 
   return (
     <div className={`amount_container ${className}`}>
