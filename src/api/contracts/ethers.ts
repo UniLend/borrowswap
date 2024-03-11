@@ -54,14 +54,20 @@ export async function getEtherContract(
   abi: any,
   chainId?: number,
 ) {
-  const signer = await getEthersSigner(  { chainId });
-  const provider = getEthersProvider(  { chainId });
-
-  const contract = new ethers.Contract(
-    address,
-    abi,
-    signer ? signer : provider,
-  );
-
-  return contract;
+  try {
+    const signer = await getEthersSigner(  { chainId });
+    const provider = getEthersProvider(  { chainId });
+  
+    const contract = new ethers.Contract(
+      address,
+      abi,
+      signer ? signer : provider,
+    );
+  
+    return contract;
+  } catch (error) {
+    console.log("Error creating the Ethereum contract", error);
+    
+  }
+  
 }

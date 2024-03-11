@@ -1,9 +1,26 @@
-import { ethers } from "ethers";
+import { ethers,  BigNumber as bigNumber } from "ethers";
 import BigNumber from "bignumber.js";
 import { getTokenPrice } from "../api/axios/calls";
 import { store } from "../states/store";
 import { setPools, setTokens } from "../states/unilendV2Reducer";
 import { getTokenSymbol } from "../utils";
+
+
+
+const READABLE_FORM_LEN = 4
+
+export function fromReadableAmount(
+  amount: number,
+  decimals: number
+): bigNumber {
+  return ethers.utils.parseUnits(amount.toString(), decimals)
+}
+
+export function toReadableAmount(rawAmount: number, decimals: number): string {
+  return ethers.utils
+    .formatUnits(rawAmount, decimals)
+    .slice(0, READABLE_FORM_LEN)
+}
 
 export function fromBigNumber(bignumber: any) {
   return ethers.BigNumber.from(bignumber).toString();
@@ -73,14 +90,14 @@ export const loadPoolsWithGraph = async (data: any, chain: any) => {
         token0: {
           ...pool.token0,
           address: pool?.token0?.id,
-
+          logo: getTokenSymbol(pool.token0.symbol),
           priceUSD: tokenPrice[pool?.token0?.id] * pool.token0.decimals,
           pricePerToken: tokenPrice[pool?.token0?.id],
         },
         token1: {
           ...pool.token1,
           address: pool?.token1?.id,
-
+          logo: getTokenSymbol(pool.token1.symbol),
           priceUSD: tokenPrice[pool?.token1?.id] * pool.token1.decimals,
           pricePerToken: tokenPrice[pool?.token1?.id],
         },
@@ -170,3 +187,51 @@ export function numberFormat(x: any, po: any) {
     return parts.join(".");
   }
 }
+
+export function getCurrentLTV(selectedToken: any, collateralToken: any) {
+  const prevLTV =
+    Number(selectedToken.borrowBalanceFixed) > 0
+      ? Number(selectedToken.borrowBalanceFixed) /
+        (Number(collateralToken.lendBalanceFixed) *
+          Number(collateralToken.priceRatio))
+      : 0;
+
+      
+  return (Number(prevLTV.toFixed(4)) *100).toFixed(2);
+}
+
+
+export const getBorrowAmount = (amount: any, ltv: any , collateralToken: any, selectedToken: any) => {
+  
+  const borrowed = Number(amount) * Number(Number(getCurrentLTV(selectedToken, collateralToken))/100);
+
+  const borrowAmount = (Number(amount) * Number(collateralToken.priceRatio)) * (ltv/100) 
+
+
+  
+  return borrowAmount;
+
+
+
+}
+
+// const checkAllowance = async () => {
+//   const token1Allowance = await getAllowance(
+//     "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
+//     address
+//   );
+//   const token2Allowance = await getAllowance(
+//     "0x172370d5cd63279efa6d502dab29171933a610af",
+//     address
+//   );
+
+
+//   setTokenAllowance({
+//     token1: fixed2Decimals(token1Allowance).toString(),
+//     token2: String(token2Allowance),
+//   });
+// };
+
+// const handleAllowance = async (tokenAddress: string) => {
+//   const hash = await handleApproval(tokenAddress, address, lendAmount);
+// };

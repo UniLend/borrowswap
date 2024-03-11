@@ -15,10 +15,10 @@ import { Provider } from 'react-redux'
 export const wagmiConfig = getDefaultConfig({
   appName: 'BorrowSwap',
   projectId: 'YOUR_PROJECT_ID',
-  chains: [mainnet, polygon, optimism, arbitrum, base, zora],
+  chains: [mainnet, polygon],
   transports: {
     [mainnet.id]: http(),
-    [polygon.id]: http(),
+    [polygon.id]: http('https://polygon-mainnet.infura.io/v3/66e3a238dbe74ec3b1921da35f98b8e9'),
   }
 });
 

@@ -1,5 +1,4 @@
 import React from "react";
-import Lottie from "react-lottie";
 import cubeLoader from "../../../assets/3D-Cube-loader.json";
 import loader from "../../../assets/3D-Cube-loader.gif";
 import "./index.scss";
