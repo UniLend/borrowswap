@@ -29,7 +29,7 @@ enum ActiveOperation {
 export default function Card() {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const [activeOperation, setActiveOperation] = useState<ActiveOperation>(
-    ActiveOperation.REPAY
+    ActiveOperation.BRROW
   );
   const { tokenList, poolList } = unilendV2Data;
   const [tokenAllowance, setTokenAllowance] = useState({
@@ -216,8 +216,7 @@ export default function Card() {
               value={lendAmount}
               onChange={(e: any) => handleLendAmount(e.target.value)}
               onMaxClick={() => console.log("Max Clicked")}
-              // buttonText={selectedTokens?.lend?.symbol}
-              buttonText={"USDC"}
+              buttonText={selectedTokens?.lend?.symbol}
               onClick={() => handleOpenTokenList("lend")}
               isShowMaxBtn
             />
@@ -303,6 +302,7 @@ export default function Card() {
         <TokenListModal
           tokenList={getOprationToken()}
           onSelectToken={(token: any) => handleTokenSelection(token)}
+          operation={activeOperation}
         />
       </Modal>
       <Modal

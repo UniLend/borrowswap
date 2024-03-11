@@ -10,9 +10,13 @@
   justify-content: center;
 
   .loader_animation {
-    width: 216px;
+    width: 200px;
     height: 172px !important;
-    border: 1px solid red;
+
+    img {
+      width: 100%;
+      aspect-ratio: 1/1;
+    }
   }
 
   .loader_part {

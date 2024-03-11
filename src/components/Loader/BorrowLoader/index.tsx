@@ -1,6 +1,7 @@
 import React from "react";
 import Lottie from "react-lottie";
 import cubeLoader from "../../../assets/3D-Cube-loader.json";
+import loader from "../../../assets/3D-Cube-loader.gif";
 import "./index.scss";
 
 interface BorrowLoaderProps {
@@ -36,6 +37,7 @@ const BorrowLoader: React.FC<BorrowLoaderProps> = ({
     <div className='borrow_loader_container'>
       <div className='loader_animation'>
         {/* <Lottie options={defaultOptionsLotti} height={300} width={300} /> */}
+        <img src={loader} alt='loader' />
       </div>
       <div className='loader_part message'>
         <p className='paragraph02'>Enable spending {spendToken}</p>

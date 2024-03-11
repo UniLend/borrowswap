@@ -28,9 +28,29 @@
       flex-direction: column;
       justify-content: center;
       gap: 8px;
+      .token_pool_logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        .pool_logo {
+          display: flex;
+          align-items: center;
+          img {
+            width: 18px;
+            height: 18px;
+            border-radius: 16px;
+            margin: 4px 0 0;
+            &:nth-child(1) {
+              z-index: 2;
+            }
+            &:nth-child(2) {
+              margin-left: -6px;
+            }
+          }
+        }
+      }
       h3 {
         display: block;
-        // width: 100%;
         letter-spacing: 0.04em;
         text-transform: uppercase;
         color: var(--pure-black);
@@ -54,6 +74,18 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+    gap: 10px;
+    > div {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+
+      img {
+        width: 18px;
+        height: 18px;
+        border-radius: 16px;
+      }
+    }
     .pool_logo {
       img {
         width: 24px;
@@ -64,7 +96,7 @@
         }
         &:nth-child(2) {
           z-index: 1;
-          margin-left: -6px;
+          margin-left: -16px;
         }
       }
     }
@@ -84,7 +116,28 @@
 
       div {
         width: 70%;
+        .token_pool_logo {
+          justify-content: space-between;
+          gap: 4px;
+          .pool_logo {
+            display: flex;
+            align-items: center;
+            img {
+              width: 16px;
+              height: 16px;
+              border-radius: 16px;
+              margin: 6px 0 0;
+              &:nth-child(1) {
+                z-index: 2;
+              }
+              &:nth-child(2) {
+                margin-left: -6px;
+              }
+            }
+          }
+        }
         h3 {
+          width: 100px;
           font-size: $font-size-sm;
         }
         span {
@@ -94,7 +147,21 @@
     }
 
     .pool_details {
-      max-width: 70px;
+      max-width: 140px;
+      .paragraph06 {
+        font-size: $font-size-xxsm;
+      }
+      > div {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+
+        img {
+          width: 16px;
+          height: 16px;
+          border-radius: 16px;
+        }
+      }
       .pool_logo {
         img {
           width: 16px;
@@ -105,7 +172,7 @@
           }
           &:nth-child(2) {
             z-index: 1;
-            margin-left: -6px;
+            margin-left: -12px;
           }
         }
       }
