@@ -1,11 +1,12 @@
 import React from "react";
 import cubeLoader from "../../../assets/3D-Cube-loader.json";
+import loader from "../../../assets/3D-Cube-loader.gif";
 import "./index.scss";
 
 interface BorrowLoaderProps {
   spendToken: string;
   SwapToken: string;
-  progress: number;
+  progress: 1 | 2 | 3 | 4 | 5;
 }
 
 const BorrowLoader: React.FC<BorrowLoaderProps> = ({
@@ -24,14 +25,18 @@ const BorrowLoader: React.FC<BorrowLoaderProps> = ({
   };
 
   const rangeStyle = {
-    width: `${progress}%`,
-    background: `linear-gradient(to right, var(--main-light) ${progress}%, var(--button-border) ${progress}%)`,
+    width: `${progress * 20}%`,
+    background: `linear-gradient(to right, var(--main-light) ${
+      progress * 20
+    }%, var(--button-border) ${progress * 20}%)`,
+    transition: "width 0.5s ease",
   };
 
   return (
     <div className='borrow_loader_container'>
       <div className='loader_animation'>
         {/* <Lottie options={defaultOptionsLotti} height={300} width={300} /> */}
+        <img src={loader} alt='loader' />
       </div>
       <div className='loader_part message'>
         <p className='paragraph02'>Enable spending {spendToken}</p>
@@ -49,7 +54,7 @@ const BorrowLoader: React.FC<BorrowLoaderProps> = ({
 BorrowLoader.defaultProps = {
   spendToken: "TOKEN1",
   SwapToken: "TOKEN2",
-  progress: 20,
+  progress: 1,
 };
 
 export default BorrowLoader;

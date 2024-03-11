@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { FaChevronDown } from "react-icons/fa";
 import { FiChevronDown } from "react-icons/fi";
 import "./index.scss";
@@ -22,8 +22,15 @@ const ButtonWithDropdown: React.FC<ButtonWithDropdownProps> = ({
       className={`btn_with_dropdown ${className}`}
     >
       <div onClick={() => console.log("dropdown")} className='token_tab'>
-        <img src={getTokenSymbol(buttonText)} alt='logo' />
-        <h2>{buttonText}</h2>
+        {buttonText === "Select Token" ? (
+          <h2>Select</h2>
+        ) : (
+          // <h2>{buttonText}</h2>
+          <>
+            <img src={getTokenSymbol(buttonText)} alt='logo' />
+            <h2>{buttonText}</h2>
+          </>
+        )}
       </div>
       <div onClick={() => console.log("handle dropdown")} className='dropdown'>
         <FaChevronDown className='dropicon' />
@@ -32,10 +39,10 @@ const ButtonWithDropdown: React.FC<ButtonWithDropdownProps> = ({
   );
 };
 
-export default ButtonWithDropdown;
+export default memo(ButtonWithDropdown);
 
 ButtonWithDropdown.defaultProps = {
-  buttonText: "Select",
+  buttonText: "Select Token",
   onClick: () => console.log("Clicked"),
   className: "",
 };

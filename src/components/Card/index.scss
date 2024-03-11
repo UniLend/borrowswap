@@ -21,8 +21,8 @@
 
 .swap_card_component {
   width: 100%;
-  min-height: 732px;
-  height: calc(100vh - 130px);
+  min-height: 800px;
+  height: calc(100vh - 120px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -32,18 +32,41 @@
     box-sizing: border-box;
     display: block;
     max-width: 600px;
-    width: 88%;
+    width: 90%;
     background-color: var(--dark-bg);
     border-radius: 16px;
-    padding: 45px;
+    padding: 36px;
     margin: 5% 0;
+
+    .tab_switcher {
+      box-sizing: border-box;
+      width: 100%;
+      height: 60px;
+      background-color: var(--low-dark-bg);
+      border-radius: 24px;
+      padding: 5px;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 36px;
+      .tab_btn {
+        width: 50%;
+        border-radius: 24px;
+        background-color: transparent;
+        font-size: $font-size-sm;
+        &:hover {
+          color: var(--pure-black);
+        }
+      }
+      .active {
+        background-color: var(--dark-button);
+        border: 1.5px solid var(--button-border);
+        color: var(--main-light);
+      }
+    }
 
     .label {
       margin-left: 16px;
-    }
-
-    .you_receive {
-      margin-top: 45px;
+      margin-top: 36px;
     }
 
     .swap_route {
@@ -52,12 +75,18 @@
       align-items: center;
       gap: 4px;
     }
+    .transparent_btn {
+      .token_tab,
+      .dropdown {
+        background-color: transparent !important;
+      }
+    }
 
     .range_container {
       max-width: 460px;
       width: 92%;
       height: 50px;
-      margin: 45px auto;
+      margin: 36px auto;
 
       div {
         display: flex;
@@ -167,14 +196,67 @@
     }
   }
 
+  @media only screen and (max-width: 1440px) {
+    min-height: 620px;
+    .swap_card {
+      margin: 60px 0;
+      max-width: 424px;
+      padding: 24px;
+      .tab_switcher {
+        height: 46px;
+        padding: 4px;
+        margin-bottom: 24px;
+        .tab_btn {
+          font-size: $font-size-xsm;
+          height: 38px;
+          border-radius: 16px;
+        }
+      }
+
+      .label {
+        margin-top: 24px;
+      }
+
+      .range_container {
+        height: 40px;
+        margin: 24px auto 28px;
+        .range_slider {
+          margin: 8px 0;
+          .ant-slider-handle {
+            width: 20px;
+            height: 20px;
+            margin-top: -2px;
+          }
+        }
+      }
+
+      button {
+        height: 40px;
+      }
+    }
+  }
+  // @media ($medium) {
+
+  // }
+
   @media ($mobile) {
     height: calc(100vh - 80px);
     min-height: auto;
     .swap_card {
       margin: 60px 0;
-      padding: 24px;
-      .you_receive {
-        margin-top: 24px;
+      padding: 16px;
+
+      .tab_switcher {
+        height: 45px;
+        padding: 4px;
+        margin-bottom: 20px;
+        .tab_btn {
+          font-size: $font-size-xsm;
+        }
+      }
+
+      .label {
+        margin-top: 20px;
       }
 
       .range_container {

@@ -8,9 +8,10 @@ interface AmountContainerProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   buttonText: string;
   onClick: () => void;
-  onMaxClick: () => void;
+  onMaxClick?: () => void;
   balance: string;
   className?: string;
+  isShowMaxBtn?: boolean;
 }
 
 const AmountContainer: React.FC<AmountContainerProps> = ({
@@ -21,6 +22,7 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
   onMaxClick,
   balance,
   className,
+  isShowMaxBtn,
 }) => {
   const [inputValue, setInputValue] = useState(value);
 
@@ -48,9 +50,11 @@ setInputValue(value)
           placeholder='0'
           onChange={handleInputChange} // Use the custom handler
         />
-        <Button onClick={onMaxClick} className='max_btn' type='text'>
-          Max
-        </Button>
+        {isShowMaxBtn && (
+          <Button onClick={onMaxClick} className='max_btn' type='text'>
+            Max
+          </Button>
+        )}
       </div>
       <div className='amount_container_right amount_div'>
         <p className='paragraph06 right'>Balance: {balance}</p>
@@ -64,11 +68,12 @@ setInputValue(value)
 AmountContainer.defaultProps = {
   value: "",
   onChange: () => console.log("onChange"),
-  buttonText: "Select",
+  buttonText: "Select Token",
   onClick: () => console.log("onClick"),
   onMaxClick: () => console.log("onMaxClick"),
   balance: "0",
   className: "",
+  isShowMaxBtn: false,
 };
 
 export default AmountContainer;
