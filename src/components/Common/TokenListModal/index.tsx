@@ -10,14 +10,21 @@ interface Token {
   symbol: string;
 }
 
+enum ActiveOperation {
+  BRROW = "Borrow_Swap",
+  REPAY = "Swap_Repay",
+}
+
 interface TokenListModalProps {
   tokenList: Token[];
   onSelectToken: (token: Token) => void;
+  operation: ActiveOperation;
 }
 
 const TokenListModal: React.FC<TokenListModalProps> = ({
   tokenList,
   onSelectToken,
+  operation,
 }) => {
   // TODO: update typeScript here
   const container = useRef<any>(null);
@@ -67,6 +74,7 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
                 key={i}
                 token={token}
                 onClick={() => handleTokensList(token)}
+                operation={operation}
               />
             )
         )}
@@ -79,6 +87,7 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
 TokenListModal.defaultProps = {
   tokenList: [],
   onSelectToken: (token: Token) => {},
+  operation: ActiveOperation.BRROW,
 };
 
 export default TokenListModal;

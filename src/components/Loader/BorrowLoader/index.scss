@@ -2,7 +2,7 @@
 
 .borrow_loader_container {
   box-sizing: border-box;
-
+  height: 452px;
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -10,9 +10,13 @@
   justify-content: center;
 
   .loader_animation {
-    width: 216px;
-    height: 172px;
-    border: 1px solid red;
+    width: 200px;
+    height: 172px !important;
+
+    img {
+      width: 100%;
+      aspect-ratio: 1/1;
+    }
   }
 
   .loader_part {
@@ -26,9 +30,9 @@
   }
 
   .range {
-    width: 100%;
+    width: 100% !important;
     height: 10px;
-    background-color: red;
+    border-radius: 4px;
   }
 
   p {
@@ -39,10 +43,10 @@
 .antd_popover_content {
   max-width: 360px !important;
   max-height: 452px !important;
-  width: 70% !important;
+  width: 80% !important;
   height: 70% !important;
   .ant-modal-content {
-    border-radius: 16px;
+    border-radius: 12px;
     padding: 24;
     padding: 0;
     background: var(--popup-border) !important;

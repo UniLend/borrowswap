@@ -21,7 +21,6 @@ body {
   @each $name, $color in $dark {
     --#{$name}: #{$color};
   }
-  font-family: "Helvetica Neue LT Pro" !important;
 }
 
 .light {
@@ -33,10 +32,12 @@ body {
   margin: 0px;
   padding: 0px;
 }
-body {
+* {
   font-family: "Helvetica Neue LT Pro" !important;
-  background-color: var(--bg-color);
   font-stretch: normal !important;
+}
+body {
+  background-color: var(--bg-color);
 }
 
 html,
@@ -49,16 +50,24 @@ body,
   -ms-user-select: none; /* IE 10 and IE 11 */
   user-select: none; /* Standard syntax */
 }
-// .app_container {
-//   width: 100%;
-//   max-width: 1920px;
-//   min-height: calc(100vh - 124px);
-//   margin: auto;
-//   position: relative;
-//   background-attachment: fixed;
-// }
-button {
-  font-family: "Helvetica Neue LT Pro" !important;
+
+/* width */
+::-webkit-scrollbar {
+  width: 5px;
+  border-radius: 50%;
+}
+/* Track */
+::-webkit-scrollbar-track {
+  background: var(--pure-white);
+}
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: var(--main);
+  border-radius: 5px;
+}
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #3a7cff;
 }
 
 

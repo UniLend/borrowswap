@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./index.scss";
 import { Input, Button } from "antd";
 import ButtonWithDropdown from "../ButtonWithDropdown";
@@ -8,9 +8,10 @@ interface AmountContainerProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   buttonText: string;
   onClick: () => void;
-  onMaxClick: () => void;
+  onMaxClick?: () => void;
   balance: string;
   className?: string;
+  isShowMaxBtn?: boolean;
 }
 
 const AmountContainer: React.FC<AmountContainerProps> = ({
@@ -21,6 +22,7 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
   onMaxClick,
   balance,
   className,
+  isShowMaxBtn,
 }) => {
   const [inputValue, setInputValue] = useState(value);
 
@@ -35,6 +37,11 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
     }
   };
 
+  useEffect(()=> {
+console.log("value", value, inputValue);
+setInputValue(value)
+  },[value])
+
   return (
     <div className={`amount_container ${className}`}>
       <div className='amount_container_left amount_div'>
@@ -43,9 +50,11 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
           placeholder='0'
           onChange={handleInputChange} // Use the custom handler
         />
-        <Button onClick={onMaxClick} className='max_btn' type='text'>
-          Max
-        </Button>
+        {isShowMaxBtn && (
+          <Button onClick={onMaxClick} className='max_btn' type='text'>
+            Max
+          </Button>
+        )}
       </div>
       <div className='amount_container_right amount_div'>
         <p className='paragraph06 right'>Balance: {balance}</p>
@@ -59,11 +68,12 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
 AmountContainer.defaultProps = {
   value: "",
   onChange: () => console.log("onChange"),
-  buttonText: "select",
+  buttonText: "Select Token",
   onClick: () => console.log("onClick"),
   onMaxClick: () => console.log("onMaxClick"),
   balance: "0",
   className: "",
+  isShowMaxBtn: false,
 };
 
 export default AmountContainer;
