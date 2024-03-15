@@ -1,14 +1,13 @@
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { Suspense, lazy, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import "./App.scss";
-import Card from "./components/Card";
+const Card = lazy(() => import("./components/Card"));
 import Navbar from "./components/Navbar";
 import SwapCard from "./components/SwapCard";
 
-import { useEffect } from "react";
 import { fetchGraphQlData, getTokenPrice } from "./api/axios/calls";
 import useWalletHook from "./api/hooks/useWallet";
 import { getPoolCreatedGraphQuery } from "./api/axios/query";
-import { useQuery } from "@tanstack/react-query";
 import { loadPoolsWithGraph } from "./helpers";
 
 function App() {
@@ -24,8 +23,6 @@ function App() {
   });
 
   useEffect(() => {
-    console.log("data", data);
-
     if (chain?.id) {
       loadPoolsWithGraph(data, chain);
     }
@@ -34,8 +31,9 @@ function App() {
   return (
     <div>
       <Navbar />
-      <Card />
-      {/* <SwapCard /> */}
+      <Suspense fallback={<p className='paragraph01'>Loading...</p>}>
+        <Card isLoading={isLoading} />
+      </Suspense>
     </div>
   );
 }

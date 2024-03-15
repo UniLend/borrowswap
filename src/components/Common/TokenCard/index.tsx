@@ -16,9 +16,17 @@ interface TokenCardProps {
   token: Token;
   onClick: (token: Token) => void;
   operation?: ActiveOperation;
+  showPoolData?: boolean;
+  poolData?: any; // update later
 }
 
-const TokenCard: React.FC<TokenCardProps> = ({ token, onClick, operation }) => {
+const TokenCard: React.FC<TokenCardProps> = ({
+  token,
+  onClick,
+  operation,
+  showPoolData,
+  poolData,
+}) => {
   const handleTokensList = () => {
     onClick(token);
   };
@@ -32,15 +40,15 @@ const TokenCard: React.FC<TokenCardProps> = ({ token, onClick, operation }) => {
             <div>
               <div className='token_pool_logo'>
                 <h3>{token.symbol}</h3>
-                {/* TODO: update the condition */}
-                {true && (
+                {/* TODO: update the unilend tokens condition in place if true */}
+                {true && showPoolData && (
                   <div className='pool_logo'>
                     <img src={token.logo} alt='' />
                     <img src={token.logo} alt='' />
                   </div>
                 )}
               </div>
-              <span>Borrow APY: 30%</span>
+              {showPoolData && <span>Borrow APY: 30%</span>}
             </div>
           </div>
           {/* TODO: update token pool data */}
@@ -49,7 +57,7 @@ const TokenCard: React.FC<TokenCardProps> = ({ token, onClick, operation }) => {
               <p className='paragraph06'>Unilend</p>
               <img src={token.logo} alt='' />
             </div>
-            <p className='paragraph06'>Max LTV: 30%</p>
+            {showPoolData && <p className='paragraph06'>Max LTV: 30%</p>}
           </div>
         </div>
       ) : (
@@ -79,6 +87,8 @@ const TokenCard: React.FC<TokenCardProps> = ({ token, onClick, operation }) => {
 // Default Props
 TokenCard.defaultProps = {
   onClick: (token: Token) => {},
+  showPoolData: false,
+  poolData: [],
 };
 
 export default TokenCard;

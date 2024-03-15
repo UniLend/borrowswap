@@ -8,24 +8,32 @@ interface ButtonWithDropdownProps {
   buttonText: string;
   onClick: () => void;
   className?: string;
+  title?: string;
+  isTokensLoading?: boolean;
 }
 
 const ButtonWithDropdown: React.FC<ButtonWithDropdownProps> = ({
   buttonText,
   onClick,
   className,
+  title,
+  isTokensLoading,
 }) => {
   return (
     <div
       role='presentation'
-      onClick={onClick}
+      onClick={!isTokensLoading ? onClick : undefined}
       className={`btn_with_dropdown ${className}`}
+      title={title}
     >
       <div onClick={() => console.log("dropdown")} className='token_tab'>
         {buttonText === "Select Token" ? (
-          <h2>Select</h2>
+          isTokensLoading ? (
+            <h2>loading...</h2>
+          ) : (
+            <h2>Select</h2>
+          )
         ) : (
-          // <h2>{buttonText}</h2>
           <>
             <img src={getTokenSymbol(buttonText)} alt='logo' />
             <h2>{buttonText}</h2>
@@ -45,4 +53,6 @@ ButtonWithDropdown.defaultProps = {
   buttonText: "Select Token",
   onClick: () => console.log("Clicked"),
   className: "",
+  title: "",
+  isTokensLoading: false,
 };
