@@ -10,14 +10,14 @@ export const contracts = {};
 export const handleApproval = async (
   tokenAddress: string,
   user: `0x${string}` | undefined,
-  amount: string
+  amount: string | number
 ) => {
   var maxAllow =
     "115792089237316195423570985008687907853269984665640564039457584007913129639935";
   const instance = await getEtherContract(tokenAddress, erc20Abi);
 
   const Amount =
-    tokenAddress == "0x172370d5cd63279efa6d502dab29171933a610af"
+   amount == ''
       ? maxAllow
       : (Number(amount) * 10 ** 18).toString();
 
@@ -31,46 +31,54 @@ export const handleApproval = async (
 
 
 export const handleSwap = async (amount: any) => {
-  const instance = await getEtherContract('0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E', borrowswapABI);
 
-  const borrowAmount =   ((Number(decimal2Fixed(amount)) *2.6) *0.35 ).toString();
+  try {
+    const instance = await getEtherContract('0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E', borrowswapABI);
 
-console.log(  amount , fixed2Decimals(borrowAmount),
-decimal2Fixed(amount),
- borrowAmount );
-
-  const {hash} = instance?.InitBorrow(
-    '0x784c4a12f82204e5fb713b055de5e8008d5916b6',
-    '0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a',
-    '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
-    '0x172370d5cd63279efa6d502dab29171933a610af',
-    decimal2Fixed(amount),
-    borrowAmount
-  )
-  console.log(hash);
+    const borrowAmount =   ((Number(decimal2Fixed(amount)) *2.6) *0.35 ).toString();
   
-  return hash
+  
+    const {hash} = instance?.InitBorrow(
+      '0x784c4a12f82204e5fb713b055de5e8008d5916b6',
+      '0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a',
+      '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+      '0x172370d5cd63279efa6d502dab29171933a610af',
+      decimal2Fixed(amount),
+      borrowAmount
+    )
+    console.log(hash);
+    
+    return hash
+  } catch (error) {
+
+    console.log("Error", {error});
+
+    throw error
+  }
+
 }
 
 
 
 export const getAllowance = async (
-  address: string,
+  token: any,
   user: `0x${string}` | undefined
 ) => {
   try {
-
-    const instance = await getEtherContract(address, erc20Abi);
+    var maxAllow =
+    "115792089237316195423570985008687907853269984665640564039457584007913129639935";
+    const instance = await getEtherContract(token.address, erc20Abi);
 
     const allowance = await instance?.allowance(
       user,
       "0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E"
     );
   
+    const allowanceFixed = Number(fromBigNumber(allowance)) == Number(maxAllow) ? fromBigNumber(allowance): fixed2Decimals(fromBigNumber(allowance), token.decimals)
+    
      const bal = await instance?.balanceOf(user);
-  console.log("allow", instance, bal);
   
-    return { allowance: fromBigNumber(allowance), balance: fromBigNumber(bal)};
+    return { allowance: fromBigNumber(allowance), allowanceFixed: allowanceFixed ,  balance: fromBigNumber(bal)};
   } catch (error) {
     console.log(error);
     
@@ -101,7 +109,7 @@ export const  getPoolBasicData = async (
       
       const instance = await getEtherContract(contracts.helperAddress, helperAbi )
       const oracleInstance = await getEtherContract(contracts.coreAddress, coreAbi)
-         const [token0, token1, data] = await Promise.all([getAllowance(pool.token0.address, userAddress), getAllowance(pool.token1.address, userAddress), instance?.getPoolFullData(
+         const [token0, token1, data] = await Promise.all([getAllowance(pool.token0, userAddress), getAllowance(pool.token1, userAddress), instance?.getPoolFullData(
           contracts.positionAddress,
            poolAddress,
            userAddress
