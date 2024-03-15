@@ -1,7 +1,6 @@
-import { useAccount } from 'wagmi';
+import { useAccount, useBalance } from 'wagmi';
 
 export default function useWalletHook() {
-  const { address, isConnecting, isDisconnected, isConnected, chain } = useAccount();
- 
-  return { address, isConnected, chain };
+  const { address, isConnecting, isDisconnected, isConnected, chain, chainId, isReconnected } = useAccount();
+  return { address, isConnected, chain,chainId, status, isReconnected };
 }

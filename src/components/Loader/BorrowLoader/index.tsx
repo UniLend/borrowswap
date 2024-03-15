@@ -6,13 +6,15 @@ import "./index.scss";
 interface BorrowLoaderProps {
   spendToken: string;
   SwapToken: string;
-  progress: 1 | 2 | 3 | 4 | 5;
+  progress: Number;
+  length?: Number
 }
 
 const BorrowLoader: React.FC<BorrowLoaderProps> = ({
   spendToken,
   SwapToken,
   progress,
+ length = 3
 }) => {
   // TODO: fix react-lottie issue
   const defaultOptionsLotti = {
@@ -25,10 +27,10 @@ const BorrowLoader: React.FC<BorrowLoaderProps> = ({
   };
 
   const rangeStyle = {
-    width: `${progress * 20}%`,
+    width: `${Number(progress) * (100/Number(length))}%`,
     background: `linear-gradient(to right, var(--main-light) ${
-      progress * 20
-    }%, var(--button-border) ${progress * 20}%)`,
+      Number(progress) * (100/Number(length))
+    }%, var(--button-border) ${Number(progress) * (100/Number(length))}%)`,
     transition: "width 0.5s ease",
   };
 

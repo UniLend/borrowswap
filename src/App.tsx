@@ -9,10 +9,10 @@ import { fetchGraphQlData, getTokenPrice } from "./api/axios/calls";
 import useWalletHook from "./api/hooks/useWallet";
 import { getPoolCreatedGraphQuery } from "./api/axios/query";
 import { loadPoolsWithGraph } from "./helpers";
-
+import { connectWallet } from './api/services/wallet';
 function App() {
   document.body.className = `body dark`;
-  const { address, chain } = useWalletHook();
+  const { address, chain, isConnected } = useWalletHook();
   const query = getPoolCreatedGraphQuery(address);
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["pools"],

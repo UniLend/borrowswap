@@ -122,7 +122,7 @@ export const getQuote = async (amountIn: string, user: any, tokenIn: any, tokenO
           },
           {
             enableFeeOnTransferFeeFetching: true,
-            protocols: [ "V2", "V3"],
+            protocols: ["V3"],
             enableUniversalRouter: true,
             recipient: user,
             routingType: "CLASSIC",

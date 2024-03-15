@@ -96,6 +96,7 @@ export default function Card({ isLoading }: any) {
       logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400",
     },
   ];
+  const [operationProgress, setOperationProgress] = useState(0);
 
   const handleLendAmount = (amount: string) => {
     setLendAmount(amount);
@@ -141,13 +142,15 @@ export default function Card({ isLoading }: any) {
   };
 
   const handleLTVSlider = (value: number) => {
-    if (selectedLTV > Number(unilendPool.maxLTV)) {
-      setSelectedLTV(Number(unilendPool.maxLTV) - 1);
-    } else if (selectedLTV == Number(currentLTV)) {
-      setSelectedLTV(selectedLTV - 1);
-    } else {
-      setSelectedLTV(value);
-    }
+    // if (selectedLTV > Number(unilendPool.maxLTV)) {
+    //   setSelectedLTV(Number(unilendPool.maxLTV) );
+    // } else if (selectedLTV == Number(currentLTV)) {
+    //   setSelectedLTV(selectedLTV - 1);
+    // } else {
+    //   setSelectedLTV(value);
+    // }
+
+    setSelectedLTV(value);
 
     const borrowAmount = getBorrowAmount(
       lendAmount,
@@ -156,59 +159,63 @@ export default function Card({ isLoading }: any) {
       selectedTokens.borrow
     );
     setBorrowAmount(borrowAmount);
+    console.log(borrowAmount, b2rRatio);
+
     setReceiveAmount((borrowAmount * b2rRatio).toString());
   };
 
+  useEffect(() => {
+    console.log("selectedTokens", selectedTokens);
+
+    if (selectedTokens?.lend?.priceRatio) {
+      handleLTVSlider(5);
+    }
+  }, [selectedTokens]);
+
   const handleSelectBorrowToken = async (token: string) => {
     setIsTokenLoading({ ...isTokenLoading, pools: true });
-    try {
-      const tokenPool = Object.values(poolList).find((pool) => {
-        if (
-          (pool.token1.address == token &&
-            pool.token0.address == selectedTokens.lend?.address) ||
-          (pool.token0.address == token &&
-            pool.token1.address == selectedTokens.lend?.address)
-        ) {
-          return true;
-        }
-      });
-
-      const contracts =
-        contractAddresses[chain?.id as keyof typeof contractAddresses];
-      const data = await getPoolBasicData(
-        contracts,
-        tokenPool.pool,
-        tokenPool,
-        address
-      );
-
-      if (data.token0.address == selectedTokens.lend.address) {
-        setSelectedTokens({
-          ...selectedTokens,
-          ["lend"]: data.token0,
-          ["borrow"]: data.token1,
-        });
-        const currentLtv = getCurrentLTV(data.token1, data.token0);
-
-        setCurrentLTV(currentLtv);
-        // handleLTVSlider(Number(currentLtv));
-        handleLTV(Number(currentLtv));
-      } else {
-        setSelectedTokens({
-          ...selectedTokens,
-          ["lend"]: data.token1,
-          ["borrow"]: data.token0,
-        });
-        const currentLtv = getCurrentLTV(data.token0, data.token1);
-        setCurrentLTV(currentLtv);
-        // handleLTVSlider(Number(currentLtv));
-        handleLTV(Number(currentLtv));
+    const tokenPool = Object.values(poolList).find((pool) => {
+      if (
+        (pool.token1.address == token &&
+          pool.token0.address == selectedTokens.lend?.address) ||
+        (pool.token0.address == token &&
+          pool.token1.address == selectedTokens.lend?.address)
+      ) {
+        return true;
       }
+    });
 
-      setUnilendPool(data);
-    } catch (error) {
-      console.log(error);
+    const contracts =
+      contractAddresses[chain?.id as keyof typeof contractAddresses];
+    const data = await getPoolBasicData(
+      contracts,
+      tokenPool.pool,
+      tokenPool,
+      address
+    );
+
+    if (data.token0.address == selectedTokens.lend.address) {
+      setSelectedTokens({
+        ...selectedTokens,
+        ["lend"]: data.token0,
+        ["borrow"]: data.token1,
+      });
+      const currentLtv = getCurrentLTV(data.token1, data.token0);
+
+      setCurrentLTV(currentLtv);
+      // handleLTV(Number(currentLtv));
+    } else {
+      setSelectedTokens({
+        ...selectedTokens,
+        ["lend"]: data.token1,
+        ["borrow"]: data.token0,
+      });
+      const currentLtv = getCurrentLTV(data.token0, data.token1);
+      setCurrentLTV(currentLtv);
+      // handleLTV(Number(currentLtv));
     }
+
+    setUnilendPool(data);
     setIsTokenLoading({ ...isTokenLoading, pools: false });
   };
 
@@ -230,7 +237,44 @@ export default function Card({ isLoading }: any) {
   };
 
   const handleSwapTransaction = async () => {
-    const hash = await handleSwap(lendAmount);
+    setOperationProgress(0);
+    try {
+      const lendToken = await getAllowance(selectedTokens?.lend, address);
+      const borrowToken = await getAllowance(selectedTokens?.borrow, address);
+      setIsBorrowProgressModal(true);
+      console.log("handleSwapTransaction", lendToken, borrowToken);
+
+      if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
+        await handleApproval(selectedTokens?.lend.address, address, lendAmount);
+        setOperationProgress(1);
+        console.log("setOperationProgress(1)", operationProgress);
+
+        handleSwapTransaction();
+      } else if (Number(borrowAmount) > Number(borrowToken.allowanceFixed)) {
+        setOperationProgress(1);
+        console.log("setOperationProgress(11)", operationProgress);
+        await handleApproval(
+          selectedTokens?.borrow.address,
+          address,
+          borrowAmount
+        );
+        setOperationProgress(2);
+        console.log("setOperationProgress(2)", operationProgress);
+        handleSwapTransaction();
+      } else {
+        setOperationProgress(2);
+        console.log("setOperationProgress(22)", operationProgress);
+        const hash = await handleSwap(lendAmount);
+        console.log("hash", hash);
+        if (hash) {
+          setOperationProgress(3);
+        }
+      }
+    } catch (error) {
+      console.log("Error1", { error });
+    }
+
+    // const hash = await handleSwap(lendAmount);
     // setIsBorrowProgressModal(true);
   };
 
@@ -260,7 +304,7 @@ export default function Card({ isLoading }: any) {
         decimal2Fixed(1, selectedTokens.borrow.decimals),
         address,
         selectedTokens.borrow.address,
-        "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
         chain?.id
       );
       setb2rRatio(value?.quoteDecimals);
@@ -392,7 +436,7 @@ export default function Card({ isLoading }: any) {
               <Slider
                 value={selectedLTV}
                 defaultValue={50}
-                onChange={(value) => handleLTV(value)}
+                onChange={(value) => handleLTVSlider(value)}
                 min={5}
                 max={unilendPool?.maxLTV || 75}
                 className='range_slider'
@@ -471,7 +515,11 @@ export default function Card({ isLoading }: any) {
         closable={false}
       >
         {/* TODO: updaet spend ans swap tokens here */}
-        <BorrowLoader spendToken={"UFT"} SwapToken={"UFT"} progress={2} />
+        <BorrowLoader
+          spendToken={"UFT"}
+          SwapToken={"UFT"}
+          progress={operationProgress}
+        />
       </Modal>
     </div>
   );

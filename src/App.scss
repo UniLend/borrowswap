@@ -69,3 +69,25 @@ body,
 ::-webkit-scrollbar-thumb:hover {
   background: #3a7cff;
 }
+
+
+::-webkit-scrollbar {
+  width: 5px;
+  border-radius: 50%;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: var(--pure-white);
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: var(--main);
+  border-radius: 5px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #3a7cff;
+}
