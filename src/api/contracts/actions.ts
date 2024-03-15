@@ -2,10 +2,44 @@ import { borrowswapABI, coreAbi, erc20Abi, helperAbi } from "./abi";
 import { readContracts, writeContract } from "wagmi/actions";
 import { getEtherContract } from "./ethers";
 import { add, decimal2Fixed, div, fixed2Decimals, fromBigNumber, greaterThan, mul, sub, toAPY } from '../../helpers/index';
-import { readContract } from '@wagmi/core'
+import { readContract, waitForTransactionReceipt, getBlockNumber } from '@wagmi/core'
 import { wagmiConfig } from "../../main";
 
-export const contracts = {};
+export const waitForTransaction = async (hash: any) => {
+  try {
+    const receipt = await waitForTransactionReceipt( wagmiConfig, {
+      hash: hash,
+      confirmations: 5
+    })
+
+    const status = await watchBlock(receipt.blockNumber);    
+    return receipt;
+  } catch (error) {
+    throw error
+  }
+
+};
+
+const watchBlock = async (prevBlockNumber: any)=>{
+  const blockNumber = await getBlockNumber(wagmiConfig)
+
+ await new Promise((resolve, reject ) => {
+  if( blockNumber - prevBlockNumber > 3 ){
+   return resolve(true)
+  } else {
+    setTimeout(async() => {
+     await watchBlock(prevBlockNumber)
+    }, 2000);
+    
+  }
+
+ })
+
+
+
+}
+
+
 
 export const handleApproval = async (
   tokenAddress: string,
@@ -25,8 +59,9 @@ export const handleApproval = async (
     "0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E",
     Amount
   );
-
-  return hash;
+const receipt = await waitForTransaction(hash)
+console.log("receipt ", receipt)
+  return receipt;
 };
 
 
@@ -47,8 +82,8 @@ export const handleSwap = async (amount: any) => {
       borrowAmount
     )
     console.log(hash);
-    
-    return hash
+    const receipt = await waitForTransaction(hash)
+    return receipt
   } catch (error) {
 
     console.log("Error", {error});

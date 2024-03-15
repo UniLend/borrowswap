@@ -122,13 +122,13 @@ export default function Card() {
       selectedTokens.borrow
     );
     setBorrowAmount(borrowAmount);
-    console.log(borrowAmount, b2rRatio);
+
     
     setReceiveAmount((borrowAmount * b2rRatio).toString());
   };
 
   useEffect(()=>{
-    console.log("selectedTokens", selectedTokens);
+  
     
   if(selectedTokens?.lend?.priceRatio){
     handleLTVSlider(5)
@@ -204,22 +204,29 @@ try {
 
   const lendToken  = await getAllowance(selectedTokens?.lend, address)
 const borrowToken  = await getAllowance(selectedTokens?.borrow, address)
+
+console.log("allowance", lendToken, borrowToken);
+
 setIsBorrowProgressModal(true)
-console.log('handleSwapTransaction', lendToken, borrowToken);
 
     if(Number(lendAmount) > Number(lendToken.allowanceFixed)){
      await handleApproval(selectedTokens?.lend.address, address, lendAmount)
       setOperationProgress(1)
       console.log('setOperationProgress(1)', operationProgress);
-      
-      handleSwapTransaction()
+      setTimeout(() => {
+        handleSwapTransaction()
+      }, 1000);
+  
     } else if(Number(borrowAmount) > Number(borrowToken.allowanceFixed)){
       setOperationProgress(1)
       console.log('setOperationProgress(11)', operationProgress);
      await handleApproval(selectedTokens?.borrow.address, address, borrowAmount)
       setOperationProgress(2)
       console.log('setOperationProgress(2)', operationProgress);
-      handleSwapTransaction()
+      setTimeout(() => {
+        handleSwapTransaction()
+      }, 1000);
+  
     } else {
       setOperationProgress(2)
       console.log('setOperationProgress(22)', operationProgress);
