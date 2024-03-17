@@ -1,11 +1,15 @@
 import React from "react";
 import "./index.scss";
+import { truncateToDecimals } from "../../../helpers";
 
 interface Token {
   logoURI?: string;
   logo: string;
   name: string;
   symbol: string;
+  pairToken: any; //TODO update
+  maxLTV: string;
+  borrowApy: string;
 }
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -44,11 +48,15 @@ const TokenCard: React.FC<TokenCardProps> = ({
                 {true && showPoolData && (
                   <div className='pool_logo'>
                     <img src={token.logo} alt='' />
-                    <img src={token.logo} alt='' />
+                    <img src={token.pairToken?.logo} alt='' />
                   </div>
                 )}
               </div>
-              {showPoolData && <span>Borrow APY: 30%</span>}
+              {showPoolData && (
+                <span>
+                  Borrow APY: {truncateToDecimals(+token.borrowApy, 2)}%
+                </span>
+              )}
             </div>
           </div>
           {/* TODO: update token pool data */}
@@ -57,7 +65,9 @@ const TokenCard: React.FC<TokenCardProps> = ({
               <p className='paragraph06'>Unilend</p>
               <img src={token.logo} alt='' />
             </div>
-            {showPoolData && <p className='paragraph06'>Max LTV: 30%</p>}
+            {showPoolData && (
+              <p className='paragraph06'>Max LTV: {token.maxLTV}%</p>
+            )}
           </div>
         </div>
       ) : (

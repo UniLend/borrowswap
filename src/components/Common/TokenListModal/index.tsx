@@ -8,6 +8,9 @@ interface Token {
   logo: string;
   name: string;
   symbol: string;
+  pairToken: any; //TODO update
+  maxLTV: string;
+  borrowApy: string;
 }
 
 enum ActiveOperation {
