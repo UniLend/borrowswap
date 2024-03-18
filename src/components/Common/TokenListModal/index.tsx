@@ -8,6 +8,9 @@ interface Token {
   logo: string;
   name: string;
   symbol: string;
+  pairToken: any; //TODO update
+  maxLTV: string;
+  borrowApy: string;
 }
 
 enum ActiveOperation {
@@ -19,12 +22,18 @@ interface TokenListModalProps {
   tokenList: Token[];
   onSelectToken: (token: Token) => void;
   operation: ActiveOperation;
+  isTokenListLoading?: boolean;
+  showPoolData?: boolean;
+  poolData?: any; // update later
 }
 
 const TokenListModal: React.FC<TokenListModalProps> = ({
   tokenList,
   onSelectToken,
   operation,
+  isTokenListLoading,
+  showPoolData,
+  poolData,
 }) => {
   // TODO: update typeScript here
   const container = useRef<any>(null);
@@ -65,20 +74,42 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
           />
         </div>
       </div>
-      <div ref={container} className='token_list'>
-        {filteredTokenList?.length === 0 && <h2>Tokens are not available</h2>}
-        {filteredTokenList?.map(
-          (token: Token, i: number) =>
-            i < page * 100 && (
-              <TokenCard
-                key={i}
-                token={token}
-                onClick={() => handleTokensList(token)}
-                operation={operation}
-              />
+      {isTokenListLoading ? (
+        <div className='token_list'>
+          <p className='paragraph01'>Tokens are loading...</p>
+        </div>
+      ) : (
+        <div ref={container} className='token_list'>
+          {/* {filteredTokenList?.map(
+            (token: Token, i: number) =>
+              i < page * 100 && (
+                <TokenCard
+                  key={i}
+                  token={token}
+                  onClick={() => handleTokensList(token)}
+                  operation={operation}
+                />
+              )
+          )}
+          {filteredTokenList?.length === 0 && <h2>Tokens are not available</h2>} */}
+          {filteredTokenList.length > 0 ? (
+            filteredTokenList.map((token: Token, i: number) =>
+              i < page * 100 ? (
+                <TokenCard
+                  key={i}
+                  token={token}
+                  onClick={() => handleTokensList(token)}
+                  operation={operation}
+                  showPoolData={showPoolData}
+                  poolData={poolData}
+                />
+              ) : null
             )
-        )}
-      </div>
+          ) : (
+            <p className='paragraph01'>Tokens are not available</p>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -88,6 +119,9 @@ TokenListModal.defaultProps = {
   tokenList: [],
   onSelectToken: (token: Token) => {},
   operation: ActiveOperation.BRROW,
+  isTokenListLoading: false,
+  showPoolData: false,
+  poolData: [],
 };
 
 export default TokenListModal;

@@ -106,7 +106,13 @@ export const getTokenPrice = async (data: any, chain: any) => {
   return result;
 };
 
-export const getQuote = async (amountIn: string, user: any, tokenIn: any, tokenOut: any, chainId=1) => {
+export const getQuote = async (
+  amountIn: string,
+  user: any,
+  tokenIn: any,
+  tokenOut: any,
+  chainId = 1
+) => {
   try {
     const data = await axios({
       method: "post",
@@ -136,16 +142,37 @@ export const getQuote = async (amountIn: string, user: any, tokenIn: any, tokenO
         tokenOutChainId: chainId,
         type: "EXACT_INPUT",
       },
-      headers:{
-        "Content-Type" : "application/json",
-        "Accept": 'application/json, text/plain, */*'
-      }
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json, text/plain, */*",
+      },
     });
 
-    return {quoteDecimals:data.data.quote.quoteDecimals, quote : data.data.quote.quote   };
+    return {
+      quoteDecimals: data.data.quote.quoteDecimals,
+      quote: data.data.quote.quote,
+    };
   } catch (error) {
-    console.log("quote", {error});
-    
+    console.log("quote", { error });
   }
+};
 
+export const uniswapTokensData = async (chainId: number = 1) => {
+  const graphURL = {
+    1: "https://tokens.coingecko.com/uniswap/all.json",
+    137: "https://tokens.coingecko.com/polygon-pos/all.json",
+    56: "https://tokens.coingecko.com/binance-smart-chain/all.json",
+    1285: "https://tokens.coingecko.com/moonriver/all.json",
+  };
+
+  const url = graphURL[chainId]; // Default to chainId 1 if not found
+
+  try {
+    const response = await axios.get(url);
+    console.log("response", response.data.tokens);
+    return response.data.tokens;
+  } catch (error) {
+    console.error("Error fetching tokens data:", error);
+    return null;
+  }
 };
