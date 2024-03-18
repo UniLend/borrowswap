@@ -22,9 +22,6 @@ import AmountContainer from "../../Common/AmountContainer";
 import ButtonWithDropdown from "../../Common/ButtonWithDropdown";
 import { contractAddresses } from "../../../api/contracts/address";
 import BorrowLoader from "../../Loader/BorrowLoader";
-import { quote } from "../../../api/uniswap/quotes";
-import { getQuote } from "../../../api/axios/calls";
-import NotificationMessage from "../../Common/NotificationMessage";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -35,7 +32,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
   const isLoading = false; //TODO
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList } = unilendV2Data;
-  console.log({ tokenList, poolList });
 
   const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState("");
@@ -59,13 +55,15 @@ export default function RepayCard({ uniSwapTokens }: any) {
   console.log("unilendPool", unilendPool);
 
   // TODO: add enum for below state;
-  const [borrowBtn, setBorrowBtn] = useState("Select you pay token");
+  const [repayBtn, setRepayBtn] = useState("Select you pay token");
   const [isTokenLoading, setIsTokenLoading] = useState({
-    lend: isLoading,
-    borrow: false,
-    receive: false,
+    // lend: isLoading,
+    // borrow: false,
+    // receive: false,
+    pool: false,
+    lend: false,
+    recieve: false,
     pools: false,
-    rangeSlider: false,
   });
 
   const [operationProgress, setOperationProgress] = useState(0);
@@ -149,9 +147,9 @@ export default function RepayCard({ uniSwapTokens }: any) {
       [tokenListStatus.operation]: token,
     });
 
-    if (tokenListStatus.operation == "lend") {
+    if (tokenListStatus.operation == "pool") {
       //   handleSelectLendToken(token.address);
-    } else if (tokenListStatus.operation == "borrow") {
+    } else if (tokenListStatus.operation == "lend") {
       //   handleSelectBorrowToken(token.address);
     }
     setTokenListStatus({ isOpen: false, operation: "" });
@@ -168,48 +166,48 @@ export default function RepayCard({ uniSwapTokens }: any) {
 
   // TODO: btn states
   useEffect(() => {
-    const { lend, borrow, receive } = selectedTokens;
+    const { pool, lend, receive } = selectedTokens;
     // TODO: confirm these messages
     switch (true) {
-      case lend === null:
-        setBorrowBtn("Select your pay token");
+      case pool === null:
+        setRepayBtn("Select your pool");
         break;
       case lendAmount === "":
-        setBorrowBtn("Enter you pay value");
+        setRepayBtn("Enter you pay value");
         break;
-      case borrow === null:
-        setBorrowBtn("Select your borrow token");
+      case lend === null:
+        setRepayBtn("Select your lend token");
         break;
       case receive === null:
-        setBorrowBtn("Select your receive token");
+        setRepayBtn("Select your receive token");
         break;
       default:
-        setBorrowBtn("Borrow");
+        setRepayBtn("Repay");
     }
   }, [lendAmount, selectedTokens]);
   return (
     <>
-      <div className='repay_container'>
-        <div className='swap_route'>
-          <p className='paragraph06 '>Select Pool</p>
+      <div className="repay_container">
+        <div className="swap_route">
+          <p className="paragraph06 ">Select Pool</p>
           <ButtonWithDropdown
-            buttonText={selectedTokens?.borrow?.symbol}
-            onClick={() => handleOpenTokenList("borrow")}
+            buttonText={selectedTokens?.pool?.symbol}
+            onClick={() => handleOpenTokenList("pool")}
             className={"transparent_btn"}
           />
         </div>
-        <p className='paragraph06 label'>You Pay</p>
+        <p className="paragraph06 label">You Pay</p>
         <AmountContainer
-          balance='125.25'
+          balance="125.25"
           value={lendAmount}
           onChange={(e: any) => handleLendAmount(e.target.value)}
           onMaxClick={() => console.log("Max Clicked")}
           buttonText={selectedTokens?.lend?.symbol}
           onClick={() => handleOpenTokenList("lend")}
         />
-        <p className='paragraph06 label'>You Receive</p>
+        <p className="paragraph06 label">You Receive</p>
         <AmountContainer
-          balance='125.25'
+          balance="125.25"
           value={receiveAmount}
           onChange={(e: any) => handleReceiveAmount(e.target.value)}
           onMaxClick={() => console.log("Max Clicked")}
@@ -217,12 +215,19 @@ export default function RepayCard({ uniSwapTokens }: any) {
           onClick={() => handleOpenTokenList("receive")}
           isShowMaxBtn
         />
-        <Button className='primary_btn' onClick={handleSwapTransaction}>
-          Borrow
+
+        <Button
+          disabled={repayBtn !== "Repay"}
+          className="primary_btn"
+          onClick={handleSwapTransaction}
+          title="please slect you pay token"
+          loading={isTokenLoading.pools}
+        >
+          {repayBtn}
         </Button>
       </div>
       <Modal
-        className='antd_modal_overlay'
+        className="antd_modal_overlay"
         centered
         onCancel={handleCloseTokenList}
         open={tokenListStatus.isOpen}
@@ -234,14 +239,14 @@ export default function RepayCard({ uniSwapTokens }: any) {
           onSelectToken={(token: any) => handleTokenSelection(token)}
           operation={ActiveOperation.REPAY}
           isTokenListLoading={isLoading}
-          showPoolData={tokenListStatus.operation === "receive" ? true : false}
+          showPoolData={tokenListStatus.operation === "pool" ? true : false}
           poolData={
-            tokenListStatus.operation === "receive" ? poolList : unilendPool
+            tokenListStatus.operation === "pool" ? poolList : unilendPool
           }
         />
       </Modal>
       <Modal
-        className='antd_popover_content'
+        className="antd_popover_content"
         centered
         onCancel={() => setIsBorrowProgressModal(false)}
         open={isBorrowProgressModal}
