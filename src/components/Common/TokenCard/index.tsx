@@ -63,7 +63,7 @@ const TokenCard: React.FC<TokenCardProps> = ({
           <div className='pool_details'>
             <div>
               <p className='paragraph06'>Unilend</p>
-              <img src={token.logo} alt='' />
+              <img src={token.logoURI || token.logo} alt='' />
             </div>
             {showPoolData && (
               <p className='paragraph06'>Max LTV: {token.maxLTV}%</p>

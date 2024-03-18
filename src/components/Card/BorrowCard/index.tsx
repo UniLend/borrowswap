@@ -305,7 +305,8 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
         decimal2Fixed(1, selectedTokens.borrow.decimals),
         address,
         selectedTokens.borrow.address,
-        "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+        // "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+        selectedTokens.receive.address,
         chain?.id
       );
       setb2rRatio(value?.quoteDecimals);
@@ -325,10 +326,10 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   }, [isTokenLoading]);
 
   useEffect(() => {
-    if (selectedTokens?.borrow) {
+    if (selectedTokens?.receive) {
       handleQuote();
     }
-  }, [selectedTokens?.borrow]);
+  }, [selectedTokens?.receive]);
 
   useEffect(() => {
     const { lend, borrow, receive } = selectedTokens;
@@ -343,9 +344,13 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       case borrow === null:
         setBorrowBtn("Select your borrow token");
         break;
+      case isTokenLoading.pools === true:
+        setBorrowBtn("Pools are loading");
+        break;
       case receive === null:
         setBorrowBtn("Select your receive token");
         break;
+
       default:
         setBorrowBtn("Borrow");
     }
@@ -397,7 +402,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
               ? "please select you borrow token"
               : ""
           }
-          isTokensLoading={isTokenLoading.pools}
+          //   isTokensLoading={isTokenLoading.pools}
         />
         <div className='range_container'>
           <div>
@@ -424,6 +429,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
           className='primary_btn'
           onClick={handleSwapTransaction}
           title='please slect you pay token'
+          loading={isTokenLoading.pools}
         >
           {borrowBtn}
         </Button>
@@ -441,7 +447,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
           onSelectToken={(token: any) => handleTokenSelection(token)}
           operation={ActiveOperation.BRROW}
           isTokenListLoading={isLoading}
-          showPoolData={tokenListStatus.operation !== "lend" ? true : false}
+          showPoolData={tokenListStatus.operation === "borrow" ? true : false}
           poolData={
             tokenListStatus.operation === "receive" ? poolList : unilendPool
           }
