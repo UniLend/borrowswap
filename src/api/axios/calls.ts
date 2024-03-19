@@ -113,6 +113,7 @@ export const getQuote = async (
   tokenOut: any,
   chainId = 1
 ) => {
+  console.log("QuoteData", { amountIn, user, tokenIn, tokenOut, chainId });
   try {
     const data = await axios({
       method: "post",
@@ -153,7 +154,7 @@ export const getQuote = async (
       quote: data.data.quote.quote,
     };
   } catch (error) {
-    console.log("quote", { error });
+    console.log("quote", error);
   }
 };
 
