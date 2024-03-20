@@ -192,10 +192,10 @@ export function numberFormat(x: any, po: any) {
 
 export function getCurrentLTV(selectedToken: any, collateralToken: any) {
   const prevLTV =
-    Number(selectedToken.borrowBalanceFixed) > 0
-      ? Number(selectedToken.borrowBalanceFixed) /
-        (Number(collateralToken.lendBalanceFixed) *
-          Number(collateralToken.priceRatio))
+    Number(selectedToken?.borrowBalanceFixed) > 0
+      ? Number(selectedToken?.borrowBalanceFixed) /
+        (Number(collateralToken?.lendBalanceFixed) *
+          Number(collateralToken?.priceRatio))
       : 0;
 
   return (Number(prevLTV.toFixed(4)) * 100).toFixed(2);
@@ -212,7 +212,7 @@ export const getBorrowAmount = (
     Number(Number(getCurrentLTV(selectedToken, collateralToken)) / 100);
 
   const borrowAmount =
-    Number(amount) * Number(collateralToken.priceRatio) * (ltv / 100);
+    Number(amount) * Number(collateralToken?.priceRatio) * (ltv / 100);
 
   return borrowAmount;
 };
