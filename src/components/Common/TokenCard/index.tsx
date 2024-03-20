@@ -76,7 +76,6 @@ const TokenCard: React.FC<TokenCardProps> = ({
         </div>
       ) : (
         <div onClick={handleTokensList} className='token_card'>
-          {console.log("poolData", poolData)}
           <div className='tokens_details'>
             <img src={token.logoURI || token.logo} alt='' />
             <div>

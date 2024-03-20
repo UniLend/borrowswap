@@ -37,7 +37,6 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
 }) => {
   // TODO: update typeScript here
 
-  console.log("tokenList",tokenList)
   const container = useRef<any>(null);
   const [page, setPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");

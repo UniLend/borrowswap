@@ -23,14 +23,17 @@ import AmountContainer from "../../Common/AmountContainer";
 import ButtonWithDropdown from "../../Common/ButtonWithDropdown";
 import { contractAddresses } from "../../../api/contracts/address";
 import BorrowLoader from "../../Loader/BorrowLoader";
+import { quote } from "../../../api/uniswap/quotes";
+import { getQuote } from "../../../api/axios/calls";
+import NotificationMessage from "../../Common/NotificationMessage";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
   REPAY = "Swap_Repay",
 }
 
-export default function RepayCard({ uniSwapTokens }: any) {
-  const isLoading = false; //TODO
+export default function RepayCard({isLoading, uniSwapTokens }: any) {
+  // const isLoading = false; //TODO
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList } = unilendV2Data;
 
@@ -146,13 +149,13 @@ export default function RepayCard({ uniSwapTokens }: any) {
   const handleSwapTransaction = async () => {
     setOperationProgress(0);
     try {
-      const lendToken = await getAllowance(selectedTokens?.lend, address);
-      const borrowToken = await getAllowance(selectedTokens?.borrow, address);
-      setIsBorrowProgressModal(true);
+      const lendToken = await getAllowance(selectedData?.lend, address);
+      const borrowToken = await getAllowance(selectedData?.receive, address);
+      // setIsBorrowProgressModal(true);
       console.log("handleSwapTransaction", lendToken, borrowToken);
 
       if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
-        await handleApproval(selectedTokens?.lend.address, address, lendAmount);
+        await handleApproval(selectedData?.lend.address, address, lendAmount);
         setOperationProgress(1);
         console.log("setOperationProgress(1)", operationProgress);
 
@@ -181,6 +184,45 @@ export default function RepayCard({ uniSwapTokens }: any) {
       console.log("Error1", { error });
     }
   };
+
+
+//handle quote 
+
+const handleQuote = async () => {
+  // setIsTokenLoading((prevLoading) => ({ ...prevLoading, rangeSlider: true }));
+  try {
+    const value = await getQuote(
+      decimal2Fixed(1, selectedData.lend.decimals),
+      address,
+      selectedData?.lend?.address,
+      selectedData?.receive?.address,
+      chain?.id
+    );
+    console.log("QOUTE_VAL", value);
+    if (value?.quoteDecimals) {
+      // setb2rRatio(value?.quoteDecimals);
+    }
+  } catch (error: any) {
+    console.error("Error in handleQuote:", error);
+    // Handle error
+    NotificationMessage(
+      "error",
+      error?.message || "Error occurred in handleQuote"
+    );
+  } finally {
+    setIsTokenLoading({ ...isTokenLoading, rangeSlider: false });
+  }
+};
+
+useEffect(() => {
+  if (selectedData?.receive && !tokenListStatus.isOpen) {
+  console.log("handle recieve call")
+    // setIsTokenLoading({ ...isTokenLoading, rangeSlider: true });
+    setReceiveAmount("");
+    handleQuote();
+  }
+}, [selectedData]);
+
 
   useEffect(() => {
     const poolsArray = Object.values(poolList);
