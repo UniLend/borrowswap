@@ -113,6 +113,7 @@ export const getQuote = async (
   tokenOut: any,
   chainId = 1
 ) => {
+  console.log("QuoteData", { amountIn, user, tokenIn, tokenOut, chainId });
   try {
     const data = await axios({
       method: "post",
@@ -153,12 +154,12 @@ export const getQuote = async (
       quote: data.data.quote.quote,
     };
   } catch (error) {
-    console.log("quote", { error });
+    console.log("quote", error);
   }
 };
 
 export const uniswapTokensData = async (chainId: number = 1) => {
-  const graphURL = {
+  const graphURL: Record<number, string> = {
     1: "https://tokens.coingecko.com/uniswap/all.json",
     137: "https://tokens.coingecko.com/polygon-pos/all.json",
     56: "https://tokens.coingecko.com/binance-smart-chain/all.json",

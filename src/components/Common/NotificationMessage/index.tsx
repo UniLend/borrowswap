@@ -17,7 +17,7 @@ export default function NotificationMessage(
     description: msg,
     className: "notification_class",
     closeIcon: false,
-    duration: 100,
+    duration: 5,
     icon:
       result == "success" ? (
         <CheckCircleOutlined style={{ color: "green" }} />
