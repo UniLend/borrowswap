@@ -48,9 +48,7 @@ export function truncateToDecimals(number: number, decimal: number) {
 }
 
 export const checkOpenPosition = (position: any) => {
-  if (
-    (Number(position.lendBalance0) > 0 || Number(position.lendBalance1)) > 0
-  ) {
+  if (Number(position.lendBalance0) > 0 || Number(position.lendBalance1) > 0) {
     return true;
   }
   return false;

@@ -34,7 +34,6 @@ enum ActiveOperation {
 export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList } = unilendV2Data;
-  console.log({ tokenList, poolList });
   const [tokenAllowance, setTokenAllowance] = useState({
     token1: "0",
     token2: "0",
@@ -60,16 +59,19 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   const [unilendPool, setUnilendPool] = useState(null as any | null);
   const [currentLTV, setCurrentLTV] = useState("0");
   const [b2rRatio, setb2rRatio] = useState(1);
+
   // TODO: add enum for below state;
   const [borrowBtn, setBorrowBtn] = useState("Select you pay token");
   const [isTokenLoading, setIsTokenLoading] = useState({
-    lend: isLoading,
+    // lend: isLoading,
     borrow: false,
     receive: false,
     pools: false,
     rangeSlider: false,
   });
   const [operationProgress, setOperationProgress] = useState(0);
+
+  console.log("isTokenLoading", isTokenLoading);
 
   const handleLendAmount = (amount: string) => {
     setLendAmount(amount);
@@ -81,6 +83,12 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
 
   const handleOpenTokenList = (operation: string) => {
     setTokenListStatus({ isOpen: true, operation });
+  };
+
+  const handleCloseTokenList = async () => {
+    if (selectedTokens?.receive) {
+      setTokenListStatus({ isOpen: false, operation: "" });
+    }
   };
 
   const handleSelectLendToken = (token: string) => {
@@ -117,23 +125,15 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   };
 
   const handleLTVSlider = (value: number) => {
-    // if (selectedLTV > Number(unilendPool.maxLTV)) {
-    //   setSelectedLTV(Number(unilendPool.maxLTV) );
-    // } else if (selectedLTV == Number(currentLTV)) {
-    //   setSelectedLTV(selectedLTV - 1);
-    // } else {
-    //   setSelectedLTV(value);
-    // }
-
     setSelectedLTV(value);
 
     const borrowAmount = getBorrowAmount(
       lendAmount,
-      value,
+      currentLTV ? value - +currentLTV : value,
       selectedTokens.lend,
       selectedTokens.borrow
     );
-    setBorrowAmount(borrowAmount);
+    // setBorrowAmount(borrowAmount);
     console.log({ borrowAmount, b2rRatio });
 
     if (selectedTokens?.receive)
@@ -148,7 +148,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
     if (selectedTokens?.lend?.priceRatio) {
       handleLTVSlider(5);
     }
-  }, [lendAmount]);
+  }, [lendAmount, selectedTokens?.receive]);
 
   const handleSelectBorrowToken = async (token: string) => {
     setIsTokenLoading({ ...isTokenLoading, pools: true });
@@ -181,6 +181,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       const currentLtv = getCurrentLTV(data.token1, data.token0);
 
       setCurrentLTV(currentLtv);
+      setSelectedLTV(+currentLtv);
       // handleLTV(Number(currentLtv));
     } else {
       setSelectedTokens({
@@ -190,6 +191,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       });
       const currentLtv = getCurrentLTV(data.token0, data.token1);
       setCurrentLTV(currentLtv);
+      setSelectedLTV(+currentLtv);
       // handleLTV(Number(currentLtv));
     }
 
@@ -255,47 +257,33 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   }, [unilendV2Data]);
 
   const handleTokenSelection = async (token: any) => {
-    setSelectedTokens({
-      ...selectedTokens,
-      [tokenListStatus.operation]: token,
-    });
-
     if (tokenListStatus.operation == "lend") {
       handleSelectLendToken(token.address);
+      setSelectedTokens({
+        [tokenListStatus.operation]: token,
+        ["borrow"]: null,
+        ["receive"]: null,
+      });
+      setReceiveAmount("");
     } else if (tokenListStatus.operation == "borrow") {
       handleSelectBorrowToken(token.address);
+      setSelectedTokens({
+        ...selectedTokens,
+        [tokenListStatus.operation]: token,
+        ["receive"]: null,
+      });
+      setReceiveAmount("");
+    } else {
+      setSelectedTokens({
+        ...selectedTokens,
+        [tokenListStatus.operation]: token,
+      });
     }
-    // else if (
-    //   tokenListStatus.operation == "receive" &&
-    //   selectedTokens?.receive
-    // ) {
-    //   await handleQuote();
-    //   handleLTVSlider(5);
-    //   console.log("CALLED_QUOTE");
-    // }
     setTokenListStatus({ isOpen: false, operation: "" });
   };
 
-  //   const handleQuote = async () => {
-  //     setIsTokenLoading({ ...isTokenLoading, rangeSlider: true });
-  //     try {
-  //       const value = await getQuote(
-  //         decimal2Fixed(1, selectedTokens.borrow.decimals),
-  //         address,
-  //         selectedTokens?.borrow?.address,
-  //         selectedTokens?.receive?.address,
-  //         chain?.id
-  //       );
-  //       setb2rRatio(value?.quoteDecimals);
-  //     } catch (error: any) {
-  //       console.log("Quote Error", { error });
-  //       NotificationMessage("error", error?.message);
-  //     }
-  //     setIsTokenLoading({ ...isTokenLoading, rangeSlider: false });
-  //   };
-
   const handleQuote = async () => {
-    setIsTokenLoading({ ...isTokenLoading, rangeSlider: true });
+    // setIsTokenLoading((prevLoading) => ({ ...prevLoading, rangeSlider: true }));
     try {
       const value = await getQuote(
         decimal2Fixed(1, selectedTokens.borrow.decimals),
@@ -307,18 +295,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       console.log("QOUTE_VAL", value);
       if (value?.quoteDecimals) {
         setb2rRatio(value?.quoteDecimals);
-        // setReceiveAmount((borrowAmount * value?.quoteDecimals).toString());
       }
-      //   if (value && value?.quoteDecimals) {
-      //     setb2rRatio(value?.quoteDecimals);
-      //   } else {
-      //     console.error("Unexpected response format from getQuote:", value);
-      //     // Handle unexpected response format
-      //     NotificationMessage(
-      //       "error",
-      //       "Unexpected response format from getQuote"
-      //     );
-      //   }
     } catch (error: any) {
       console.error("Error in handleQuote:", error);
       // Handle error
@@ -328,34 +305,28 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       );
     } finally {
       setIsTokenLoading({ ...isTokenLoading, rangeSlider: false });
+
+      //   handleLTVSlider(5);
     }
   };
-
-  //   const getInitialReceiveVal = async () => {
-  //     await handleQuote();
-  //     console.log("QUOTE_CALL");
-  //     handleLTVSlider(5);
-  //     console.log("LTV_CALL");
-  //   };
 
   useEffect(() => {
     if (selectedTokens?.receive && !tokenListStatus.isOpen) {
       // handleQuote();
       // handleLTVSlider(5);
+      setIsTokenLoading({ ...isTokenLoading, rangeSlider: true });
+      setReceiveAmount("");
       //   getInitialReceiveVal();
+      //   setIsTokenLoading({ ...isTokenLoading, rangeSlider: false });
+      handleQuote();
     }
   }, [selectedTokens]);
 
-  const handleCloseTokenList = async () => {
-    if (selectedTokens?.receive) {
-      //   if (tokenListStatus.operation === "receive") {
-      //     await handleQuote();
-      //     handleLTVSlider(5);
-      //   }
-      console.log("CALLED_QUOTE");
-      setTokenListStatus({ isOpen: false, operation: "" });
+  useEffect(() => {
+    if (selectedTokens.receive !== null && !isTokenLoading.rangeSlider) {
+      handleLTVSlider(currentLTV ? +currentLTV : 5);
     }
-  };
+  }, [b2rRatio]);
 
   const checkLoading = (isTokenLoading: object) => {
     return Object.values(isTokenLoading).some((value) => value === true);
@@ -384,11 +355,13 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       case receive === null:
         setBorrowBtn("Select receive token");
         break;
-
+      case isTokenLoading.rangeSlider:
+        setBorrowBtn("Quote data loading");
+        break;
       default:
         setBorrowBtn("Borrow");
     }
-  }, [lendAmount, selectedTokens]);
+  }, [lendAmount, selectedTokens, isTokenLoading]);
   return (
     <>
       <div className='borrow_container'>
@@ -397,7 +370,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
           balance={selectedTokens?.lend?.balanceFixed}
           value={lendAmount}
           onChange={(e: any) => handleLendAmount(e.target.value)}
-          onMaxClick={() => console.log("Max Clicked")}
+          onMaxClick={() => setLendAmount(selectedTokens?.lend?.balanceFixed)}
           buttonText={selectedTokens?.lend?.symbol}
           onClick={() => handleOpenTokenList("lend")}
           isShowMaxBtn
@@ -422,7 +395,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
         <p className='paragraph06 label'>You Receive</p>
         <AmountContainer
           balance='125.25'
-          value={receiveAmount}
+          value={Number(receiveAmount) > 0 ? receiveAmount : "0"}
           onChange={(e: any) => handleReceiveAmount(e.target.value)}
           onMaxClick={() => console.log("Max Clicked")}
           buttonText={selectedTokens?.receive?.symbol}

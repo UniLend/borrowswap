@@ -159,7 +159,7 @@ export const getQuote = async (
 };
 
 export const uniswapTokensData = async (chainId: number = 1) => {
-  const graphURL = {
+  const graphURL: Record<number, string> = {
     1: "https://tokens.coingecko.com/uniswap/all.json",
     137: "https://tokens.coingecko.com/polygon-pos/all.json",
     56: "https://tokens.coingecko.com/binance-smart-chain/all.json",
