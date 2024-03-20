@@ -105,6 +105,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   };
 
   const handleSelectLendToken = (token: string) => {
+    console.log("mylendToken", token)
     setIsTokenLoading((prevLoading) => ({ ...prevLoading, borrow: true }));
     console.log("istokenLoading_1", isTokenLoading);
     const tokenPools = Object.values(poolList).filter((pool) => {
@@ -112,7 +113,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
         return true;
       }
     });
-
+console.log("tokenPools", tokenPools)
     const borrowTokens = tokenPools.map((pool) => {
       if (pool.token0.address == token) {
         return {
@@ -184,6 +185,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
         return true;
       }
     });
+    console.log("tokenPool", tokenPool);
 
     const contracts =
       contractAddresses[chain?.id as keyof typeof contractAddresses];

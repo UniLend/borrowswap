@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FiSearch } from "react-icons/fi";
-import TokenCard from "../TokenCard";
+import PoolCard from "../PoolCard";
 import "./index.scss";
 
 interface Token {
@@ -37,7 +37,8 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
 }) => {
   // TODO: update typeScript here
 
-  console.log("tokenList",tokenList)
+  console.log("poolData",tokenList)
+  // console.log("poolData1",showPoolData)
   const container = useRef<any>(null);
   const [page, setPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -46,9 +47,9 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
     onSelectToken(token);
   };
 
-  const filteredTokenList = tokenList.filter((token) =>
-    token.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // const filteredTokenList = tokenList.filter((token) =>
+  //   token.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // );
 
   useEffect(() => {
     container?.current?.addEventListener("scroll", () => {
@@ -94,10 +95,10 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
               )
           )}
           {filteredTokenList?.length === 0 && <h2>Tokens are not available</h2>} */}
-          {filteredTokenList.length > 0 ? (
-            filteredTokenList.map((token: Token, i: number) =>
+          {poolData.length > 0  ? (
+            poolData.map((token: Token, i: number) =>
               i < page * 100 ? (
-                <TokenCard
+                <PoolCard
                   key={i}
                   token={token}
                   onClick={() => handleTokensList(token)}

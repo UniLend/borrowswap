@@ -17,6 +17,7 @@ import { wagmiConfig } from "../../../main";
 import { useSelector, useDispatch } from "react-redux";
 import "./index.scss";
 import useWalletHook from "../../../api/hooks/useWallet";
+import PoolListModel from "../../Common/PoolListModel";
 import TokenListModal from "../../Common/TokenListModal";
 import AmountContainer from "../../Common/AmountContainer";
 import ButtonWithDropdown from "../../Common/ButtonWithDropdown";
@@ -35,20 +36,48 @@ export default function RepayCard({ uniSwapTokens }: any) {
 
   const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState("");
+  const [repayAmount, setRepayAmount] = useState("");
   const [borrowAmount, setBorrowAmount] = useState(0);
   const [receiveAmount, setReceiveAmount] = useState("");
-  const [lendingTokens, setLendingTokens] = useState<Array<any>>([]);
-  const [borrowingTokens, setBorrowingTokens] = useState<Array<any>>([]);
+
+  // const [borrowingTokens, setBorrowingTokens] = useState<Array<any>>([]);
+
+  // const [isBorrowProgressModal, setIsBorrowProgressModal] =
+  //   useState<boolean>(false);
+  // const [selectedTokens, setSelectedTokens] = useState<any>({
+  //   pool: null,
+  //   lend: null,
+  //   receive: null,
+  // });
+
+  //start here
+  //select data state  todo seectedTokens = selectedData
+  const [selectedData, setSelectedData] = useState<any>({
+    pool: null,
+    lend: null,
+    receive: null,
+  });
+  console.log(selectedData);
+  // set pools Data
+  const [pools, setPools] = useState<Array<any>>([]);
+
+  //set receive token 
+  const [repayToken, setRepayToken] = useState<Array<any>>([]);
+
+  //open  diffrent modal dynamically
   const [tokenListStatus, setTokenListStatus] = useState({
     isOpen: false,
     operation: "",
   });
-  const [isBorrowProgressModal, setIsBorrowProgressModal] =
-    useState<boolean>(false);
-  const [selectedTokens, setSelectedTokens] = useState<any>({
-    pool: null,
-    lend: null,
-    receive: null,
+
+  const [isTokenLoading, setIsTokenLoading] = useState({
+    // lend: isLoading,
+    // borrow: false,
+    // receive: false,
+    pool: false,
+    lend: false,
+    receive: false,
+    pools: false,
   });
 
   const [unilendPool, setUnilendPool] = useState(null as any | null);
@@ -56,15 +85,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
 
   // TODO: add enum for below state;
   const [repayBtn, setRepayBtn] = useState("Select you pay token");
-  const [isTokenLoading, setIsTokenLoading] = useState({
-    // lend: isLoading,
-    // borrow: false,
-    // receive: false,
-    pool: false,
-    lend: false,
-    recieve: false,
-    pools: false,
-  });
 
   const [operationProgress, setOperationProgress] = useState(0);
 
@@ -80,13 +100,39 @@ export default function RepayCard({ uniSwapTokens }: any) {
     setTokenListStatus({ isOpen: true, operation });
   };
 
+  //recive token function
+  const getTokenData = (selectedData) => {
+    console.log("selectedData", selectedData);
+   
+  };
+
+  // Usage
+  const repayTokenAdd = (selectedData) => {
+    console.log("selectedData",selectedData)
+    if (selectedData.totalBorrow0 !== '0' && selectedData.totalBorrow1 !== '0') {
+        console.log("Both tokens have borrowings");
+        return ([selectedData.token0, selectedData.token1])
+      
+
+    } else if (selectedData.totalBorrow0 !== '0') {
+        console.log("Only token 0 has borrowing");
+        return ([selectedData.token0])
+    } else if (selectedData.totalBorrow1 !== "0") {
+        console.log("Only token 1 has borrowing");
+        return ([selectedData.token1])
+    } 
+    
+}
+
+
   const getOprationToken = () => {
     if (tokenListStatus.operation === "pool") {
-      return lendingTokens;
+      return pools;
     } else if (tokenListStatus.operation === "lend") {
       return uniSwapTokens;
     } else if (tokenListStatus.operation === "receive") {
-      // TODO: get from props
+      // return receiveToken;
+      return repayTokenAdd(selectedData.pool);
     } else {
       return [];
     }
@@ -137,24 +183,37 @@ export default function RepayCard({ uniSwapTokens }: any) {
   };
 
   useEffect(() => {
-    const tokensArray = Object.values(tokenList);
-    setLendingTokens(tokensArray);
+    const poolsArray = Object.values(poolList);
+    setPools(poolsArray);
   }, [unilendV2Data]);
 
-  const handleTokenSelection = (token: any) => {
-    setSelectedTokens({
-      ...selectedTokens,
-      [tokenListStatus.operation]: token,
+  const handleTokenSelection = (data: any) => {
+    setSelectedData({
+      ...selectedData,
+      [tokenListStatus.operation]: data,
     });
 
     if (tokenListStatus.operation == "pool") {
-      //   handleSelectLendToken(token.address);
+      console.log("poolData", data);
+      setSelectedData({
+        ...selectedData,
+        ["pool"]: data,
+      });
+
     } else if (tokenListStatus.operation == "lend") {
       //   handleSelectBorrowToken(token.address);
+          repayTokenAdd(selectedData)
+
+    } else if (tokenListStatus.operation == "receive") {
+        setSelectedData({
+                ...selectedData,
+                ["receive"]: data,
+              });
     }
     setTokenListStatus({ isOpen: false, operation: "" });
   };
 
+  console.log("selectedData", selectedData);
   const checkLoading = (isTokenLoading: object) => {
     return Object.values(isTokenLoading).some((value) => value === true);
   };
@@ -166,7 +225,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
 
   // TODO: btn states
   useEffect(() => {
-    const { pool, lend, receive } = selectedTokens;
+    const { pool, lend, receive } = selectedData;
     // TODO: confirm these messages
     switch (true) {
       case pool === null:
@@ -184,16 +243,20 @@ export default function RepayCard({ uniSwapTokens }: any) {
       default:
         setRepayBtn("Repay");
     }
-  }, [lendAmount, selectedTokens]);
+  }, [lendAmount, selectedData]);
   return (
     <>
       <div className="repay_container">
         <div className="swap_route">
           <p className="paragraph06 ">Select Pool</p>
           <ButtonWithDropdown
-            buttonText={selectedTokens?.pool?.symbol}
+            buttonText={
+              selectedData.pool
+                ? `${selectedData.pool.token0.symbol} / ${selectedData.pool.token1.symbol}`
+                : "Select"
+            }
             onClick={() => handleOpenTokenList("pool")}
-            className={"transparent_btn"}
+            className="transparent_btn"
           />
         </div>
         <p className="paragraph06 label">You Pay</p>
@@ -202,7 +265,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
           value={lendAmount}
           onChange={(e: any) => handleLendAmount(e.target.value)}
           onMaxClick={() => console.log("Max Clicked")}
-          buttonText={selectedTokens?.lend?.symbol}
+          buttonText={selectedData?.lend?.symbol}
           onClick={() => handleOpenTokenList("lend")}
         />
         <p className="paragraph06 label">You Receive</p>
@@ -211,8 +274,11 @@ export default function RepayCard({ uniSwapTokens }: any) {
           value={receiveAmount}
           onChange={(e: any) => handleReceiveAmount(e.target.value)}
           onMaxClick={() => console.log("Max Clicked")}
-          buttonText={selectedTokens?.receive?.symbol}
+          buttonText={selectedData?.receive?.symbol}
           onClick={() => handleOpenTokenList("receive")}
+          // onClick={() =>   selectedData?.pool !== null
+          //   ? () => handleOpenTokenList("receive")
+          //   : () => {}}
           isShowMaxBtn
         />
 
@@ -226,26 +292,53 @@ export default function RepayCard({ uniSwapTokens }: any) {
           {repayBtn}
         </Button>
       </div>
-      <Modal
-        className="antd_modal_overlay"
-        centered
-        onCancel={handleCloseTokenList}
-        open={tokenListStatus.isOpen}
-        footer={null}
-        closable={false}
-      >
-        <TokenListModal
-          tokenList={getOprationToken()}
-          onSelectToken={(token: any) => handleTokenSelection(token)}
-          operation={ActiveOperation.REPAY}
-          isTokenListLoading={isLoading}
-          showPoolData={tokenListStatus.operation === "pool" ? true : false}
-          poolData={
-            tokenListStatus.operation === "pool" ? poolList : unilendPool
-          }
-        />
-      </Modal>
-      <Modal
+
+      {tokenListStatus.operation === "pool" ? (
+        <Modal
+          className="antd_modal_overlay"
+          centered
+          onCancel={handleCloseTokenList}
+          open={tokenListStatus.isOpen}
+          footer={null}
+          closable={false}
+        >
+          <PoolListModel
+            tokenList={getOprationToken()}
+            onSelectToken={(token: any) => handleTokenSelection(token)}
+            operation={ActiveOperation.REPAY}
+            tokenListOperation={tokenListStatus.operation}
+            isTokenListLoading={isLoading}
+            showPoolData={true}
+            poolData={Object.values(poolList).filter(
+              (item) => item.openPosition && item.totalBorrow0 && item.totalBorrow0
+            )}
+            selectedData={selectedData} // Pass selectedData to PoolListModal
+          />
+        </Modal>
+      ) : tokenListStatus.operation === "lend" ||
+        tokenListStatus.operation === "receive" ? (
+        <Modal
+          className="antd_modal_overlay"
+          centered
+          onCancel={handleCloseTokenList}
+          open={tokenListStatus.isOpen}
+          footer={null}
+          closable={false}
+        >
+          <TokenListModal
+            tokenList={getOprationToken()}
+            onSelectToken={(token: any) => handleTokenSelection(token)}
+            operation={ActiveOperation.REPAY}
+            tokenListOperation={tokenListStatus.operation}
+            isTokenListLoading={isLoading}
+            showPoolData={false}
+            poolData={unilendPool}
+            selectedData={selectedData} // Pass selectedTokens to TokenListModal
+          />
+        </Modal>
+      ) : null}
+
+      {/* <Modal
         className="antd_popover_content"
         centered
         onCancel={() => setIsBorrowProgressModal(false)}
@@ -253,13 +346,13 @@ export default function RepayCard({ uniSwapTokens }: any) {
         footer={null}
         closable={false}
       >
-        {/* TODO: updaet spend ans swap tokens here */}
+       
         <BorrowLoader
           spendToken={"UFT"}
           SwapToken={"UFT"}
           progress={operationProgress}
         />
-      </Modal>
+      </Modal> */}
     </>
   );
 }
