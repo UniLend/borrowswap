@@ -71,8 +71,6 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   });
   const [operationProgress, setOperationProgress] = useState(0);
 
-  console.log("isTokenLoading", isTokenLoading);
-
   const handleLendAmount = (amount: string) => {
     setLendAmount(amount);
   };
@@ -129,22 +127,22 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
 
     const borrowAmount = getBorrowAmount(
       lendAmount,
-      currentLTV ? value - +currentLTV : value,
+      currentLTV ? value - +currentLTV : value, // TODO fix error
       selectedTokens.lend,
       selectedTokens.borrow
     );
     // setBorrowAmount(borrowAmount);
-    console.log({ borrowAmount, b2rRatio });
 
-    if (selectedTokens?.receive)
-      setReceiveAmount((borrowAmount * b2rRatio).toString());
-
-    console.log("RECEIVE_VAL", (borrowAmount * b2rRatio).toString());
+    if (selectedTokens?.receive) {
+      let receiveVal = borrowAmount * b2rRatio;
+      if (isNaN(receiveVal) || receiveVal < 0) {
+        receiveVal = 0;
+      }
+      setReceiveAmount(receiveVal.toString());
+    }
   };
 
   useEffect(() => {
-    console.log("selectedTokens", selectedTokens);
-
     if (selectedTokens?.lend?.priceRatio) {
       handleLTVSlider(5);
     }
@@ -206,7 +204,6 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       return borrowingTokens;
     } else if (tokenListStatus.operation === "receive") {
       return uniSwapTokens;
-      //   return receiveToken;
     } else {
       return [];
     }
@@ -283,7 +280,6 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   };
 
   const handleQuote = async () => {
-    // setIsTokenLoading((prevLoading) => ({ ...prevLoading, rangeSlider: true }));
     try {
       const value = await getQuote(
         decimal2Fixed(1, selectedTokens.borrow.decimals),
@@ -292,32 +288,24 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
         selectedTokens?.receive?.address,
         chain?.id
       );
-      console.log("QOUTE_VAL", value);
       if (value?.quoteDecimals) {
         setb2rRatio(value?.quoteDecimals);
       }
     } catch (error: any) {
       console.error("Error in handleQuote:", error);
-      // Handle error
       NotificationMessage(
         "error",
         error?.message || "Error occurred in handleQuote"
       );
     } finally {
       setIsTokenLoading({ ...isTokenLoading, rangeSlider: false });
-
-      //   handleLTVSlider(5);
     }
   };
 
   useEffect(() => {
     if (selectedTokens?.receive && !tokenListStatus.isOpen) {
-      // handleQuote();
-      // handleLTVSlider(5);
       setIsTokenLoading({ ...isTokenLoading, rangeSlider: true });
       setReceiveAmount("");
-      //   getInitialReceiveVal();
-      //   setIsTokenLoading({ ...isTokenLoading, rangeSlider: false });
       handleQuote();
     }
   }, [selectedTokens]);
