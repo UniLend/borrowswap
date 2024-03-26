@@ -230,7 +230,7 @@ setIsBorrowProgressModal(true)
     } else {
       setOperationProgress(2)
       console.log('setOperationProgress(22)', operationProgress);
-      const hash = await handleSwap(lendAmount)
+      const hash = await handleSwap(lendAmount, unilendPool, selectedTokens)
       console.log("hash",hash);
       if(hash){
         setOperationProgress(3)

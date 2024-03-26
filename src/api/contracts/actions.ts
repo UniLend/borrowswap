@@ -1,4 +1,4 @@
-import { borrowswapABI, coreAbi, erc20Abi, helperAbi } from "./abi";
+import { borrowswapABI, controllerABI, coreAbi, erc20Abi, helperAbi } from "./abi";
 import { readContracts, writeContract } from "wagmi/actions";
 import { getEtherContract } from "./ethers";
 import { add, decimal2Fixed, div, fixed2Decimals, fromBigNumber, greaterThan, mul, sub, toAPY } from '../../helpers/index';
@@ -65,25 +65,27 @@ console.log("receipt ", receipt)
 };
 
 
-export const handleSwap = async (amount: any) => {
+export const handleSwap = async (amount: any, pool: any, selectedTokens: any) => {
 
   try {
-    const instance = await getEtherContract('0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E', borrowswapABI);
+    const instance = await getEtherContract('0x602F61e5cb3FD81B81Ab0FB3a3969321c0bFf328', controllerABI);
 
     const borrowAmount =   ((Number(decimal2Fixed(amount)) *2.6) *0.35 ).toString();
   
-  
-    const {hash} = instance?.InitBorrow(
-      '0x784c4a12f82204e5fb713b055de5e8008d5916b6',
-      '0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a',
-      '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
-      '0x172370d5cd63279efa6d502dab29171933a610af',
-      decimal2Fixed(amount),
-      borrowAmount
-    )
-    console.log(hash);
-    const receipt = await waitForTransaction(hash)
-    return receipt
+    console.log("pool", pool.pool, selectedTokens);
+     
+    // const {hash} = instance?.uniBorrow(
+    //   '0x784c4a12f82204e5fb713b055de5e8008d5916b6',
+    //   '0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a',
+    //   '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+    //   '0x172370d5cd63279efa6d502dab29171933a610af',
+    //   decimal2Fixed(amount),
+    //   borrowAmount
+    // )
+    // console.log(hash);
+    // const receipt = await waitForTransaction(hash)
+    // return receipt
+    return ''
   } catch (error) {
 
     console.log("Error", {error});
