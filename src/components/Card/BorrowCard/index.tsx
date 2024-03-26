@@ -34,7 +34,6 @@ enum ActiveOperation {
 export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList } = unilendV2Data;
-  console.log({ tokenList, poolList });
   const [tokenAllowance, setTokenAllowance] = useState({
     token1: "0",
     token2: "0",
@@ -58,7 +57,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   });
   const [selectedLTV, setSelectedLTV] = useState<number>(5);
   const [unilendPool, setUnilendPool] = useState(null as any | null);
-  console.log("unilendPool", unilendPool);
+  
   const [currentLTV, setCurrentLTV] = useState("0");
   const [b2rRatio, setb2rRatio] = useState(1);
   // TODO: add enum for below state;
@@ -106,7 +105,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
 
   const handleSelectLendToken = (token: string) => {
     setIsTokenLoading((prevLoading) => ({ ...prevLoading, borrow: true }));
-    console.log("istokenLoading_1", isTokenLoading);
+    
     const tokenPools = Object.values(poolList).filter((pool) => {
       if (pool.token0.address == token || pool.token1.address == token) {
         return true;
@@ -131,10 +130,10 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       }
     });
 
-    console.log("borrowTokens", borrowTokens);
+    
     setBorrowingTokens(borrowTokens);
     setIsTokenLoading((prevLoading) => ({ ...prevLoading, borrow: false }));
-    console.log("istokenLoading_2", isTokenLoading);
+  
   };
 
   const handleLTV = (value: number) => {
@@ -159,13 +158,13 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       selectedTokens.borrow
     );
     setBorrowAmount(borrowAmount);
-    console.log(borrowAmount, b2rRatio);
+
 
     setReceiveAmount((borrowAmount * b2rRatio).toString());
   };
 
   useEffect(() => {
-    console.log("selectedTokens", selectedTokens);
+   
 
     if (selectedTokens?.lend?.priceRatio) {
       handleLTVSlider(5);
@@ -265,7 +264,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       } else {
         setOperationProgress(2);
         console.log("setOperationProgress(22)", operationProgress);
-        const hash = await handleSwap(lendAmount);
+        const hash = await handleSwap(lendAmount, unilendPool, selectedTokens, address, borrowAmount);
         console.log("hash", hash);
         if (hash) {
           setOperationProgress(3);

@@ -38,7 +38,7 @@ export function fixed2Decimals(amount: any, decimals = 18) {
   const amt = amount?._hex ? amount?._hex : amount;
   const dec = fromBigNumber(decimals);
 
-  return Number(amt) / 10 ** Number(dec);
+  return Number(amt) / 10 ** Number(decimals);
 }
 
 export function truncateToDecimals(number: number, decimal: number) {
@@ -63,7 +63,7 @@ export const loadPoolsWithGraph = async (data: any, chain: any) => {
     const tokenList: any = {};
     const poolsData = Array.isArray(data.pools) && data.pools;
     const tokenPrice = await getTokenPrice(data, chain);
-    console.log("tokenPrice", tokenPrice);
+   
 
     for (const pool of poolsData) {
       const openPosiions = allPositions.filter(

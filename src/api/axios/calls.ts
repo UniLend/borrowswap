@@ -169,7 +169,7 @@ export const uniswapTokensData = async (chainId: number = 1) => {
 
   try {
     const response = await axios.get(url);
-    console.log("response", response.data.tokens);
+
     return response.data.tokens;
   } catch (error) {
     console.error("Error fetching tokens data:", error);

@@ -42,7 +42,7 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
   };
 
   useEffect(() => {
-    console.log("value", value, inputValue);
+  
     setInputValue(value);
   }, [value]);
 

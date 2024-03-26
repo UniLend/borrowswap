@@ -55,36 +55,45 @@ export const handleApproval = async (
       ? maxAllow
       : (Number(amount) * 10 ** 18).toString();
 
+      console.log("hanldeApproval", instance, Amount, tokenAddress);
+      
+
   const { hash } = await instance?.approve(
-    "0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E",
+    "0x602F61e5cb3FD81B81Ab0FB3a3969321c0bFf328",
     Amount
   );
 const receipt = await waitForTransaction(hash)
-console.log("receipt ", receipt)
   return receipt;
 };
 
 
-export const handleSwap = async (amount: any, pool: any, selectedTokens: any) => {
+export const handleSwap = async (amount: any, pool: any, selectedTokens: any, user: any, borrow: any) => {
 
   try {
     const instance = await getEtherContract('0x602F61e5cb3FD81B81Ab0FB3a3969321c0bFf328', controllerABI);
 
     const borrowAmount =   ((Number(decimal2Fixed(amount)) *2.6) *0.35 ).toString();
   
-    console.log("pool", pool.pool, selectedTokens);
+    console.log("pool",  instance,    pool.pool, 
+    selectedTokens.lend.address, 
+    selectedTokens.receive.address,
+    selectedTokens.borrow.address,
+    decimal2Fixed(amount),
+    String(decimal2Fixed(borrow, selectedTokens.borrow.decimals)),
+    user);
      
-    // const {hash} = instance?.uniBorrow(
-    //   '0x784c4a12f82204e5fb713b055de5e8008d5916b6',
-    //   '0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a',
-    //   '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
-    //   '0x172370d5cd63279efa6d502dab29171933a610af',
-    //   decimal2Fixed(amount),
-    //   borrowAmount
-    // )
-    // console.log(hash);
-    // const receipt = await waitForTransaction(hash)
-    // return receipt
+    const {hash} = instance?.uniBorrow(
+      '0x784c4a12f82204e5fb713b055de5e8008d5916b6',
+      '0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a',
+      '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+      '0x172370d5cd63279efa6d502dab29171933a610af',
+      '10000000000000000000',
+      '200000000000000000',  
+      user
+    )
+    console.log(hash);
+    const receipt = await waitForTransaction(hash)
+    return receipt
     return ''
   } catch (error) {
 
@@ -108,7 +117,7 @@ export const getAllowance = async (
 
     const allowance = await instance?.allowance(
       user,
-      "0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E"
+      "0x602F61e5cb3FD81B81Ab0FB3a3969321c0bFf328"
     );
   
     const allowanceFixed = Number(fromBigNumber(allowance)) == Number(maxAllow) ? fromBigNumber(allowance): fixed2Decimals(fromBigNumber(allowance), token.decimals)
