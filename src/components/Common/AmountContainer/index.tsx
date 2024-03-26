@@ -12,6 +12,8 @@ interface AmountContainerProps {
   balance: string;
   className?: string;
   isShowMaxBtn?: boolean;
+  title?: string;
+  isTokensLoading?: boolean;
 }
 
 const AmountContainer: React.FC<AmountContainerProps> = ({
@@ -23,6 +25,8 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
   balance,
   className,
   isShowMaxBtn,
+  title,
+  isTokensLoading,
 }) => {
   const [inputValue, setInputValue] = useState(value);
 
@@ -37,10 +41,10 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
     }
   };
 
-  useEffect(()=> {
-console.log("value", value, inputValue);
-setInputValue(value)
-  },[value])
+  useEffect(() => {
+    console.log("value", value, inputValue);
+    setInputValue(value);
+  }, [value]);
 
   return (
     <div className={`amount_container ${className}`}>
@@ -58,7 +62,12 @@ setInputValue(value)
       </div>
       <div className='amount_container_right amount_div'>
         <p className='paragraph06 right'>Balance: {balance}</p>
-        <ButtonWithDropdown buttonText={buttonText} onClick={onClick} />
+        <ButtonWithDropdown
+          buttonText={buttonText}
+          onClick={onClick}
+          title={title}
+          isTokensLoading={isTokensLoading}
+        />
       </div>
     </div>
   );
@@ -74,6 +83,8 @@ AmountContainer.defaultProps = {
   balance: "0",
   className: "",
   isShowMaxBtn: false,
+  title: "",
+  isTokensLoading: false,
 };
 
 export default AmountContainer;

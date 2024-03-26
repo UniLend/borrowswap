@@ -1,25 +1,23 @@
-import { ethers,  BigNumber as bigNumber } from "ethers";
+import { ethers, BigNumber as bigNumber } from "ethers";
 import BigNumber from "bignumber.js";
 import { getTokenPrice } from "../api/axios/calls";
 import { store } from "../states/store";
 import { setPools, setTokens } from "../states/unilendV2Reducer";
 import { getTokenSymbol } from "../utils";
 
-
-
-const READABLE_FORM_LEN = 4
+const READABLE_FORM_LEN = 4;
 
 export function fromReadableAmount(
   amount: number,
   decimals: number
 ): bigNumber {
-  return ethers.utils.parseUnits(amount.toString(), decimals)
+  return ethers.utils.parseUnits(amount.toString(), decimals);
 }
 
 export function toReadableAmount(rawAmount: number, decimals: number): string {
   return ethers.utils
     .formatUnits(rawAmount, decimals)
-    .slice(0, READABLE_FORM_LEN)
+    .slice(0, READABLE_FORM_LEN);
 }
 
 export function fromBigNumber(bignumber: any) {
@@ -41,6 +39,12 @@ export function fixed2Decimals(amount: any, decimals = 18) {
   const dec = fromBigNumber(decimals);
 
   return Number(amt) / 10 ** Number(dec);
+}
+
+export function truncateToDecimals(number: number, decimal: number) {
+  const powerOf10 = Math.pow(10, decimal);
+  const truncatedNumber = Math.floor(number * powerOf10) / powerOf10;
+  return truncatedNumber;
 }
 
 export const checkOpenPosition = (position: any) => {
@@ -196,24 +200,48 @@ export function getCurrentLTV(selectedToken: any, collateralToken: any) {
           Number(collateralToken.priceRatio))
       : 0;
 
-      
-  return (Number(prevLTV.toFixed(4)) *100).toFixed(2);
+  return (Number(prevLTV.toFixed(4)) * 100).toFixed(2);
 }
 
+export const getBorrowAmount = (
+  amount: any,
+  ltv: any,
+  collateralToken: any,
+  selectedToken: any
+) => {
+  const borrowed =
+    Number(amount) *
+    Number(Number(getCurrentLTV(selectedToken, collateralToken)) / 100);
 
-export const getBorrowAmount = (amount: any, ltv: any , collateralToken: any, selectedToken: any) => {
-  
-  const borrowed = Number(amount) * Number(Number(getCurrentLTV(selectedToken, collateralToken))/100);
+  const borrowAmount =
+    Number(amount) * Number(collateralToken.priceRatio) * (ltv / 100);
 
-  const borrowAmount = (Number(amount) * Number(collateralToken.priceRatio)) * (ltv/100) 
-
-
-  
   return borrowAmount;
+};
 
-
-
-}
+export const tokensURLs = {
+  1: [
+    { url: "https://tokens.coingecko.com/uniswap/all.json", isEnabled: true },
+  ],
+  137: [
+    {
+      url: "https://tokens.coingecko.com/polygon-pos/all.json",
+      isEnabled: true,
+    },
+  ],
+  56: [
+    {
+      url: "https://tokens.coingecko.com/binance-smart-chain/all.json",
+      isEnabled: true,
+    },
+  ],
+  1285: [
+    {
+      url: "https://tokens.coingecko.com/moonriver/all.json",
+      isEnabled: true,
+    },
+  ],
+};
 
 // const checkAllowance = async () => {
 //   const token1Allowance = await getAllowance(
@@ -224,7 +252,6 @@ export const getBorrowAmount = (amount: any, ltv: any , collateralToken: any, se
 //     "0x172370d5cd63279efa6d502dab29171933a610af",
 //     address
 //   );
-
 
 //   setTokenAllowance({
 //     token1: fixed2Decimals(token1Allowance).toString(),

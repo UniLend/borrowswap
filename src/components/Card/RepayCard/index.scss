@@ -1,0 +1,73 @@
+@import "/src/theme";
+
+.repay_container {
+  .swap_route {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .transparent_btn {
+    .token_tab,
+    .dropdown {
+      background-color: transparent !important;
+    }
+  }
+
+  button {
+    width: 100%;
+    background-color: var(--main);
+    color: var(--always-white);
+    border: 0px;
+    height: 48px;
+    border-radius: 16px;
+    font-size: $font-size-md;
+    cursor: pointer;
+    text-transform: capitalize;
+
+    &:disabled {
+      background-color: var(--low-dark-bg);
+      color: var(--light-gray);
+      cursor: not-allowed;
+    }
+
+    &:hover {
+      color: var(--always-white);
+      background-color: var(--main);
+      opacity: 0.9;
+    }
+  }
+
+  .primary_btn {
+    &:hover {
+      color: var(--always-white);
+      background-color: var(--main);
+      opacity: 0.9;
+    }
+
+    &:disabled {
+      background-color: var(--low-dark-bg);
+      color: var(--light-gray);
+      cursor: not-allowed;
+    }
+  }
+
+  @media only screen and (max-width: 1440px) {
+    .label {
+      margin-top: 24px;
+    }
+    button {
+      height: 40px;
+    }
+  }
+
+  @media ($mobile) {
+    .label {
+      margin-top: 20px;
+    }
+    button {
+      height: 36px;
+    }
+  }
+}

@@ -1,0 +1,33 @@
+@import "/src/theme";
+
+.ant-notification-notice-wrapper {
+  background: transparent !important;
+}
+
+.notification_class,
+.ant-notification-notice {
+  margin-top: 35px;
+  height: 5rem;
+  $border: 1px;
+  background-clip: padding-box;
+  border: solid $border var(--button-border);
+  border-radius: 12px;
+  color: var(--pure-black);
+  background-color: var(--popup-back-color);
+  border-radius: 11px;
+  padding: 8px 5px;
+
+  .ant-notification-notice-message,
+  .ant-notification-notice-description {
+    color: var(--pure-black) !important;
+  }
+}
+@media ($mobile) {
+  .notification_class {
+    padding: 3px;
+  }
+}
+
+.ant-notification-notice {
+  height: fit-content;
+}
