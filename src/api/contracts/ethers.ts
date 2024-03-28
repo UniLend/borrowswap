@@ -52,10 +52,15 @@ export async function getEthersSigner(
 export async function getEtherContract(
   address: any,
   abi: any,
+  signerRequired: boolean = true,
   chainId?: number,
 ) {
   try {
-    const signer = await getEthersSigner(  { chainId });
+    let signer = null
+    if(signerRequired){
+       signer = await getEthersSigner(  { chainId });
+    }
+
     const provider = getEthersProvider(  { chainId });
   
     const contract = new ethers.Contract(

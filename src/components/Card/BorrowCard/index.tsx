@@ -12,6 +12,7 @@ import {
   fixed2Decimals,
   getBorrowAmount,
   getCurrentLTV,
+  truncateToDecimals,
 } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
 import { wagmiConfig } from "../../../main";
@@ -144,7 +145,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
 
   const getProxy =  async () => {
     const proxy = await getUserProxy(address)
-    console.log('proxy', proxy)
+    console.log('userProxyContract', proxy)
     setUserProxy(proxy)
   }
 
@@ -166,8 +167,6 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       selectedTokens.borrow
     );
     setBorrowAmount(borrowAmount);
-
-   console.log("priceRatio", borrowAmount , b2rRatio);
    
     setReceiveAmount((borrowAmount * b2rRatio).toString());
   };
@@ -211,12 +210,11 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       contracts,
       tokenPool.pool,
       tokenPool,
-      '0xC6e35522F7847F3D44D1F7D57AFc843A7D679fC5',
       address
     );
 
     if (data.token0.address == selectedTokens.lend.address) {
-      console.log("lenstokens", selectedTokens);
+   
       
       setSelectedTokens({
         ...selectedTokens,
@@ -318,7 +316,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
     });
     setTokenListStatus({ isOpen: false, operation: "" });
    const tokenBal = await getAllowance(token, address)
-    console.log("token", token, tokenBal);
+   
     setSelectedTokens({
       ...selectedTokens,
       [tokenListStatus.operation]: {...token, ...tokenBal}
@@ -360,7 +358,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   }, [isTokenLoading]);
 
   useEffect(() => {
-    console.log("selectedTokens", selectedTokens);
+ 
     
     if (selectedTokens?.receive) {
       handleQuote();
@@ -396,7 +394,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       <div className='borrow_container'>
         <p className='paragraph06 label'>You Pay</p>
         <AmountContainer
-          balance={selectedTokens?.lend?.balanceFixed}
+          balance={truncateToDecimals(selectedTokens?.lend?.balanceFixed || 0, 4).toString()}
           value={lendAmount}
           onChange={(e: any) => handleLendAmount(e.target.value)}
           onMaxClick={() => console.log("Max Clicked")}
@@ -423,7 +421,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
         </div>
         <p className='paragraph06 label'>You Receive</p>
         <AmountContainer
-          balance='125.25'
+          balance={truncateToDecimals(selectedTokens?.receive?.balanceFixed || 0, 4).toString()}
           value={receiveAmount}
           onChange={(e: any) => handleReceiveAmount(e.target.value)}
           onMaxClick={() => console.log("Max Clicked")}

@@ -1,9 +1,11 @@
 import { ethers, BigNumber as bigNumber } from "ethers";
 import BigNumber from "bignumber.js";
-import { getTokenPrice } from "../api/axios/calls";
+import { fetchGraphQlData, getTokenPrice } from "../api/axios/calls";
 import { store } from "../states/store";
 import { setPools, setTokens } from "../states/unilendV2Reducer";
 import { getTokenSymbol } from "../utils";
+import { getPoolCreatedGraphQuery } from "../api/axios/query";
+import { getUserProxy } from "../api/contracts/actions";
 
 const READABLE_FORM_LEN = 4;
 
@@ -44,7 +46,7 @@ export function fixed2Decimals(amount: any, decimals = 18) {
 export function truncateToDecimals(number: number, decimal: number) {
   const powerOf10 = Math.pow(10, decimal);
   const truncatedNumber = Math.floor(number * powerOf10) / powerOf10;
-  return truncatedNumber;
+  return Number(truncatedNumber);
 }
 
 export const checkOpenPosition = (position: any) => {
@@ -56,11 +58,13 @@ export const checkOpenPosition = (position: any) => {
   return false;
 };
 
-export const loadPoolsWithGraph = async (data: any, chain: any) => {
-  if (data) {
+export const loadPoolsWithGraph = async (chain: any, address: any) => {
+  if (true) {
 
+    const proxy = await getUserProxy(address)
+    const query = getPoolCreatedGraphQuery(proxy);
 
-
+    const data = await fetchGraphQlData(chain?.id, query);    
     const allPositions = data?.positions;
     const poolData: any = {};
     const tokenList: any = {};
