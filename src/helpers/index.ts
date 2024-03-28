@@ -58,6 +58,9 @@ export const checkOpenPosition = (position: any) => {
 
 export const loadPoolsWithGraph = async (data: any, chain: any) => {
   if (data) {
+
+
+
     const allPositions = data?.positions;
     const poolData: any = {};
     const tokenList: any = {};
@@ -124,7 +127,7 @@ export const loadPoolsWithGraph = async (data: any, chain: any) => {
     }
     store.dispatch(setPools(poolData));
     store.dispatch(setTokens(tokenList));
-    console.log({ poolData, tokenList });
+    console.log({ poolData, tokenList , allPositions});
   }
 };
 
@@ -214,9 +217,12 @@ export const getBorrowAmount = (
     Number(Number(getCurrentLTV(selectedToken, collateralToken)) / 100);
 
   const borrowAmount =
-    Number(amount) * Number(collateralToken.priceRatio) * (ltv / 100);
+    (Number(amount) + Number(collateralToken.lendBalanceFixed) ) * Number(collateralToken.priceRatio) * (ltv / 100) -  Number(selectedToken.borrowBalanceFixed);
 
-  return borrowAmount;
+    console.log("borrowed", borrowed);
+    
+
+  return borrowAmount > 0 ?borrowAmount: 0;
 };
 
 export const tokensURLs = {

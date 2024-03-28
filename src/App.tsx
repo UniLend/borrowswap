@@ -13,7 +13,7 @@ import { connectWallet } from "./api/services/wallet";
 function App() {
   document.body.className = `body dark`;
   const { address, chain, isConnected } = useWalletHook();
-  const query = getPoolCreatedGraphQuery(address);
+  const query = getPoolCreatedGraphQuery('0xC6e35522F7847F3D44D1F7D57AFc843A7D679fC5');
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["pools"],
     queryFn: async () => {
@@ -24,6 +24,8 @@ function App() {
 
   useEffect(() => {
     if (chain?.id) {
+      console.log("data", data);
+      
       loadPoolsWithGraph(data, chain);
     }
   }, [data]);

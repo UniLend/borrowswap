@@ -66,13 +66,27 @@ const receipt = await waitForTransaction(hash)
   return receipt;
 };
 
+export const getUserProxy = async (user: any) => {
+  try {
+    const instance = await getEtherContract('0x602F61e5cb3FD81B81Ab0FB3a3969321c0bFf328', controllerABI);
+    const proxy = await instance?.proxyAddress(user)
+    return proxy
+  } catch (error) {
+    return user; //if no proxy just use the users address as
+  }
+ 
+
+
+
+}
+
 
 export const handleSwap = async (amount: any, pool: any, selectedTokens: any, user: any, borrow: any) => {
 
   try {
     const instance = await getEtherContract('0x602F61e5cb3FD81B81Ab0FB3a3969321c0bFf328', controllerABI);
 
-    const borrowAmount =   ((Number(decimal2Fixed(amount)) *2.6) *0.35 ).toString();
+    const borrowAmount =   ((Number(decimal2Fixed(1000000000000000)) *2.6) *0.10 ).toString();
   
     console.log("pool",  instance,    pool.pool, 
     selectedTokens.lend.address, 
@@ -82,16 +96,16 @@ export const handleSwap = async (amount: any, pool: any, selectedTokens: any, us
     String(decimal2Fixed(borrow, selectedTokens.borrow.decimals)),
     user);
      
-    const {hash} = instance?.uniBorrow(
-      '0x784c4a12f82204e5fb713b055de5e8008d5916b6',
-      '0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a',
-      '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
-      '0x172370d5cd63279efa6d502dab29171933a610af',
-      '10000000000000000000',
-      '200000000000000000',  
-      user
+    const {hash } = await instance?.uniBorrow(
+      pool.pool, 
+    selectedTokens.lend.address, 
+    selectedTokens.receive.address,
+    selectedTokens.borrow.address,
+    decimal2Fixed(amount),
+    String(decimal2Fixed(borrow, selectedTokens.borrow.decimals)),
+    user
     )
-    console.log(hash);
+    console.log("transaction",hash);
     const receipt = await waitForTransaction(hash)
     return receipt
     return ''
@@ -124,7 +138,7 @@ export const getAllowance = async (
     
      const bal = await instance?.balanceOf(user);
   
-    return { allowance: fromBigNumber(allowance), allowanceFixed: allowanceFixed ,  balance: fromBigNumber(bal)};
+    return { allowance: fromBigNumber(allowance), allowanceFixed: allowanceFixed ,  balance: fromBigNumber(bal), balanceFixed: fixed2Decimals(fromBigNumber(bal), token.decimals)};
   } catch (error) {
     console.log(error);
     
@@ -143,6 +157,7 @@ export const  getPoolBasicData = async (
   contracts: any,
   poolAddress: string,
   poolData: any,
+  proxy: any,
   userAddress: any,
 ) => {
 
@@ -158,7 +173,7 @@ export const  getPoolBasicData = async (
          const [token0, token1, data] = await Promise.all([getAllowance(pool.token0, userAddress), getAllowance(pool.token1, userAddress), instance?.getPoolFullData(
           contracts.positionAddress,
            poolAddress,
-           userAddress
+           proxy
         )
       ]);
      // const token0 = await getAllowance(pool.token0.address, userAddress)
