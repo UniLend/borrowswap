@@ -280,6 +280,22 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
     // setIsBorrowProgressModal(true);
   };
 
+  const handleClear = () => {
+    setLendAmount('')
+    setBorrowAmount(0)
+    setReceiveAmount('')
+    setSelectedTokens({
+      lend: null,
+      borrow: null,
+      receive: null,
+    })
+    setIsBorrowProgressModal(false)
+    setOperationProgress(0)
+    setBorrowBtn("Select you pay token")
+    setCurrentLTV('0')
+    setb2rRatio(0)
+  }
+
   useEffect(() => {
     const tokensArray = Object.values(tokenList);
     setLendingTokens(tokensArray);
