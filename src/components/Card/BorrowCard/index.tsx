@@ -63,7 +63,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   // TODO: add enum for below state;
   const [borrowBtn, setBorrowBtn] = useState("Select you pay token");
   const [isTokenLoading, setIsTokenLoading] = useState({
-    // lend: isLoading,
+    lend: true,
     borrow: false,
     receive: false,
     pools: false,
@@ -84,9 +84,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   };
 
   const handleCloseTokenList = async () => {
-    if (selectedTokens?.receive) {
-      setTokenListStatus({ isOpen: false, operation: "" });
-    }
+    setTokenListStatus({ isOpen: false, operation: "" });
   };
 
   const handleSelectLendToken = (token: string) => {
@@ -251,6 +249,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   useEffect(() => {
     const tokensArray = Object.values(tokenList);
     setLendingTokens(tokensArray);
+    setIsTokenLoading({ ...isTokenLoading, lend: false });
   }, [unilendV2Data]);
 
   const handleTokenSelection = async (token: any) => {
@@ -362,7 +361,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
           buttonText={selectedTokens?.lend?.symbol}
           onClick={() => handleOpenTokenList("lend")}
           isShowMaxBtn
-          isTokensLoading={isLoading}
+          //   isTokensLoading={isLoading}
         />
         <div className='swap_route'>
           <p className='paragraph06 '>You borrow</p>
@@ -377,7 +376,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
             title={
               selectedTokens?.lend === null ? "please select you pay token" : ""
             }
-            isTokensLoading={isTokenLoading.borrow}
+            // isTokensLoading={isTokenLoading.borrow}
           />
         </div>
         <p className='paragraph06 label'>You Receive</p>
@@ -425,7 +424,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
           className='primary_btn'
           onClick={handleSwapTransaction}
           title='please slect you pay token'
-          loading={isTokenLoading.pools}
+          loading={isTokenLoading.pools || isTokenLoading.rangeSlider}
         >
           {borrowBtn}
         </Button>

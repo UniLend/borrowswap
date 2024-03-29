@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { FiSearch } from "react-icons/fi";
 import TokenCard from "../TokenCard";
 import "./index.scss";
+import UnilendLoader from "../../Loader/UnilendLoader";
 
 interface Token {
   logoURI?: string;
@@ -76,7 +77,7 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
       </div>
       {isTokenListLoading ? (
         <div className='token_list'>
-          <p className='paragraph01'>Tokens are loading...</p>
+          <UnilendLoader width='200px' height='200px' className='logo_loader' />
         </div>
       ) : (
         <div ref={container} className='token_list'>
