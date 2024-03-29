@@ -37,8 +37,7 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
 }) => {
   // TODO: update typeScript here
 
-  console.log("poolData",tokenList)
-  // console.log("poolData1",showPoolData)
+  console.log("poolList",poolData)
   const container = useRef<any>(null);
   const [page, setPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -46,6 +45,31 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
   const handleTokensList = (token: Token) => {
     onSelectToken(token);
   };
+
+//   const getPoolsData = (poolData) => {
+// console.log(poolData)
+//     if (poolData.token0.borrowBalanceFixed > 0 && poolData.token1.borrowBalanceFixed > 0) {
+//         return {
+//             token0: poolData.token0,
+//             token1: poolData.token1
+//         };
+//     } else if (poolData.token0.borrowBalanceFixed > 0) {
+//         return {
+//             token0: poolData.token0
+//         };
+//     } else if (poolData.token1.borrowBalanceFixed > 0) {
+//         return {
+//             token1: poolData.token1
+//         };
+//     } else {
+//         return null;
+//     }
+// };
+
+// const filteredPools = getPoolsData(poolData);
+// console.log(filteredPools);
+
+
 
   // const filteredTokenList = tokenList.filter((token) =>
   //   token.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -79,22 +103,10 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
       </div>
       {isTokenListLoading ? (
         <div className='token_list'>
-          <p className='paragraph01'>Tokens are loading...</p>
+          <p className='paragraph01'>Positions are loading...</p>
         </div>
       ) : (
         <div ref={container} className='token_list'>
-          {/* {filteredTokenList?.map(
-            (token: Token, i: number) =>
-              i < page * 100 && (
-                <TokenCard
-                  key={i}
-                  token={token}
-                  onClick={() => handleTokensList(token)}
-                  operation={operation}
-                />
-              )
-          )}
-          {filteredTokenList?.length === 0 && <h2>Tokens are not available</h2>} */}
           {poolData.length > 0  ? (
             poolData.map((token: Token, i: number) =>
               i < page * 100 ? (
@@ -109,7 +121,7 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
               ) : null
             )
           ) : (
-            <p className='paragraph01'>Tokens are not available</p>
+            <p className='paragraph01'>No Positions Found!</p>
           )}
         </div>
       )}

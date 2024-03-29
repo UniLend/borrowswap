@@ -27,7 +27,7 @@ const ButtonWithDropdown: React.FC<ButtonWithDropdownProps> = ({
       title={title}
     >
       <div onClick={() => console.log("dropdown")} className='token_tab'>
-        {buttonText === "Select Token" ? (
+        {buttonText === "Select" ? (
           isTokensLoading ? (
             <h2>loading...</h2>
           ) : (
@@ -50,7 +50,7 @@ const ButtonWithDropdown: React.FC<ButtonWithDropdownProps> = ({
 export default memo(ButtonWithDropdown);
 
 ButtonWithDropdown.defaultProps = {
-  buttonText: "Select Token",
+  buttonText: "Select",
   onClick: () => console.log("Clicked"),
   className: "",
   title: "",

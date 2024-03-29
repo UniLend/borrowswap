@@ -73,29 +73,33 @@ const TokenCard: React.FC<TokenCardProps> = ({
           </div>
         </div>
       ) : (
-        <div onClick={handleTokensList} className='token_card'>
-          {console.log("tokenpool", token)}
+           
+           <div onClick={handleTokensList} className='token_card'>
+            
+             {console.log("poolcard", token)}
+             
           <div className='tokens_details'>
-            {/* <img src={token.token0.logo} alt='' />
-            <img src={token.token1.logo} alt='' /> */}
+            <img src={token.token0.logo} alt='' />
             <div>
               <div className='token_pool_logo'>
-                <h3>{token.token0.symbol} / {token.token1.symbol}</h3>
+                <h3>{token.token0.symbol}</h3>
+          
               </div>
+              {showPoolData && (
+                <span>
+                  Repay: {truncateToDecimals(token.token0.redeemBalanceFixed, 8)}
+                </span>
+              )}
             </div>
           </div>
-          {/* TODO: update token pool data */}
+        
           <div className='pool_details'>
-            <div className='pool_logo'>
-              <img src={token.token0.logo} alt='' />
+            <div>
+              <img className="token_over" src={token.token0.logo} alt='' />
               <img src={token.token1.logo} alt='' />
             </div>
-            {/* <p className='paragraph06'>Repay: 512.02</p> */}
+            <p className='paragraph06'>unilend</p>
           </div>
-
-    
-
-
 
         </div>
       )}

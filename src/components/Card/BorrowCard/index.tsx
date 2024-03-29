@@ -266,6 +266,7 @@ console.log("tokenPools", tokenPools)
       });
       setReceiveAmount("");
     } else if (tokenListStatus.operation == "borrow") {
+      console.log(token.address)
       handleSelectBorrowToken(token.address);
       setSelectedTokens({
         ...selectedTokens,

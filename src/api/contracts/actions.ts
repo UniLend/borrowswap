@@ -139,8 +139,11 @@ export const getPoolBasicData = async (
   poolData: any,
   userAddress: any
 ) => {
-  //  console.log(contracts, poolAddress, poolData, userAddress);
 
+   console.log("contracts", contracts)
+   console.log("poolAddress", poolAddress)
+   console.log("poolData", poolData)
+   console.log("userAddress", userAddress)
   let pool = { ...poolData };
   if (true) {
     try {

@@ -70,7 +70,7 @@ export const loadPoolsWithGraph = async (data: any, chain: any) => {
       const poolInfo = {
         ...pool,
         poolAddress: pool?.pool,
-
+        
         totalLiquidity:
           fixed2Decimals(pool.liquidity0, pool.token0.decimals) *
             tokenPrice[pool?.token0?.id] +

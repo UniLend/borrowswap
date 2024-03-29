@@ -21,7 +21,7 @@ function App() {
       return fetchedDATA;
     },
   });
-
+console.log("data", data);
   useEffect(() => {
     if (chain?.id) {
       loadPoolsWithGraph(data, chain);

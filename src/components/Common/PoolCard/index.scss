@@ -77,10 +77,12 @@
     gap: 10px;
     > div {
       display: flex;
-      gap: 8px;
-      align-items: center;
-
+     
+    .token_over{
+      margin-right:-12px;
+    }
       img {
+        z-index: 1;
         width: 18px;
         height: 18px;
         border-radius: 16px;
