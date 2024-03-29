@@ -36,10 +36,7 @@ enum ActiveOperation {
 export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList } = unilendV2Data;
-  const [tokenAllowance, setTokenAllowance] = useState({
-    token1: "0",
-    token2: "0",
-  });
+  const [modalMsg, setModalMsg] = useState('');
   const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState("");
   const [borrowAmount, setBorrowAmount] = useState(0);
@@ -73,25 +70,6 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
     rangeSlider: false,
   });
 
-  const receiveToken: any = [
-    {
-      symbol: "USDC",
-      name: "USD Coin",
-      poolCount: "4",
-      id: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-      decimals: 6,
-      address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-      logo: "https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png?1547042389",
-    },
-    {
-      symbol: "USDT",
-      name: "Tether USD",
-      id: "0xdac17f958d2ee523a2206206994597c13d831ec7",
-      decimals: 6,
-      address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
-      logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400",
-    },
-  ];
   const [operationProgress, setOperationProgress] = useState(0);
 
   const handleLendAmount = (amount: string) => {
@@ -247,7 +225,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       return borrowingTokens;
     } else if (tokenListStatus.operation === "receive") {
       // TODO: return receive tokens dynamically
-      //   return receiveToken;
+      //   return receiveToken;  
       return uniSwapTokens;
     } else {
       return [];
@@ -267,25 +245,23 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       console.log("handleSwapTransaction", lendToken, borrowToken);
 
       if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
+        setModalMsg('Spend Aprroval for '+ selectedTokens.lend.symbol)
         await handleApproval(selectedTokens?.lend.address, address, lendAmount);
-        setOperationProgress(1);
-        console.log("setOperationProgress(1)", operationProgress);
-
+        setOperationProgress(1);   
         handleSwapTransaction();
       } else if (Number(borrowAmount) > Number(borrowToken.allowanceFixed)) {
         setOperationProgress(1);
-        console.log("setOperationProgress(11)", operationProgress);
+        setModalMsg('Spend Aprroval for '+ selectedTokens.lend.symbol)
         await handleApproval(
           selectedTokens?.borrow.address,
           address,
           borrowAmount
         );
         setOperationProgress(2);
-        console.log("setOperationProgress(2)", operationProgress);
         handleSwapTransaction();
       } else {
         setOperationProgress(2);
-        console.log("setOperationProgress(22)", operationProgress);
+        setModalMsg(selectedTokens.lend.symbol+'-'+selectedTokens.borrow.symbol+'-'+selectedTokens.receive.symbol)
         const hash = await handleSwap(lendAmount, unilendPool, selectedTokens, address, borrowAmount);
         console.log("hash", hash);
       
@@ -344,7 +320,8 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       setb2rRatio(value?.quoteDecimals);
     } catch (error: any) {
       console.log("error", { error });
-      // NotificationMessage("error", error?.message);
+      setBorrowBtn('swap not available')
+       NotificationMessage("error", error?.message);
     }
     setIsTokenLoading({ ...isTokenLoading, rangeSlider: false });
   };
@@ -497,8 +474,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       >
         {/* TODO: updaet spend ans swap tokens here */}
         <BorrowLoader
-          spendToken={"UFT"}
-          SwapToken={"UFT"}
+         msg={modalMsg}
           progress={operationProgress}
         />
       </Modal>

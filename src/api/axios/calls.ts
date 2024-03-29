@@ -154,6 +154,7 @@ export const getQuote = async (
     };
   } catch (error) {
     console.log("quote", { error });
+    throw error;
   }
 };
 
