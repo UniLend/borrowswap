@@ -149,20 +149,11 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
     setReceiveAmount((borrowAmount * b2rRatio).toString());
   };
 
-  useEffect(() => {
 
-    if(address){
-      getProxy()
-    }
-  
-  }, [address]);
 
   useEffect(() => {
 
-    if(address){
-      getProxy()
-    }
-    
+    getProxy()
 
     if (selectedTokens?.lend?.priceRatio) {
       handleLTVSlider(5);

@@ -135,6 +135,32 @@ export const mumbaiTestnet = {
   testnet: true,
 } as Chain;
 
+export const unilendTestnet = {
+  id: 16153,
+  name: 'unilend test',
+  network: 'unilendtest',
+  nativeCurrency: { name: 'token', symbol: 'TOKEN', decimals: 18 },
+  rpcUrls: {
+    default: {
+      http: [
+        'https://rpc.buildbear.io/honest-spiderwoman-6c6fbc8e',
+      ]
+    },
+    public: {
+      http: [
+        'https://rpc.buildbear.io/honest-spiderwoman-6c6fbc8e',
+      ]
+
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'explore',
+      url: 'https://explorer.buildbear.io/honest-spiderwoman-6c6fbc8e/transactions',
+    },
+  },
+  testnet: false,
+} as Chain;
 export const polygonMainnet = {
   id: 137,
   name: 'Polygon',

@@ -71,7 +71,8 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
     const poolsData = Array.isArray(data.pools) && data.pools;
     const tokenPrice = await getTokenPrice(data, chain);
    
-
+   
+   
     for (const pool of poolsData) {
       const openPosiions = allPositions.filter(
         (el: any) => el?.pool?.pool == pool.pool
@@ -129,9 +130,10 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
       };
       poolData[pool?.pool as keyof typeof poolData] = poolInfo;
     }
+
     store.dispatch(setPools(poolData));
     store.dispatch(setTokens(tokenList));
-    console.log({ poolData, tokenList , allPositions});
+    console.log({ poolData, tokenList , allPositions, data});
   }
 };
 

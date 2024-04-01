@@ -73,7 +73,7 @@ export const getUserProxy = async (user: any) => {
     const controllerAddress = contractAddresses[chainId as keyof  typeof contractAddresses]?.controller;
     const instance = await getEtherContract(controllerAddress, controllerABI, false);
     const proxy = await instance?.proxyAddress(user)
-    return proxy
+    return proxy ? proxy : user
   } catch (error) {
     return user; //if no proxy just use the users address as
   }
