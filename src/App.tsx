@@ -34,7 +34,7 @@ function App() {
       <Navbar />
       {/* <Suspense fallback={<p className='paragraph01'>Loading...</p>}> */}
       <Suspense fallback={<UnilendLoader className='logo_loader' />}>
-        <Card isLoading={false} />
+        <Card />
       </Suspense>
     </div>
   );

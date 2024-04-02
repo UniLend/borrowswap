@@ -108,6 +108,9 @@ export const getTokenPrice = async (data: any, chain: any) => {
   return result;
 };
 
+const CancelToken = axios.CancelToken;
+let cancelPreviousRequest: any;
+
 export const getQuote = async (
   amountIn: string,
   user: any,
@@ -115,9 +118,14 @@ export const getQuote = async (
   tokenOut: any,
   chainId = 1
 ) => {
+  // Cancel the previous request if it exists
+  if (cancelPreviousRequest) {
+    cancelPreviousRequest();
+  }
+
   console.log("QuoteData", { amountIn, user, tokenIn, tokenOut, chainId });
   try {
-    const data = await axios({
+    const response = await axios({
       method: "post",
       url: "https://interface.gateway.uniswap.org/v2/quote",
       data: {
@@ -149,15 +157,22 @@ export const getQuote = async (
         "Content-Type": "application/json",
         Accept: "application/json, text/plain, */*",
       },
+      cancelToken: new CancelToken(function executor(c) {
+        cancelPreviousRequest = c;
+      }),
     });
 
     return {
-      quoteDecimals: data.data.quote.quoteDecimals,
-      quote: data.data.quote.quote,
+      quoteDecimals: response.data.quote.quoteDecimals,
+      quote: response.data.quote.quote,
     };
   } catch (error) {
-    console.log("quote", { error });
-    throw error;
+    if (axios.isCancel(error)) {
+      console.log("Previous request cancelled", error);
+    } else {
+      console.log("quote", { error });
+      throw error;
+    }
   }
 };
 

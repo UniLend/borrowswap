@@ -33,7 +33,7 @@ enum ActiveOperation {
   REPAY = "Swap_Repay",
 }
 
-export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
+export default function BorrowCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList } = unilendV2Data;
   const [tokenAllowance, setTokenAllowance] = useState({
@@ -137,7 +137,8 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
 
     const borrowAmount = getBorrowAmount(
       lendAmount,
-      currentLTV ? value - +currentLTV : value, // TODO fix error
+      currentLTV ? value - Number(currentLTV) : value, // TODO fix error
+      // value,
       selectedTokens.lend,
       selectedTokens.borrow
     );
@@ -295,7 +296,9 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   useEffect(() => {
     const tokensArray = Object.values(tokenList);
     setLendingTokens(tokensArray);
-    setIsTokenLoading({ ...isTokenLoading, lend: false });
+    if (Object.keys(unilendV2Data.poolList).length > 0) {
+      setIsTokenLoading({ ...isTokenLoading, lend: false });
+    }
   }, [unilendV2Data]);
 
   const handleTokenSelection = async (token: any) => {
@@ -370,6 +373,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   useEffect(() => {
     if (selectedTokens.receive !== null && !isTokenLoading.rangeSlider) {
       handleLTVSlider(currentLTV ? +currentLTV : 5);
+      setSelectedLTV(currentLTV ? +currentLTV : 5);
     }
   }, [b2rRatio]);
 
@@ -381,11 +385,11 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
     checkLoading(isTokenLoading);
   }, [isTokenLoading]);
 
-  useEffect(() => {
-    if (selectedTokens?.receive) {
-      handleQuote();
-    }
-  }, [selectedTokens]);
+  // useEffect(() => {
+  //   if (selectedTokens?.receive) {
+  //     handleQuote();
+  //   }
+  // }, [selectedTokens]);
 
   useEffect(() => {
     const { lend, borrow, receive } = selectedTokens;
@@ -394,9 +398,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       case lend === null:
         setBorrowBtn("Select pay token");
         break;
-      case lendAmount === "":
-        setBorrowBtn("Enter pay token value");
-        break;
+
       case borrow === null:
         setBorrowBtn("Select borrow token");
         break;
@@ -405,6 +407,9 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
         break;
       case receive === null:
         setBorrowBtn("Select receive token");
+        break;
+      case lendAmount === "":
+        setBorrowBtn("Enter pay token value");
         break;
       case isTokenLoading.rangeSlider:
         setBorrowBtn("Quote data loading");
@@ -435,7 +440,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
           <ButtonWithDropdown
             buttonText={selectedTokens?.borrow?.symbol}
             onClick={
-              selectedTokens?.lend !== null && lendAmount !== ""
+              selectedTokens?.lend !== null
                 ? () => handleOpenTokenList("borrow")
                 : () => {}
             }
@@ -511,7 +516,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
           tokenList={getOprationToken()}
           onSelectToken={(token: any) => handleTokenSelection(token)}
           operation={ActiveOperation.BRROW}
-          isTokenListLoading={isLoading}
+          isTokenListLoading={isTokenLoading.lend}
           showPoolData={tokenListStatus.operation === "borrow" ? true : false}
           //   poolData={tokenListStatus.operation === "receive" ? poolList : []}
         />

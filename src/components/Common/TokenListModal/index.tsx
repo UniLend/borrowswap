@@ -43,10 +43,13 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
 
   const handleTokensList = (token: Token) => {
     onSelectToken(token);
+    setSearchQuery("");
   };
 
-  const filteredTokenList = tokenList.filter((token) =>
-    token.name.toLowerCase().includes(searchQuery.toLowerCase()) ||  token.symbol.toLowerCase().includes(searchQuery.toLowerCase()) 
+  const filteredTokenList = tokenList.filter(
+    (token) =>
+      token.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      token.symbol.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   useEffect(() => {
