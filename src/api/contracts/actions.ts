@@ -145,6 +145,7 @@ export const getPoolBasicData = async (
    console.log("poolData", poolData)
    console.log("userAddress", userAddress)
   let pool = { ...poolData };
+  console.log("actionPool", pool)
   if (true) {
     try {
       const instance = await getEtherContract(

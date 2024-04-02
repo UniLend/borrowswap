@@ -1,6 +1,7 @@
 import React from "react";
 import "./index.scss";
 import { truncateToDecimals } from "../../../helpers";
+import { getTokenSymbol } from "../../../utils";
 
 interface Token {
   logoURI?: string;
@@ -18,10 +19,11 @@ enum ActiveOperation {
 
 interface TokenCardProps {
   token: Token;
-  onClick: (token: Token) => void;
+  onClick: (positionData: Token) => void;
   operation?: ActiveOperation;
   showPoolData?: boolean;
-  poolData?: any; // update later
+  positionData?: any; // update later
+  list: list;
 }
 
 const TokenCard: React.FC<TokenCardProps> = ({
@@ -29,28 +31,25 @@ const TokenCard: React.FC<TokenCardProps> = ({
   onClick,
   operation,
   showPoolData,
-  poolData,
 }) => {
   const handleTokensList = () => {
     onClick(token);
   };
- 
 
   return (
     <>
-
       {operation === ActiveOperation.BRROW ? (
-        <div onClick={handleTokensList} className='token_card'>
-          <div className='tokens_details'>
-            <img src={token.logoURI || token.logo} alt='' />
+        <div onClick={handleTokensList} className="token_card">
+          <div className="tokens_details">
+            <img src={token.logoURI || token.logo} alt="" />
             <div>
-              <div className='token_pool_logo'>
+              <div className="token_pool_logo">
                 <h3>{token.symbol}</h3>
                 {/* TODO: update the unilend tokens condition in place if true */}
                 {true && showPoolData && (
-                  <div className='pool_logo'>
-                    <img src={token.logo} alt='' />
-                    <img src={token.pairToken?.logo} alt='' />
+                  <div className="pool_logo">
+                    <img src={token.logo} alt="" />
+                    <img src={token.pairToken?.logo} alt="" />
                   </div>
                 )}
               </div>
@@ -62,46 +61,37 @@ const TokenCard: React.FC<TokenCardProps> = ({
             </div>
           </div>
           {/* TODO: update token pool data */}
-          <div className='pool_details'>
+          <div className="pool_details">
             <div>
-              <p className='paragraph06'>Unilend</p>
-              <img src={token.logoURI || token.logo} alt='' />
+              <p className="paragraph06">Unilend</p>
+              <img src={token.logoURI || token.logo} alt="" />
             </div>
             {showPoolData && (
-              <p className='paragraph06'>Max LTV: {token.maxLTV}%</p>
+              <p className="paragraph06">Max LTV: {token.maxLTV}%</p>
             )}
           </div>
         </div>
       ) : (
-           
-           <div onClick={handleTokensList} className='token_card'>
-            
-             {console.log("poolcard", token)}
-             
-          <div className='tokens_details'>
-            <img src={token.token0.logo} alt='' />
-            <div>
-              <div className='token_pool_logo'>
-                <h3>{token.token0.symbol}</h3>
-          
+        <div onClick={handleTokensList} className="token_card">
+            <div className="tokens_details">
+              <img src={getTokenSymbol(token.borrowToken.symbol)} alt="" />
+              <div>
+                <div className="token_pool_logo">
+                  <h3>{token.borrowToken.symbol}</h3>
+                </div>
+                  <span>
+                  {/* Repay:.0123 */}
+                  </span>
               </div>
-              {showPoolData && (
-                <span>
-                  Repay: {truncateToDecimals(token.token0.redeemBalanceFixed, 8)}
-                </span>
-              )}
             </div>
-          </div>
-        
-          <div className='pool_details'>
-            <div>
-              <img className="token_over" src={token.token0.logo} alt='' />
-              <img src={token.token1.logo} alt='' />
-            </div>
-            <p className='paragraph06'>unilend</p>
-          </div>
-
-        </div>
+            <div className="pool_details">
+               <div>
+               <img className="token_over" src={getTokenSymbol(token.borrowToken.symbol)} alt="" />
+                 <img src={getTokenSymbol(token.otherToken.symbol)} alt="" />
+               </div>
+               <p className="paragraph06">unilend</p>
+             </div>
+      </div>
       )}
     </>
   );

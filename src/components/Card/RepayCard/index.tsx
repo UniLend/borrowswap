@@ -34,8 +34,8 @@ enum ActiveOperation {
 
 export default function RepayCard({isLoading, uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
-  const { tokenList, poolList } = unilendV2Data;
-
+  const { tokenList, poolList, positions } = unilendV2Data;
+    
   const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState("");
   const [repayAmount, setRepayAmount] = useState("");
@@ -43,15 +43,12 @@ export default function RepayCard({isLoading, uniSwapTokens }: any) {
   const [receiveAmount, setReceiveAmount] = useState("");
   const [b2rRatio, setb2rRatio] = useState(1);
   const [tokens, setTokens] = useState(uniSwapTokens);
-  console.log(tokens)
-const [repayPoolData, setrepayPoolsData] =  useState<Array<any>>([]);
-
-  // set pools Data
+  const [repayPoolData, setrepayPoolsData] =  useState<Array<any>>([]);
+  const [isBorrowProgressModal, setIsBorrowProgressModal] =
+  useState<boolean>(false);
   const [pools, setPools] = useState<Array<any>>([]);
-
-  //set receive token 
   const [repayToken, setRepayToken] = useState<Array<any>>([]);
-
+  const [modalMsg, setModalMsg] = useState('');
 //sorted Specific tokens acording to our choice
   const sortedToken = ["USDT", "USDC", "WETH"];
   useEffect(() => {
@@ -121,56 +118,18 @@ const [repayPoolData, setrepayPoolsData] =  useState<Array<any>>([]);
     setTokenListStatus({ isOpen: true, operation });
   };
 
-//set All pools Data with all positions and details
-useEffect(() => {
-  const fetchData = async () => {
-    const updatedPools = [];
-    for (const poolId in poolList) {
-      const pool = poolList[poolId];
-      const contracts = contractAddresses[chain?.id as keyof typeof contractAddresses];
-      const data = await getPoolBasicData(
-        contracts,
-        pool.pool,
-        pool,
-        address
-      );
-      updatedPools.push(data);
-    }
-    setPools(updatedPools);
-  };
+  useEffect(() => {
+    const poolsArray = Object.values(poolList);
+    setPools(poolsArray);
+  }, [unilendV2Data]);
 
-  if (unilendV2Data) {
-    fetchData();
-  }
-}, [chain, address, poolList, unilendV2Data]);
-
-  // Usage
-
-  const repayTokenAdd = (selectedData) => {
-    console.log("data", selectedData);
-    if (selectedData.totalBorrow0 !== '0' && selectedData.totalBorrow1 !== '0') {
-        console.log("Both tokens have borrowings");
-        return ([selectedData.token0, selectedData.token1])
-      
-    } else if (selectedData.totalBorrow0 !== '0') {
-        console.log("Only token 0 has borrowing");
-        return ([selectedData.token1])
-    } else if (selectedData.totalBorrow1 !== "0") {
-        console.log("Only token 1 has borrowing");
-        return ([selectedData.token0])
-    } 
-    
-}
-
-
-
-const getOprationToken = async () => {
+const getOprationToken = () => {
   if (tokenListStatus.operation === "pool") {
-    return await pools;
+    return positions;
   } else if (tokenListStatus.operation === "lend") {
     return tokens;
   } else if (tokenListStatus.operation === "receive") {
-    return repayTokenAdd(selectedData.pool);
+    return;
   } else {
     return [];
   }
@@ -186,17 +145,19 @@ const getOprationToken = async () => {
     setOperationProgress(0);
     try {
       const lendToken = await getAllowance(selectedData?.lend, address);
-      const repayToken = await getAllowance(selectedData?.receive, address);
-      // setIsBorrowProgressModal(true);
-      console.log("handleRepayTransaction", lendToken, repayToken);
+      const borrowToken = await getAllowance(selectedData?.borrow, address);
+      setIsBorrowProgressModal(true);
+      console.log("handleRepayTransaction", lendToken, borrowToken);
 
       if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
+        setModalMsg('Spend Aprroval for '+ selectedTokens.lend.symbol)
         await handleApproval(selectedData?.lend.address, address, lendAmount);
         setOperationProgress(1);
         // console.log("setOperationProgress(1)", operationProgress);
 
         handleRepayTransaction();
       } else if (Number(borrowAmount) > Number(repayToken.allowanceFixed)) {
+        setModalMsg('Spend Aprroval for '+ selectedTokens.lend.symbol)
         setOperationProgress(1);
         // console.log("setOperationProgress(11)", operationProgress);
         await handleApproval(
@@ -208,6 +169,7 @@ const getOprationToken = async () => {
         // console.log("setOperationProgress(2)", operationProgress);
         handleRepayTransaction();
       } else {
+        setModalMsg(selectedTokens.lend.symbol+'-'+selectedTokens.borrow.symbol+'-'+selectedTokens.receive.symbol)
         setOperationProgress(2);
         // console.log("setOperationProgress(22)", operationProgress);
         const hash = await handleSwap(lendAmount);
@@ -274,17 +236,28 @@ useEffect(() => {
 
 // Handle Recieve Data 
 
-const handleRepayToken = async (poolData: string) => {
-  console.log("dummy",poolData)
+const handleRepayToken = async (poolData: any) => {
+
+const tokenPool = Object.values(poolList).find((pool) => {
+  if (
+    (pool.pool == poolData.pool )
+  ) {
+    return true;
+  }  
+});
+
+console.log("tokenPool", tokenPool);
+
   const contracts =
     contractAddresses[chain?.id as keyof typeof contractAddresses];
   const data = await getPoolBasicData(
     contracts,
-    poolData.pool,
-    poolData,
+    tokenPool.pool,
+    tokenPool,
     address
   );
 
+  console.log("repay", data)
   if (parseFloat(data.token0.borrowBalanceFixed) > 0) {
     setSelectedData({
       ...selectedData,
@@ -307,8 +280,8 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
 };
 
 
-
   const handleTokenSelection = (data: any) => {
+    console.log("handletokendata", data)
     setSelectedData({
       ...selectedData,
       [tokenListStatus.operation]: data,
@@ -319,8 +292,7 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
       setReceiveAmount("");
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
-          repayTokenAdd(selectedData)
-
+        
     } else if (tokenListStatus.operation == "receive") {
         setSelectedData({
                 ...selectedData,
@@ -344,17 +316,11 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
     const { pool, lend, receive } = selectedData;
     switch (true) {
       case pool === null:
-        setRepayBtn("Select your pool");
+        setRepayBtn("Select your Position");
         break;
-      // case lendAmount === "":
-      //   setRepayBtn("Enter you pay value");
-      //   break;
       case lend === null:
         setRepayBtn("Select your lend token");
         break;
-      // case receive === null:
-      //   setRepayBtn("Select your receive token");
-      //   break;
         case isTokenLoading.quotation:
           setRepayBtn("Quote data loading");
           break;
@@ -363,7 +329,6 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
     }
   }, [selectedData, isTokenLoading]);
 
-  
   return (
     <>
       <div className="repay_container">
@@ -372,10 +337,9 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
           <ButtonWithDropdown
             buttonText={
               selectedData.pool
-                ? `${selectedData.pool.token1.symbol}`
+                ? `${selectedData.pool.borrowToken.symbol}`
                 : "Select"
             }
-            // onClick={() => handleOpenTokenList("pool")}
             onClick={() => handleOpenTokenList("pool")}
             className="transparent_btn"
           />
@@ -392,6 +356,9 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
               ? () => handleOpenTokenList("lend")
               : () => {}
           }
+          // onClick={ () => handleOpenTokenList("lend")
+             
+          
           readonly
         
         />
@@ -401,7 +368,7 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
           value={Number(receiveAmount) > 0 ? receiveAmount : "0"}
           onChange={(e: any) => handleReceiveAmount(e.target.value)}
           onMaxClick={() => setReceiveAmount(selectedData.receive.collateralBalanceFixed)}
-          buttonText={selectedData?.receive?.symbol}
+          buttonText={selectedData?.pool?.otherToken?.symbol}
           onClick={
             selectedData?.pool !== null
               ? () => handleOpenTokenList("receive")
@@ -422,7 +389,7 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
         </Button>
       </div>
 
-      {tokenListStatus.operation === "pool" ? (
+      {tokenListStatus.operation == "pool" ? (
         <Modal
           className="antd_modal_overlay"
           centered
@@ -438,15 +405,15 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
             tokenListOperation={tokenListStatus.operation}
             isTokenListLoading={isLoading}
             showPoolData={true}
-            poolData={Object.values(pools).filter(
-              (item) => item.openPosition && (item.token0.borrowBalanceFixed !== 0 || item.token1.borrowBalanceFixed !== 0)
+            positionData={Object.values(positions).filter(
+              (item) => item.borrowBalance0 !== 0 || item.token1.borrowBalance1 !== 0
           )}
-            // poolData = {pools}
+          pools ={pools}
             selectedData={selectedData} // Pass selectedData to PoolListModal
           />
         </Modal>
-      ) : tokenListStatus.operation === "lend" ||
-        tokenListStatus.operation === "receive" ? (
+      ) : tokenListStatus.operation == "lend" ||
+        tokenListStatus.operation == "receive" ? (
         <Modal
           className="antd_modal_overlay"
           centered
@@ -468,7 +435,7 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
         </Modal>
       ) : null}
 
-      {/* <Modal
+      <Modal
         className="antd_popover_content"
         centered
         onCancel={() => setIsBorrowProgressModal(false)}
@@ -478,11 +445,10 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
       >
        
         <BorrowLoader
-          spendToken={"UFT"}
-          SwapToken={"UFT"}
+          msg={modalMsg}
           progress={operationProgress}
         />
-      </Modal> */}
+      </Modal>
     </>
   );
 }

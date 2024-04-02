@@ -9,9 +9,24 @@ export const getPoolCreatedGraphQuery = (address: `0x${string}` | undefined) => 
           pool {
             id
             pool
+            token0 {
+              decimals
+              id
+              name
+              symbol
+            }
+            token1 {
+              id
+              decimals
+              name
+              symbol
+              priceUSD
+            }
           }
           lendBalance0
           lendBalance1
+          borrowBalance0
+          borrowBalance1
         }
         pools {
               token0 {

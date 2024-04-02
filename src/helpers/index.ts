@@ -2,7 +2,7 @@ import { ethers, BigNumber as bigNumber } from "ethers";
 import BigNumber from "bignumber.js";
 import { getTokenPrice } from "../api/axios/calls";
 import { store } from "../states/store";
-import { setPools, setTokens } from "../states/unilendV2Reducer";
+import { setPools, setTokens, setPositions } from "../states/unilendV2Reducer";
 import { getTokenSymbol } from "../utils";
 
 const READABLE_FORM_LEN = 4;
@@ -59,6 +59,7 @@ export const loadPoolsWithGraph = async (data: any, chain: any) => {
     const allPositions = data?.positions;
     const poolData: any = {};
     const tokenList: any = {};
+
     const poolsData = Array.isArray(data.pools) && data.pools;
     const tokenPrice = await getTokenPrice(data, chain);
     console.log("tokenPrice", tokenPrice);
@@ -122,7 +123,8 @@ export const loadPoolsWithGraph = async (data: any, chain: any) => {
     }
     store.dispatch(setPools(poolData));
     store.dispatch(setTokens(tokenList));
-    console.log({ poolData, tokenList });
+    store.dispatch(setPositions(allPositions));
+    console.log({ poolData, tokenList, allPositions });
   }
 };
 

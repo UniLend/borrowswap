@@ -150,6 +150,7 @@ console.log("tokenPools", tokenPools)
   }, [lendAmount, selectedTokens?.receive]);
 
   const handleSelectBorrowToken = async (token: string) => {
+    console.log(token)
     setIsTokenLoading({ ...isTokenLoading, pools: true });
     const tokenPool = Object.values(poolList).find((pool) => {
       if (
@@ -159,7 +160,7 @@ console.log("tokenPools", tokenPools)
           pool.token1.address == selectedTokens.lend?.address)
       ) {
         return true;
-      }
+      }  
     });
     console.log("tokenPool", tokenPool);
 
@@ -284,7 +285,7 @@ console.log("tokenPools", tokenPools)
   };
 
   const handleQuote = async () => {
-    try {
+    try {                                                                                                                                            
       const value = await getQuote(
         decimal2Fixed(1, selectedTokens.borrow.decimals),
         address,
