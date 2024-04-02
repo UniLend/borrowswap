@@ -1,5 +1,6 @@
 export const contractAddresses = {
     137:{
+        controller: '0x602F61e5cb3FD81B81Ab0FB3a3969321c0bFf328',
         borrowswap: '0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E',
         helperAddress: '0x4F57c40D3dAA7BF2EC970Dd157B1268982158720',
 
@@ -13,6 +14,7 @@ export const contractAddresses = {
         uftgToken: '0x6CbFa51AF1C1B8940f823DA4C58877E409d6da25',
     },
     1: {
+        controller: '0x602F61e5cb3FD81B81Ab0FB3a3969321c0bFf328',
         helperAddress: '0xAE84B51a1ee35275542Dd99df0F107d4F4e32A63',
         coreAddress: '0x7f2E24D2394f2bdabb464B888cb02EbA6d15B958',
         positionAddress: '0xc45e4aE09c772D143677280f0a764f34F497677a',

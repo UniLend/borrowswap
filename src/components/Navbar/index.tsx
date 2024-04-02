@@ -30,10 +30,10 @@ import {
 } from "wagmi";
 export default function Navbar() {
 
-  const user = useSelector((state) => state.user);
+  
   const { openConnectModal } = useConnectModal();
   const { chain, isConnected, address, status, chainId, isReconnected } =  useWalletHook();
-  console.log("chain", chainId);
+ 
   const { disconnect } = useDisconnect();
   const pathname = window.location.pathname;
   const [wrongNetworkModal, setWrongNetworkModal] = useState(false);
@@ -41,7 +41,7 @@ export default function Navbar() {
   const availableChain = Object.values(supportedNetworks).map(
     (net) => net.chainId
   );
-  console.log(availableChain);
+ 
 
   const [visible, setVisible] = useState(false);
   const [isHaveAccess, setIsHaveAccess] = useState(true);
@@ -53,7 +53,7 @@ export default function Navbar() {
   useAccountEffect({
     onConnect(data) {
       const userData = data;
-      console.log("userData", data);
+      
     },
   });
 
@@ -93,7 +93,7 @@ export default function Navbar() {
 
 //Handle chain Not availble Modal  
   useEffect(() => {
-    if (chainId && !availableChain.includes(chainId)) {
+    if (chainId && false) {
       setWrongNetworkModal(true);
     } else {
       setWrongNetworkModal(false);

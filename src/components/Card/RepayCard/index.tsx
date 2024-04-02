@@ -35,7 +35,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
   const isLoading = false; //TODO
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList } = unilendV2Data;
-  console.log({ tokenList, poolList });
+  
 
   const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState("");
@@ -56,7 +56,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
   });
 
   const [unilendPool, setUnilendPool] = useState(null as any | null);
-  console.log("unilendPool", unilendPool);
+
 
   // TODO: add enum for below state;
   const [borrowBtn, setBorrowBtn] = useState("Select you pay token");

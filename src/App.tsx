@@ -14,27 +14,27 @@ import UnilendLoader from "./components/Loader/UnilendLoader";
 function App() {
   document.body.className = `body dark`;
   const { address, chain, isConnected } = useWalletHook();
-  const query = getPoolCreatedGraphQuery(address);
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ["pools"],
-    queryFn: async () => {
-      const fetchedDATA = await fetchGraphQlData(chain?.id || 1, query);
-      return fetchedDATA;
-    },
-  });
+  // const query = getPoolCreatedGraphQuery('0xC6e35522F7847F3D44D1F7D57AFc843A7D679fC5');
+  // const { data, isLoading, refetch } = useQuery({
+  //   queryKey: ["pools"],
+  //   queryFn: async () => {
+  //     const fetchedDATA = await fetchGraphQlData(chain?.id || 1, query);
+  //     return fetchedDATA;
+  //   },
+  // });
 
   useEffect(() => {
-    if (chain?.id) {
-      loadPoolsWithGraph(data, chain);
+    if (chain?.id && address) {
+      loadPoolsWithGraph(chain, address);
     }
-  }, [data]);
+  }, [chain]);
 
   return (
     <div>
       <Navbar />
       {/* <Suspense fallback={<p className='paragraph01'>Loading...</p>}> */}
       <Suspense fallback={<UnilendLoader className='logo_loader' />}>
-        <Card isLoading={isLoading} />
+        <Card isLoading={false} />
       </Suspense>
     </div>
   );

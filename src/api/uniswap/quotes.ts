@@ -76,12 +76,12 @@ async function getPoolConstants() {
     fee: CurrentConfig.tokens.poolFee,
   })
 
-  console.log("currentPoolAddress ", currentPoolAddress, {
-    factoryAddress: POOL_FACTORY_CONTRACT_ADDRESS,
-    tokenA: CurrentConfig.tokens.in,
-    tokenB: CurrentConfig.tokens.out,
-    fee: CurrentConfig.tokens.poolFee,
-  });
+  // console.log("currentPoolAddress ", currentPoolAddress, {
+  //   factoryAddress: POOL_FACTORY_CONTRACT_ADDRESS,
+  //   tokenA: CurrentConfig.tokens.in,
+  //   tokenB: CurrentConfig.tokens.out,
+  //   fee: CurrentConfig.tokens.poolFee,
+  // });
   
 
 //   const poolContract = await getEtherContract(

@@ -1,4 +1,10 @@
-import { borrowswapABI, coreAbi, erc20Abi, helperAbi } from "./abi";
+import {
+  borrowswapABI,
+  controllerABI,
+  coreAbi,
+  erc20Abi,
+  helperAbi,
+} from "./abi";
 import { readContracts, writeContract } from "wagmi/actions";
 import { getEtherContract } from "./ethers";
 import {
@@ -16,8 +22,10 @@ import {
   readContract,
   waitForTransactionReceipt,
   getBlockNumber,
+  getChainId,
 } from "@wagmi/core";
 import { wagmiConfig } from "../../main";
+import { contractAddresses } from "./address";
 
 export const waitForTransaction = async (hash: any) => {
   try {
@@ -59,39 +67,76 @@ export const handleApproval = async (
   const Amount =
     amount == "" ? maxAllow : (Number(amount) * 10 ** 18).toString();
 
-  const { hash } = await instance?.approve(
-    "0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E",
-    Amount
-  );
+  console.log("hanldeApproval", instance, Amount, tokenAddress);
+  const chainId = getChainId(wagmiConfig);
+  const controllerAddress =
+    contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
+  const { hash } = await instance?.approve(controllerAddress, Amount);
   const receipt = await waitForTransaction(hash);
-  console.log("receipt ", receipt);
   return receipt;
 };
 
-export const handleSwap = async (amount: any) => {
+export const getUserProxy = async (user: any) => {
   try {
+    const chainId = getChainId(wagmiConfig);
+    const controllerAddress =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
     const instance = await getEtherContract(
-      "0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E",
-      borrowswapABI
+      controllerAddress,
+      controllerABI,
+      false
     );
+    const proxy = await instance?.proxyAddress(user);
+    return proxy ? proxy : user;
+  } catch (error) {
+    return user; //if no proxy just use the users address as
+  }
+};
+
+export const handleSwap = async (
+  amount: any,
+  pool: any,
+  selectedTokens: any,
+  user: any,
+  borrow: any
+) => {
+  try {
+    const chainId = getChainId(wagmiConfig);
+    const controllerAddress =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
+    const instance = await getEtherContract(controllerAddress, controllerABI);
 
     const borrowAmount = (
-      Number(decimal2Fixed(amount)) *
+      Number(decimal2Fixed(1000000000000000)) *
       2.6 *
-      0.35
+      0.1
     ).toString();
 
-    const { hash } = instance?.InitBorrow(
-      "0x784c4a12f82204e5fb713b055de5e8008d5916b6",
-      "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
-      "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-      "0x172370d5cd63279efa6d502dab29171933a610af",
+    console.log(
+      "pool",
+      instance,
+      pool.pool,
+      selectedTokens.lend.address,
+      selectedTokens.receive.address,
+      selectedTokens.borrow.address,
       decimal2Fixed(amount),
-      borrowAmount
+      String(decimal2Fixed(borrow, selectedTokens.borrow.decimals)),
+      user
     );
-    console.log(hash);
+
+    const { hash } = await instance?.uniBorrow(
+      pool.pool,
+      selectedTokens.lend.address,
+      selectedTokens.receive.address,
+      selectedTokens.borrow.address,
+      decimal2Fixed(amount),
+      String(decimal2Fixed(borrow, selectedTokens.borrow.decimals)),
+      user
+    );
+    console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
     return receipt;
+    return "";
   } catch (error) {
     console.log("Error", { error });
 
@@ -107,11 +152,10 @@ export const getAllowance = async (
     var maxAllow =
       "115792089237316195423570985008687907853269984665640564039457584007913129639935";
     const instance = await getEtherContract(token.address, erc20Abi);
-
-    const allowance = await instance?.allowance(
-      user,
-      "0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E"
-    );
+    const chainId = getChainId(wagmiConfig);
+    const controllerAddress =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
+    const allowance = await instance?.allowance(user, controllerAddress);
 
     const allowanceFixed =
       Number(fromBigNumber(allowance)) == Number(maxAllow)
@@ -124,9 +168,11 @@ export const getAllowance = async (
       allowance: fromBigNumber(allowance),
       allowanceFixed: allowanceFixed,
       balance: fromBigNumber(bal),
+      balanceFixed: fixed2Decimals(fromBigNumber(bal), token.decimals),
     };
   } catch (error) {
-    console.log("Allowance_Error", error);
+    console.log(error);
+
     throw error;
   }
 };
@@ -144,6 +190,7 @@ export const getPoolBasicData = async (
   let pool = { ...poolData };
   if (true) {
     try {
+      const proxy = await getUserProxy(userAddress);
       const instance = await getEtherContract(
         contracts.helperAddress,
         helperAbi
@@ -158,7 +205,7 @@ export const getPoolBasicData = async (
         instance?.getPoolFullData(
           contracts.positionAddress,
           poolAddress,
-          userAddress
+          proxy
         ),
       ]);
       // const token0 = await getAllowance(pool.token0.address, userAddress)

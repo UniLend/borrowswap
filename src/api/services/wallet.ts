@@ -11,7 +11,7 @@ import { useBalance } from "wagmi";
 import useWalletHook from "../../api/hooks/useWallet";
 
 export const connectWallet = async (wallet, ChangedAccount = null) => {
-  console.log("click on connect button");
+
   try {
     const { address, isConnecting, isDisconnected, isConnected, chain } = useWalletHook();
 
@@ -23,8 +23,7 @@ export const connectWallet = async (wallet, ChangedAccount = null) => {
     if (obj && obj.value !== undefined && obj.symbol !== undefined) {
       balance = obj.value.toString(); // Convert BigInt to string
       symbol = obj.symbol;
-      console.log("bal", obj.value);
-      console.log("symbol", obj.symbol);
+   
     } else {
       console.log("Object or value is undefined");
     }
@@ -33,7 +32,7 @@ export const connectWallet = async (wallet, ChangedAccount = null) => {
       address: address,
       balance: balance,
       symbol: symbol,
-      network: { id: chain.id, name: chain.name },
+      network: { id: chain?.id, name: chain?.name },
       isConnected: isConnected,
     };
     console.log("userData", userData);

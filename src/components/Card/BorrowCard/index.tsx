@@ -3,6 +3,7 @@ import { Button, Slider, Modal } from "antd";
 import {
   getAllowance,
   getPoolBasicData,
+  getUserProxy,
   handleApproval,
   handleSwap,
 } from "../../../api/contracts/actions";
@@ -11,6 +12,7 @@ import {
   fixed2Decimals,
   getBorrowAmount,
   getCurrentLTV,
+  truncateToDecimals,
 } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
 import { wagmiConfig } from "../../../main";
@@ -38,6 +40,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
     token1: "0",
     token2: "0",
   });
+  const [modalMsg, setModalMsg] = useState("");
   const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState("");
   const [borrowAmount, setBorrowAmount] = useState(0);
@@ -57,9 +60,10 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   });
   const [selectedLTV, setSelectedLTV] = useState<number>(5);
   const [unilendPool, setUnilendPool] = useState(null as any | null);
+
   const [currentLTV, setCurrentLTV] = useState("0");
   const [b2rRatio, setb2rRatio] = useState(1);
-
+  const [userProxy, setUserProxy] = useState(address);
   // TODO: add enum for below state;
   const [borrowBtn, setBorrowBtn] = useState("Select you pay token");
   const [isTokenLoading, setIsTokenLoading] = useState({
@@ -89,7 +93,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
 
   const handleSelectLendToken = (token: string) => {
     setIsTokenLoading((prevLoading) => ({ ...prevLoading, borrow: true }));
-    console.log("istokenLoading_1", isTokenLoading);
+
     const tokenPools = Object.values(poolList).filter((pool) => {
       if (pool.token0.address == token || pool.token1.address == token) {
         return true;
@@ -114,10 +118,18 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       }
     });
 
-    console.log("borrowTokens", borrowTokens);
     setBorrowingTokens(borrowTokens);
     setIsTokenLoading((prevLoading) => ({ ...prevLoading, borrow: false }));
-    console.log("istokenLoading_2", isTokenLoading);
+  };
+
+  const handleLTV = (value: number) => {
+    setSelectedLTV(value);
+  };
+
+  const getProxy = async () => {
+    const proxy = await getUserProxy(address);
+    console.log("userProxyContract", proxy);
+    setUserProxy(proxy);
   };
 
   const handleLTVSlider = (value: number) => {
@@ -129,7 +141,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       selectedTokens.lend,
       selectedTokens.borrow
     );
-    // setBorrowAmount(borrowAmount);
+    setBorrowAmount(borrowAmount);
 
     if (selectedTokens?.receive) {
       let receiveVal = borrowAmount * b2rRatio;
@@ -141,6 +153,8 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   };
 
   useEffect(() => {
+    getProxy();
+
     if (selectedTokens?.lend?.priceRatio) {
       handleLTVSlider(5);
     }
@@ -171,7 +185,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
     if (data.token0.address == selectedTokens.lend.address) {
       setSelectedTokens({
         ...selectedTokens,
-        ["lend"]: data.token0,
+        ["lend"]: { ...selectedTokens.lend, ...data.token0 },
         ["borrow"]: data.token1,
       });
       const currentLtv = getCurrentLTV(data.token1, data.token0);
@@ -182,7 +196,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
     } else {
       setSelectedTokens({
         ...selectedTokens,
-        ["lend"]: data.token1,
+        ["lend"]: { ...selectedTokens.lend, ...data.token1 },
         ["borrow"]: data.token0,
       });
       const currentLtv = getCurrentLTV(data.token0, data.token1);
@@ -201,6 +215,8 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
     } else if (tokenListStatus.operation === "borrow") {
       return borrowingTokens;
     } else if (tokenListStatus.operation === "receive") {
+      // TODO: return receive tokens dynamically
+      //   return receiveToken;
       return uniSwapTokens;
     } else {
       return [];
@@ -216,34 +232,64 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       console.log("handleSwapTransaction", lendToken, borrowToken);
 
       if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
+        setModalMsg("Spend Aprroval for " + selectedTokens.lend.symbol);
         await handleApproval(selectedTokens?.lend.address, address, lendAmount);
         setOperationProgress(1);
-        console.log("setOperationProgress(1)", operationProgress);
-
         handleSwapTransaction();
       } else if (Number(borrowAmount) > Number(borrowToken.allowanceFixed)) {
         setOperationProgress(1);
-        console.log("setOperationProgress(11)", operationProgress);
+        setModalMsg("Spend Aprroval for " + selectedTokens.lend.symbol);
         await handleApproval(
           selectedTokens?.borrow.address,
           address,
           borrowAmount
         );
         setOperationProgress(2);
-        console.log("setOperationProgress(2)", operationProgress);
         handleSwapTransaction();
       } else {
         setOperationProgress(2);
-        console.log("setOperationProgress(22)", operationProgress);
-        const hash = await handleSwap(lendAmount);
+        setModalMsg(
+          selectedTokens.lend.symbol +
+            "-" +
+            selectedTokens.borrow.symbol +
+            "-" +
+            selectedTokens.receive.symbol
+        );
+        const hash = await handleSwap(
+          lendAmount,
+          unilendPool,
+          selectedTokens,
+          address,
+          borrowAmount
+        );
         console.log("hash", hash);
+
         if (hash) {
           setOperationProgress(3);
+          setTimeout(() => {
+            setIsBorrowProgressModal(false);
+          }, 1000);
         }
       }
     } catch (error) {
       console.log("Error1", { error });
     }
+  };
+
+  const handleClear = () => {
+    setLendAmount("");
+    setBorrowAmount(0);
+    setReceiveAmount("");
+    setSelectedTokens({
+      lend: null,
+      borrow: null,
+      receive: null,
+    });
+    setIsBorrowProgressModal(false);
+    setOperationProgress(0);
+    setBorrowBtn("Select you pay token");
+    setCurrentLTV("0");
+    setb2rRatio(0);
   };
 
   useEffect(() => {
@@ -253,6 +299,18 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   }, [unilendV2Data]);
 
   const handleTokenSelection = async (token: any) => {
+    setSelectedTokens({
+      ...selectedTokens,
+      [tokenListStatus.operation]: { ...token, map: true },
+    });
+    setTokenListStatus({ isOpen: false, operation: "" });
+    const tokenBal = await getAllowance(token, address);
+
+    setSelectedTokens({
+      ...selectedTokens,
+      [tokenListStatus.operation]: { ...token, ...tokenBal },
+    });
+
     if (tokenListStatus.operation == "lend") {
       handleSelectLendToken(token.address);
       setSelectedTokens({
@@ -275,7 +333,6 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
         [tokenListStatus.operation]: token,
       });
     }
-    setTokenListStatus({ isOpen: false, operation: "" });
   };
 
   const handleQuote = async () => {
@@ -292,6 +349,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       }
     } catch (error: any) {
       console.error("Error in handleQuote:", error);
+      setBorrowBtn("swap not available");
       NotificationMessage(
         "error",
         error?.message || "Error occurred in handleQuote"
@@ -324,6 +382,12 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   }, [isTokenLoading]);
 
   useEffect(() => {
+    if (selectedTokens?.receive) {
+      handleQuote();
+    }
+  }, [selectedTokens]);
+
+  useEffect(() => {
     const { lend, borrow, receive } = selectedTokens;
     // TODO: confirm these messages
     switch (true) {
@@ -354,7 +418,10 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       <div className='borrow_container'>
         <p className='paragraph06 label'>You Pay</p>
         <AmountContainer
-          balance={selectedTokens?.lend?.balanceFixed}
+          balance={truncateToDecimals(
+            selectedTokens?.lend?.balanceFixed || 0,
+            4
+          ).toString()}
           value={lendAmount}
           onChange={(e: any) => handleLendAmount(e.target.value)}
           onMaxClick={() => setLendAmount(selectedTokens?.lend?.balanceFixed)}
@@ -381,7 +448,10 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
         </div>
         <p className='paragraph06 label'>You Receive</p>
         <AmountContainer
-          balance='125.25'
+          balance={truncateToDecimals(
+            selectedTokens?.receive?.balanceFixed || 0,
+            4
+          ).toString()}
           value={Number(receiveAmount) > 0 ? receiveAmount : "0"}
           onChange={(e: any) => handleReceiveAmount(e.target.value)}
           onMaxClick={() => console.log("Max Clicked")}
@@ -455,11 +525,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
         closable={false}
       >
         {/* TODO: updaet spend ans swap tokens here */}
-        <BorrowLoader
-          spendToken={"UFT"}
-          SwapToken={"UFT"}
-          progress={operationProgress}
-        />
+        <BorrowLoader msg={modalMsg} progress={operationProgress} />
       </Modal>
     </>
   );
