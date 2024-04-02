@@ -13,26 +13,27 @@ import { connectWallet } from "./api/services/wallet";
 function App() {
   document.body.className = `body dark`;
   const { address, chain, isConnected } = useWalletHook();
-  const query = getPoolCreatedGraphQuery(address);
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ["pools"],
-    queryFn: async () => {
-      const fetchedDATA = await fetchGraphQlData(chain?.id || 1, query);
-      return fetchedDATA;
-    },
-  });
-console.log("data", data);
+  // const query = getPoolCreatedGraphQuery('0xC6e35522F7847F3D44D1F7D57AFc843A7D679fC5');
+  // const { data, isLoading, refetch } = useQuery({
+  //   queryKey: ["pools"],
+  //   queryFn: async () => {
+  //     const fetchedDATA = await fetchGraphQlData(chain?.id || 1, query);
+  //     return fetchedDATA;
+  //   },
+  // });
+
   useEffect(() => {
-    if (chain?.id) {
-      loadPoolsWithGraph(data, chain);
+    if (chain?.id && address) {
+    
+      loadPoolsWithGraph(chain, address);
     }
-  }, [data]);
+  }, [chain]);
 
   return (
     <div>
       <Navbar />
       <Suspense fallback={<p className='paragraph01'>Loading...</p>}>
-        <Card isLoading={isLoading} />
+        <Card  />
       </Suspense>
     </div>
   );

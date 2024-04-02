@@ -32,7 +32,7 @@ export default function RepayCard({isLoading, uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList, positions } = unilendV2Data;
     
-  const { address, chain } = useWalletHook();
+  const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState("");
   const [borrowAmount, setBorrowAmount] = useState(0);
   const [receiveAmount, setReceiveAmount] = useState("");
@@ -92,6 +92,8 @@ export default function RepayCard({isLoading, uniSwapTokens }: any) {
     receive: false,
     quotation:false
   });
+  const [unilendPool, setUnilendPool] = useState(null as any | null);
+
 
   // TODO: add enum for below state;
   const [repayBtn, setRepayBtn] = useState("Select you pay token");
@@ -370,6 +372,11 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
           onMaxClick={() => setReceiveAmount(selectedData.receive.collateralBalanceFixed)}
           buttonText={selectedData?.pool?.otherToken?.symbol}
           isShowMaxBtn
+           onClick={
+            selectedData?.pool !== null
+              ? () => handleOpenTokenList("lend")
+              : () => {}
+          }
           readonly
         />
 

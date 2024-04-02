@@ -17,7 +17,6 @@ export default function Card({ isLoading }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList } = unilendV2Data;
   const { chainId } = useWalletHook();
-  console.log({ tokenList, poolList }, { chainId });
   const [activeOperation, setActiveOperation] = useState<ActiveOperation>(
     ActiveOperation.BRROW
   );

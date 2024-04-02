@@ -1,9 +1,11 @@
 import { ethers, BigNumber as bigNumber } from "ethers";
 import BigNumber from "bignumber.js";
-import { getTokenPrice } from "../api/axios/calls";
+import { fetchGraphQlData, getTokenPrice } from "../api/axios/calls";
 import { store } from "../states/store";
 import { setPools, setTokens, setPositions } from "../states/unilendV2Reducer";
 import { getTokenSymbol } from "../utils";
+import { getPoolCreatedGraphQuery } from "../api/axios/query";
+import { getUserProxy } from "../api/contracts/actions";
 
 const READABLE_FORM_LEN = 4;
 
@@ -38,13 +40,13 @@ export function fixed2Decimals(amount: any, decimals = 18) {
   const amt = amount?._hex ? amount?._hex : amount;
   const dec = fromBigNumber(decimals);
 
-  return Number(amt) / 10 ** Number(dec);
+  return Number(amt) / 10 ** Number(decimals);
 }
 
 export function truncateToDecimals(number: number, decimal: number) {
   const powerOf10 = Math.pow(10, decimal);
   const truncatedNumber = Math.floor(number * powerOf10) / powerOf10;
-  return truncatedNumber;
+  return Number(truncatedNumber);
 }
 
 export const checkOpenPosition = (position: any) => {
@@ -54,16 +56,22 @@ export const checkOpenPosition = (position: any) => {
   return false;
 };
 
-export const loadPoolsWithGraph = async (data: any, chain: any) => {
-  if (data) {
+export const loadPoolsWithGraph = async (chain: any, address: any) => {
+  if (true) {
+
+    const proxy = await getUserProxy(address)
+    const query = getPoolCreatedGraphQuery(proxy);
+
+    const data = await fetchGraphQlData(chain?.id, query);    
     const allPositions = data?.positions;
     const poolData: any = {};
     const tokenList: any = {};
 
     const poolsData = Array.isArray(data.pools) && data.pools;
     const tokenPrice = await getTokenPrice(data, chain);
-    console.log("tokenPrice", tokenPrice);
-
+   
+   
+   
     for (const pool of poolsData) {
       const openPosiions = allPositions.filter(
         (el: any) => el?.pool?.pool == pool.pool
@@ -121,6 +129,7 @@ export const loadPoolsWithGraph = async (data: any, chain: any) => {
       };
       poolData[pool?.pool as keyof typeof poolData] = poolInfo;
     }
+
     store.dispatch(setPools(poolData));
     store.dispatch(setTokens(tokenList));
     store.dispatch(setPositions(allPositions));
@@ -214,9 +223,12 @@ export const getBorrowAmount = (
     Number(Number(getCurrentLTV(selectedToken, collateralToken)) / 100);
 
   const borrowAmount =
-    Number(amount) * Number(collateralToken?.priceRatio) * (ltv / 100);
+    (Number(amount) + Number(collateralToken.lendBalanceFixed) ) * Number(collateralToken.priceRatio) * (ltv / 100) -  Number(selectedToken.borrowBalanceFixed);
 
-  return borrowAmount;
+    console.log("borrowed", borrowed);
+    
+
+  return borrowAmount > 0 ?borrowAmount: 0;
 };
 
 export const tokensURLs = {

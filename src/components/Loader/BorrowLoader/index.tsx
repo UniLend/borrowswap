@@ -4,15 +4,13 @@ import loader from "../../../assets/3D-Cube-loader.gif";
 import "./index.scss";
 
 interface BorrowLoaderProps {
-  spendToken: string;
-  SwapToken: string;
+  msg: string;
   progress: Number;
   length?: Number
 }
 
 const BorrowLoader: React.FC<BorrowLoaderProps> = ({
-  spendToken,
-  SwapToken,
+  msg,
   progress,
  length = 3
 }) => {
@@ -41,8 +39,8 @@ const BorrowLoader: React.FC<BorrowLoaderProps> = ({
         <img src={loader} alt='loader' />
       </div>
       <div className='loader_part message'>
-        <p className='paragraph02'>Enable spending {spendToken}</p>
-        <p className='paragraph02'>Swapping : {SwapToken}</p>
+        <p className='paragraph02'>{msg}</p>
+        {/* <p className='paragraph02'>Swapping : {SwapToken}</p> */}
       </div>
       <div className='loader_part status'>
         <p className='paragraph05'>Proceed in your wallet</p>
@@ -54,8 +52,7 @@ const BorrowLoader: React.FC<BorrowLoaderProps> = ({
 
 // Default props
 BorrowLoader.defaultProps = {
-  spendToken: "TOKEN1",
-  SwapToken: "TOKEN2",
+  msg: '',
   progress: 1,
 };
 

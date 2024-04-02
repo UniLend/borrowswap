@@ -14,7 +14,7 @@ import {
 } from "@rainbow-me/rainbowkit";
 import { WagmiProvider, http } from 'wagmi';
 import {  mainnet, polygon } from 'wagmi/chains';
-import { mumbaiTestnet, arbitrum } from './api/networks/Chains';
+import { mumbaiTestnet, arbitrum, unilendTestnet } from './api/networks/Chains';
 
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -57,7 +57,7 @@ const { wallets } = getDefaultWallets();
 export const wagmiConfig = getDefaultConfig({
   appName: 'BorrowSwap',
   projectId: 'YOUR_PROJECT_ID',
-  chains: [mainnet, polygon, arbitrum, mumbaiTestnet],
+  chains: [mainnet, polygon, arbitrum, mumbaiTestnet, unilendTestnet],
   wallets: [
     ...wallets,
     {

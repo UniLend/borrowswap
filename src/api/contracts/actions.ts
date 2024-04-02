@@ -1,23 +1,10 @@
-import { borrowswapABI, coreAbi, erc20Abi, helperAbi } from "./abi";
+import { borrowswapABI, controllerABI, coreAbi, erc20Abi, helperAbi } from "./abi";
 import { readContracts, writeContract } from "wagmi/actions";
 import { getEtherContract } from "./ethers";
-import {
-  add,
-  decimal2Fixed,
-  div,
-  fixed2Decimals,
-  fromBigNumber,
-  greaterThan,
-  mul,
-  sub,
-  toAPY,
-} from "../../helpers/index";
-import {
-  readContract,
-  waitForTransactionReceipt,
-  getBlockNumber,
-} from "@wagmi/core";
+import { add, decimal2Fixed, div, fixed2Decimals, fromBigNumber, greaterThan, mul, sub, toAPY } from '../../helpers/index';
+import { readContract, waitForTransactionReceipt, getBlockNumber, getChainId } from '@wagmi/core'
 import { wagmiConfig } from "../../main";
+import { contractAddresses } from "./address";
 
 export const waitForTransaction = async (hash: any) => {
   try {
@@ -59,39 +46,64 @@ export const handleApproval = async (
   const Amount =
     amount == "" ? maxAllow : (Number(amount) * 10 ** 18).toString();
 
+      console.log("hanldeApproval", instance, Amount, tokenAddress);
+    const chainId = getChainId(wagmiConfig)  
+    const controllerAddress = contractAddresses[chainId as keyof  typeof contractAddresses]?.controller;
   const { hash } = await instance?.approve(
-    "0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E",
+    controllerAddress,
     Amount
   );
-  const receipt = await waitForTransaction(hash);
-  console.log("receipt ", receipt);
+const receipt = await waitForTransaction(hash)
   return receipt;
 };
 
-export const handleSwap = async (amount: any) => {
+export const getUserProxy = async (user: any) => {
   try {
-    const instance = await getEtherContract(
-      "0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E",
-      borrowswapABI
-    );
+    const chainId = getChainId(wagmiConfig)  
+    const controllerAddress = contractAddresses[chainId as keyof  typeof contractAddresses]?.controller;
+    const instance = await getEtherContract(controllerAddress, controllerABI, false);
+    const proxy = await instance?.proxyAddress(user)
+    return proxy ? proxy : user
+  } catch (error) {
+    return user; //if no proxy just use the users address as
+  }
+ 
 
-    const borrowAmount = (
-      Number(decimal2Fixed(amount)) *
-      2.6 *
-      0.35
-    ).toString();
 
-    const { hash } = instance?.InitBorrow(
-      "0x784c4a12f82204e5fb713b055de5e8008d5916b6",
-      "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
-      "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-      "0x172370d5cd63279efa6d502dab29171933a610af",
-      decimal2Fixed(amount),
-      borrowAmount
-    );
-    console.log(hash);
-    const receipt = await waitForTransaction(hash);
-    return receipt;
+
+}
+
+
+export const handleSwap = async (amount: any, pool: any, selectedTokens: any, user: any, borrow: any) => {
+
+  try {
+    const chainId = getChainId(wagmiConfig)  
+    const controllerAddress = contractAddresses[chainId as keyof  typeof contractAddresses]?.controller;
+    const instance = await getEtherContract(controllerAddress, controllerABI);
+
+    const borrowAmount =   ((Number(decimal2Fixed(1000000000000000)) *2.6) *0.10 ).toString();
+  
+    console.log("pool",  instance,    pool.pool, 
+    selectedTokens.lend.address, 
+    selectedTokens.receive.address,
+    selectedTokens.borrow.address,
+    decimal2Fixed(amount),
+    String(decimal2Fixed(borrow, selectedTokens.borrow.decimals)),
+    user);
+     
+    const {hash } = await instance?.uniBorrow(
+      pool.pool, 
+    selectedTokens.lend.address, 
+    selectedTokens.receive.address,
+    selectedTokens.borrow.address,
+    decimal2Fixed(amount),
+    String(decimal2Fixed(borrow, selectedTokens.borrow.decimals)),
+    user
+    )
+    console.log("transaction",hash);
+    const receipt = await waitForTransaction(hash)
+    return receipt
+    return ''
   } catch (error) {
     console.log("Error", { error });
 
@@ -107,28 +119,25 @@ export const getAllowance = async (
     var maxAllow =
       "115792089237316195423570985008687907853269984665640564039457584007913129639935";
     const instance = await getEtherContract(token.address, erc20Abi);
-
+    const chainId = getChainId(wagmiConfig)  
+    const controllerAddress = contractAddresses[chainId as keyof  typeof contractAddresses]?.controller;
     const allowance = await instance?.allowance(
       user,
-      "0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E"
+      controllerAddress
     );
-
-    const allowanceFixed =
-      Number(fromBigNumber(allowance)) == Number(maxAllow)
-        ? fromBigNumber(allowance)
-        : fixed2Decimals(fromBigNumber(allowance), token.decimals);
-
-    const bal = await instance?.balanceOf(user);
-
-    return {
-      allowance: fromBigNumber(allowance),
-      allowanceFixed: allowanceFixed,
-      balance: fromBigNumber(bal),
-    };
+  
+    const allowanceFixed = Number(fromBigNumber(allowance)) == Number(maxAllow) ? fromBigNumber(allowance): fixed2Decimals(fromBigNumber(allowance), token.decimals)
+    
+     const bal = await instance?.balanceOf(user);
+  
+    return { allowance: fromBigNumber(allowance), allowanceFixed: allowanceFixed ,  balance: fromBigNumber(bal), balanceFixed: fixed2Decimals(fromBigNumber(bal), token.decimals)};
   } catch (error) {
-    console.log("Allowance_Error", error);
-    throw error;
+    console.log(error);
+    
+    throw error
   }
+
+
 };
 
 export const getPoolData = (poolAddress: string) => {};
@@ -148,22 +157,14 @@ export const getPoolBasicData = async (
   console.log("actionPool", pool)
   if (true) {
     try {
-      const instance = await getEtherContract(
-        contracts.helperAddress,
-        helperAbi
-      );
-      const oracleInstance = await getEtherContract(
-        contracts.coreAddress,
-        coreAbi
-      );
-      const [token0, token1, data] = await Promise.all([
-        getAllowance(pool.token0, userAddress),
-        getAllowance(pool.token1, userAddress),
-        instance?.getPoolFullData(
+      const proxy = await getUserProxy(userAddress)
+      const instance = await getEtherContract(contracts.helperAddress, helperAbi )
+      const oracleInstance = await getEtherContract(contracts.coreAddress, coreAbi)
+         const [token0, token1, data] = await Promise.all([getAllowance(pool.token0, userAddress), getAllowance(pool.token1, userAddress), instance?.getPoolFullData(
           contracts.positionAddress,
-          poolAddress,
-          userAddress
-        ),
+           poolAddress,
+           proxy
+        )
       ]);
       // const token0 = await getAllowance(pool.token0.address, userAddress)
 

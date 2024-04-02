@@ -37,7 +37,7 @@ export default function Navbar() {
 
   //Handle chain Not availble Modal
   useEffect(() => {
-    if (chainId && !availableChain.includes(chainId)) {
+    if (chainId && false) {
       setWrongNetworkModal(true);
     } else {
       setWrongNetworkModal(false);
