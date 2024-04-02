@@ -23,7 +23,6 @@ interface TokenCardProps {
   operation?: ActiveOperation;
   showPoolData?: boolean;
   positionData?: any; // update later
-  list: list;
 }
 
 const TokenCard: React.FC<TokenCardProps> = ({

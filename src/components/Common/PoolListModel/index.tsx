@@ -13,6 +13,15 @@ interface Token {
   maxLTV: string;
   borrowApy: string;
 }
+interface Item {
+  logoURI?: string;
+  logo: string;
+  name: string;
+  symbol: string;
+  pairToken: any; //TODO update
+  maxLTV: string;
+  borrowApy: string;
+}
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -117,12 +126,12 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
       ) : (
         <div ref={container} className='token_list'>
           {filteredTokenList.length > 0  ? (
-            filteredTokenList.map((item: Token, i: number) =>
+            filteredTokenList.map((Item: Token, i: number) =>
               i < page * 100 ? (
                 <PoolCard
                   key={i}
-                  token={item}
-                  onClick={() => handleTokensList(item)}
+                  token={Item}
+                  onClick={() => handleTokensList(Item)}
                   operation={operation}
                   showPoolData={showPoolData}
                 />

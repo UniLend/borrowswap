@@ -8,13 +8,10 @@ import {
 } from "../../../api/contracts/actions";
 import {
   decimal2Fixed,
-  fixed2Decimals,
-  getBorrowAmount,
-  getCurrentLTV,
 } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
-import { wagmiConfig } from "../../../main";
-import { useSelector, useDispatch } from "react-redux";
+
+import { useSelector } from "react-redux";
 import "./index.scss";
 import useWalletHook from "../../../api/hooks/useWallet";
 import PoolListModel from "../../Common/PoolListModel";
@@ -23,7 +20,6 @@ import AmountContainer from "../../Common/AmountContainer";
 import ButtonWithDropdown from "../../Common/ButtonWithDropdown";
 import { contractAddresses } from "../../../api/contracts/address";
 import BorrowLoader from "../../Loader/BorrowLoader";
-import { quote } from "../../../api/uniswap/quotes";
 import { getQuote } from "../../../api/axios/calls";
 import NotificationMessage from "../../Common/NotificationMessage";
 
@@ -36,14 +32,12 @@ export default function RepayCard({isLoading, uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList, positions } = unilendV2Data;
     
-  const { address, isConnected, chain } = useWalletHook();
+  const { address, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState("");
-  const [repayAmount, setRepayAmount] = useState("");
   const [borrowAmount, setBorrowAmount] = useState(0);
   const [receiveAmount, setReceiveAmount] = useState("");
   const [b2rRatio, setb2rRatio] = useState(1);
   const [tokens, setTokens] = useState(uniSwapTokens);
-  const [repayPoolData, setrepayPoolsData] =  useState<Array<any>>([]);
   const [isBorrowProgressModal, setIsBorrowProgressModal] =
   useState<boolean>(false);
   const [pools, setPools] = useState<Array<any>>([]);
@@ -52,7 +46,7 @@ export default function RepayCard({isLoading, uniSwapTokens }: any) {
 //sorted Specific tokens acording to our choice
   const sortedToken = ["USDT", "USDC", "WETH"];
   useEffect(() => {
-      const customSort = (a, b) => {
+      const customSort = (a:any, b:any) => {
           const aIndex = sortedToken.indexOf(a.symbol);
           const bIndex = sortedToken.indexOf(b.symbol);
   
@@ -72,7 +66,7 @@ export default function RepayCard({isLoading, uniSwapTokens }: any) {
           setTokens(sortedTokens);
       }
   }, [tokens, sortedToken]);
-  function arraysEqual(a, b) {
+  function arraysEqual(a:any, b:any) {
       return JSON.stringify(a) === JSON.stringify(b);
   }
   
@@ -98,8 +92,6 @@ export default function RepayCard({isLoading, uniSwapTokens }: any) {
     receive: false,
     quotation:false
   });
-
-  const [unilendPool, setUnilendPool] = useState(null as any | null);
 
   // TODO: add enum for below state;
   const [repayBtn, setRepayBtn] = useState("Select you pay token");
@@ -150,18 +142,18 @@ const getOprationToken = () => {
       console.log("handleRepayTransaction", lendToken, borrowToken);
 
       if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
-        setModalMsg('Spend Aprroval for '+ selectedTokens.lend.symbol)
+        setModalMsg('Spend Aprroval for '+ selectedData.lend.symbol)
         await handleApproval(selectedData?.lend.address, address, lendAmount);
         setOperationProgress(1);
         // console.log("setOperationProgress(1)", operationProgress);
 
         handleRepayTransaction();
       } else if (Number(borrowAmount) > Number(repayToken.allowanceFixed)) {
-        setModalMsg('Spend Aprroval for '+ selectedTokens.lend.symbol)
+        setModalMsg('Spend Aprroval for '+ selectedData.lend.symbol)
         setOperationProgress(1);
         // console.log("setOperationProgress(11)", operationProgress);
         await handleApproval(
-          selectedTokens?.borrow.address,
+          selectedData?.borrow.address,
           address,
           borrowAmount
         );
@@ -169,7 +161,7 @@ const getOprationToken = () => {
         // console.log("setOperationProgress(2)", operationProgress);
         handleRepayTransaction();
       } else {
-        setModalMsg(selectedTokens.lend.symbol+'-'+selectedTokens.borrow.symbol+'-'+selectedTokens.receive.symbol)
+        setModalMsg(selectedData.lend.symbol+'-'+selectedData.borrow.symbol+'-'+selectedData.receive.symbol)
         setOperationProgress(2);
         // console.log("setOperationProgress(22)", operationProgress);
         const hash = await handleSwap(lendAmount);
@@ -258,6 +250,17 @@ console.log("tokenPool", tokenPool);
   );
 
   console.log("repay", data)
+//   if (parseFloat(data.token0.borrowBalanceFixed) > 0 && parseFloat(data.token1.borrowBalanceFixed) > 0) {
+//     setSelectedData({
+//       ...selectedData,
+//         ["pool"]: poolData,
+//         ["lend"]:null,
+//       ["receive"]:data.token1,
+//       ["borrow"]:data.token0
+//     });
+// }
+
+
   if (parseFloat(data.token0.borrowBalanceFixed) > 0) {
     setSelectedData({
       ...selectedData,
@@ -313,7 +316,7 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
 
   //  Button states
   useEffect(() => {
-    const { pool, lend, receive } = selectedData;
+    const { pool, lend } = selectedData;
     switch (true) {
       case pool === null:
         setRepayBtn("Select your Position");
@@ -357,10 +360,7 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
               : () => {}
           }
           // onClick={ () => handleOpenTokenList("lend")
-             
-          
           readonly
-        
         />
         <p className="paragraph06 label">You Receive</p>
         <AmountContainer
@@ -369,11 +369,6 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
           onChange={(e: any) => handleReceiveAmount(e.target.value)}
           onMaxClick={() => setReceiveAmount(selectedData.receive.collateralBalanceFixed)}
           buttonText={selectedData?.pool?.otherToken?.symbol}
-          onClick={
-            selectedData?.pool !== null
-              ? () => handleOpenTokenList("receive")
-              : () => {}
-          }
           isShowMaxBtn
           readonly
         />
@@ -429,7 +424,6 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
             tokenListOperation={tokenListStatus.operation}
             isTokenListLoading={isLoading}
             showPoolData={false}
-            poolData={unilendPool}
             selectedData={selectedData} // Pass selectedTokens to TokenListModal
           />
         </Modal>
