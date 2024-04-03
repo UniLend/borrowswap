@@ -63,7 +63,7 @@ export default function Card() {
           <BorrowCard uniSwapTokens={uniSwapTokens} />
         )}
         {activeOperation === ActiveOperation.REPAY && (
-          <RepayCard isLoading={isLoading} uniSwapTokens={uniSwapTokens} />
+          <RepayCard  uniSwapTokens={uniSwapTokens} />
         )}
       </div>
     </div>

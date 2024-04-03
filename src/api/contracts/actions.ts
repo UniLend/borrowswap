@@ -194,6 +194,7 @@ export const getPoolBasicData = async (
   if (true) {
     try {
       const proxy = await getUserProxy(userAddress);
+      console.log("proxy", proxy, userAddress)
       const instance = await getEtherContract(
         contracts.helperAddress,
         helperAbi

@@ -183,17 +183,22 @@ export const chainsBySymbol: { [key: number]: Token } = {
   },
     42161: {
     address: "",
-    symbol: "ETH",
+    symbol: "ARB",
     logo: ARB,
   },
     80001: {
     address: "",
-    symbol: "ETH",
+    symbol: "MATIC",
     logo: MATIC,
   },
     137: {
     address: "",
-    symbol: "ETH",
+    symbol: "MATIC",
+    logo: MATIC,
+  },
+    16153: {
+    address: "",
+    symbol: "MATIC",
     logo: MATIC,
   },
 }

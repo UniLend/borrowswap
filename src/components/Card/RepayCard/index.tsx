@@ -31,7 +31,7 @@ enum ActiveOperation {
 export default function RepayCard({isLoading, uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList, positions } = unilendV2Data;
-    
+    console.log("positions", positions)
   const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState("");
   const [borrowAmount, setBorrowAmount] = useState(0);
