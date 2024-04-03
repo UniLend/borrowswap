@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./index.scss";
 import { Input, Button } from "antd";
 import ButtonWithDropdown from "../ButtonWithDropdown";
+import { truncateToDecimals } from "../../../helpers";
 
 interface AmountContainerProps {
   value: string;
@@ -14,6 +15,7 @@ interface AmountContainerProps {
   isShowMaxBtn?: boolean;
   title?: string;
   isTokensLoading?: boolean;
+  readonly?: boolean;
 }
 
 const AmountContainer: React.FC<AmountContainerProps> = ({
@@ -27,6 +29,7 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
   isShowMaxBtn,
   title,
   isTokensLoading,
+  readonly,
 }) => {
   const [inputValue, setInputValue] = useState(value);
 
@@ -53,6 +56,7 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
           value={inputValue}
           placeholder='0'
           onChange={handleInputChange} // Use the custom handler
+          readOnly={readonly}
         />
         {isShowMaxBtn && (
           <Button onClick={onMaxClick} className='max_btn' type='text'>
@@ -61,7 +65,9 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
         )}
       </div>
       <div className='amount_container_right amount_div'>
-        <p className='paragraph06 right'>Balance: {balance}</p>
+        <p className='paragraph06 right'>
+          Balance: {truncateToDecimals(Number(balance), 4)}
+        </p>
         <ButtonWithDropdown
           buttonText={buttonText}
           onClick={onClick}
@@ -85,6 +91,7 @@ AmountContainer.defaultProps = {
   isShowMaxBtn: false,
   title: "",
   isTokensLoading: false,
+  readonly: false,
 };
 
 export default AmountContainer;

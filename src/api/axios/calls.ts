@@ -12,7 +12,8 @@ export const fetchGraphQlData = async (chainId: number, FILMS_QUERY: any) => {
     1: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/mainnet-1",
     42161:
       "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-arbritrum",
-    16153:  "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-polygon"
+    16153:
+      "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-polygon",
   };
 
   if (Object.keys(graphURL).includes(String(chainId))) {
@@ -107,6 +108,9 @@ export const getTokenPrice = async (data: any, chain: any) => {
   return result;
 };
 
+const CancelToken = axios.CancelToken;
+let cancelPreviousRequest: any;
+
 export const getQuote = async (
   amountIn: string,
   user: any,
@@ -114,8 +118,14 @@ export const getQuote = async (
   tokenOut: any,
   chainId = 1
 ) => {
+  // Cancel the previous request if it exists
+  if (cancelPreviousRequest) {
+    cancelPreviousRequest();
+  }
+
+  console.log("QuoteData", { amountIn, user, tokenIn, tokenOut, chainId });
   try {
-    const data = await axios({
+    const response = await axios({
       method: "post",
       url: "https://interface.gateway.uniswap.org/v2/quote",
       data: {
@@ -147,25 +157,32 @@ export const getQuote = async (
         "Content-Type": "application/json",
         Accept: "application/json, text/plain, */*",
       },
+      cancelToken: new CancelToken(function executor(c) {
+        cancelPreviousRequest = c;
+      }),
     });
 
     return {
-      quoteDecimals: data.data.quote.quoteDecimals,
-      quote: data.data.quote.quote,
+      quoteDecimals: response.data.quote.quoteDecimals,
+      quote: response.data.quote.quote,
     };
   } catch (error) {
-    console.log("quote", { error });
-    throw error;
+    if (axios.isCancel(error)) {
+      console.log("Previous request cancelled", error);
+    } else {
+      console.log("quote", { error });
+      throw error;
+    }
   }
 };
 
 export const uniswapTokensData = async (chainId: number = 1) => {
-  const graphURL = {
+  const graphURL: Record<number, string> = {
     1: "https://tokens.coingecko.com/uniswap/all.json",
     137: "https://tokens.coingecko.com/polygon-pos/all.json",
     56: "https://tokens.coingecko.com/binance-smart-chain/all.json",
     1285: "https://tokens.coingecko.com/moonriver/all.json",
-    16153:"https://tokens.coingecko.com/polygon-pos/all.json"
+    16153: "https://tokens.coingecko.com/polygon-pos/all.json",
   };
 
   const url = graphURL[chainId]; // Default to chainId 1 if not found

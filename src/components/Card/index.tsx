@@ -13,7 +13,7 @@ enum ActiveOperation {
   REPAY = "Swap_Repay",
 }
 
-export default function Card({ isLoading }: any) {
+export default function Card() {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList } = unilendV2Data;
   const { chainId } = useWalletHook();
@@ -60,7 +60,7 @@ export default function Card({ isLoading }: any) {
         </div>
         {/*  */}
         {activeOperation === ActiveOperation.BRROW && (
-          <BorrowCard isLoading={isLoading} uniSwapTokens={uniSwapTokens} />
+          <BorrowCard uniSwapTokens={uniSwapTokens} />
         )}
         {activeOperation === ActiveOperation.REPAY && (
           <RepayCard uniSwapTokens={uniSwapTokens} />
