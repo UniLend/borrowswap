@@ -14,6 +14,7 @@ import {
   fixed2Decimals,
   fromBigNumber,
   greaterThan,
+  isZeroAddress,
   mul,
   sub,
   toAPY,
@@ -79,16 +80,15 @@ export const handleApproval = async (
 
 export const getUserProxy = async (user: any) => {
   try {
-    const chainId = getChainId(wagmiConfig);
-    const controllerAddress =
-      contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
-    const instance = await getEtherContract(
-      controllerAddress,
-      controllerABI,
-      false
-    );
-    const proxy = await instance?.proxyAddress(user);
-    return proxy ? proxy : user;
+    const chainId = getChainId(wagmiConfig)  
+    const controllerAddress = contractAddresses[chainId as keyof  typeof contractAddresses]?.controller;
+    const instance = await getEtherContract(controllerAddress, controllerABI, false);
+    const proxy = await instance?.proxyAddress(user)
+    if(proxy &&  isZeroAddress(proxy)) {
+      return user;
+    }
+
+    return proxy ? proxy : user
   } catch (error) {
     return user; //if no proxy just use the users address as
   }
