@@ -83,6 +83,11 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
     setReceiveAmount(amount);
   };
 
+  const handleBorrowModal = (visible: boolean) => {
+    setIsBorrowProgressModal(visible);
+    setOperationProgress(0); 
+  }
+
   const handleOpenTokenList = (operation: string) => {
     setTokenListStatus({ isOpen: true, operation });
   };
@@ -161,7 +166,7 @@ console.log("tokenPools", tokenPools)
 
   useEffect(() => {
 
-    getProxy()
+    // getProxy()
 
     if (selectedTokens?.lend?.priceRatio) {
       handleLTVSlider(5);
@@ -237,27 +242,25 @@ console.log("tokenPools", tokenPools)
   };
 
   const handleSwapTransaction = async () => {
-    setOperationProgress(0);
+   
     try {
       const lendToken = await getAllowance(selectedTokens?.lend, address);
       const borrowToken = await getAllowance(selectedTokens?.borrow, address);
       setIsBorrowProgressModal(true);
-      console.log("handleSwapTransaction", lendToken, borrowToken);
-
       if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
         setModalMsg('Spend Aprroval for '+ selectedTokens.lend.symbol)
         await handleApproval(selectedTokens?.lend.address, address, lendAmount);
-        setOperationProgress(1);   
+        
         handleSwapTransaction();
       } else if (Number(borrowAmount) > Number(borrowToken.allowanceFixed)) {
         setOperationProgress(1);
-        setModalMsg('Spend Aprroval for '+ selectedTokens.lend.symbol)
+        setModalMsg('Spend Aprroval for '+ selectedTokens.borrow.symbol)
         await handleApproval(
           selectedTokens?.borrow.address,
           address,
           borrowAmount
         );
-        setOperationProgress(2);
+    
         handleSwapTransaction();
       } else {
         setOperationProgress(2);
@@ -267,6 +270,7 @@ console.log("tokenPools", tokenPools)
       
         if (hash) {
           setOperationProgress(3);
+          handleClear()
           setTimeout(() => {
             setIsBorrowProgressModal(false);
           }, 1000);
@@ -325,14 +329,17 @@ console.log("tokenPools", tokenPools)
    
   };
 
+
+
   const handleQuote = async () => {
     try {                                                                                                                                            
       const value = await getQuote(
         decimal2Fixed(1, selectedTokens.borrow.decimals),
         address,
-        selectedTokens?.borrow?.address,
-        selectedTokens?.receive?.address,
-        chain?.id
+        selectedTokens.borrow.address,
+        // "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+        selectedTokens.receive.address,
+        chain?.id == 16153 ? 137: chain?.id
       );
       if (value?.quoteDecimals) {
         setb2rRatio(value?.quoteDecimals);
@@ -493,7 +500,7 @@ console.log("tokenPools", tokenPools)
       <Modal
         className='antd_popover_content'
         centered
-        onCancel={() => setIsBorrowProgressModal(false)}
+        onCancel={() => handleBorrowModal(false)}
         open={isBorrowProgressModal}
         footer={null}
         closable={false}

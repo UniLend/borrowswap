@@ -159,7 +159,7 @@ export const unilendTestnet = {
       url: 'https://explorer.buildbear.io/honest-spiderwoman-6c6fbc8e/transactions',
     },
   },
-  testnet: false,
+  testnet: true,
 } as Chain;
 export const polygonMainnet = {
   id: 137,
