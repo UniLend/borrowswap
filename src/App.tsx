@@ -10,6 +10,7 @@ import useWalletHook from "./api/hooks/useWallet";
 import { getPoolCreatedGraphQuery } from "./api/axios/query";
 import { loadPoolsWithGraph } from "./helpers";
 import { connectWallet } from "./api/services/wallet";
+import UnilendLoader from "./components/Loader/UnilendLoader";
 function App() {
   document.body.className = `body dark`;
   const { address, chain, isConnected } = useWalletHook();
@@ -24,7 +25,6 @@ function App() {
 
   useEffect(() => {
     if (chain?.id && address) {
-    
       loadPoolsWithGraph(chain, address);
     }
   }, [chain]);
@@ -32,8 +32,9 @@ function App() {
   return (
     <div>
       <Navbar />
-      <Suspense fallback={<p className='paragraph01'>Loading...</p>}>
-        <Card  />
+      {/* <Suspense fallback={<p className='paragraph01'>Loading...</p>}> */}
+      <Suspense fallback={<UnilendLoader className='logo_loader' />}>
+        <Card />
       </Suspense>
     </div>
   );
