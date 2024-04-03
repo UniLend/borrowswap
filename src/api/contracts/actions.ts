@@ -23,25 +23,8 @@ export const waitForTransaction = async (hash: any) => {
   }
 };
 
-const watchBlock = async (prevBlockNumber: any)=>{
-  const blockNumber = await getBlockNumber(wagmiConfig)
-
- await new Promise((resolve, reject ) => {
-  if( blockNumber - prevBlockNumber > 1 ){
-   return resolve(true)
-  } else {
-    setTimeout(async() => {
-     await watchBlock(prevBlockNumber)
-    }, 2000);
-    
-  }
-
- })
-
-
-
-}
-
+const watchBlock = async (prevBlockNumber: any) => {
+  const blockNumber = await getBlockNumber(wagmiConfig);
 
   await new Promise((resolve, reject) => {
     if (blockNumber - prevBlockNumber > 3) {
