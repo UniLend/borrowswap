@@ -13,6 +13,20 @@ export const contractAddresses = {
         uftToken: '0x5B4CF2C120A9702225814E18543ee658c5f8631e',
         uftgToken: '0x6CbFa51AF1C1B8940f823DA4C58877E409d6da25',
     },
+    16153:{
+        controller: '0x602F61e5cb3FD81B81Ab0FB3a3969321c0bFf328',
+        borrowswap: '0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E',
+        helperAddress: '0x4F57c40D3dAA7BF2EC970Dd157B1268982158720',
+
+        coreAddress: '0x17dad892347803551CeEE2D377d010034df64347',
+        positionAddress: '0x77B6569F0dbC4F265a575a84540c2A0Cae116a90',
+    
+        poolAddress: '0x895C8BbAB2418FC96CE3808b1Edf513658532b05 ',
+        unilendOracle: '0x4C6E05732b84907B6FE4228EcCa926B557BB9C27',
+        interestRateModal: '0x6A73048C3FacFD17C345c6C82340Aa4536AcBAA6 ',
+        uftToken: '0x5B4CF2C120A9702225814E18543ee658c5f8631e',
+        uftgToken: '0x6CbFa51AF1C1B8940f823DA4C58877E409d6da25',
+    },
     1: {
         controller: '0x602F61e5cb3FD81B81Ab0FB3a3969321c0bFf328',
         helperAddress: '0xAE84B51a1ee35275542Dd99df0F107d4F4e32A63',

@@ -80,6 +80,11 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
     setReceiveAmount(amount);
   };
 
+  const handleBorrowModal = (visible: boolean) => {
+    setIsBorrowProgressModal(visible);
+    setOperationProgress(0); 
+  }
+
   const handleOpenTokenList = (operation: string) => {
     setTokenListStatus({ isOpen: true, operation });
   };
@@ -153,7 +158,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
 
   useEffect(() => {
 
-    getProxy()
+    // getProxy()
 
     if (selectedTokens?.lend?.priceRatio) {
       handleLTVSlider(5);
@@ -228,27 +233,25 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
   };
 
   const handleSwapTransaction = async () => {
-    setOperationProgress(0);
+   
     try {
       const lendToken = await getAllowance(selectedTokens?.lend, address);
       const borrowToken = await getAllowance(selectedTokens?.borrow, address);
       setIsBorrowProgressModal(true);
-      console.log("handleSwapTransaction", lendToken, borrowToken);
-
       if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
         setModalMsg('Spend Aprroval for '+ selectedTokens.lend.symbol)
         await handleApproval(selectedTokens?.lend.address, address, lendAmount);
-        setOperationProgress(1);   
+        
         handleSwapTransaction();
       } else if (Number(borrowAmount) > Number(borrowToken.allowanceFixed)) {
         setOperationProgress(1);
-        setModalMsg('Spend Aprroval for '+ selectedTokens.lend.symbol)
+        setModalMsg('Spend Aprroval for '+ selectedTokens.borrow.symbol)
         await handleApproval(
           selectedTokens?.borrow.address,
           address,
           borrowAmount
         );
-        setOperationProgress(2);
+    
         handleSwapTransaction();
       } else {
         setOperationProgress(2);
@@ -258,6 +261,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       
         if (hash) {
           setOperationProgress(3);
+          handleClear()
           setTimeout(() => {
             setIsBorrowProgressModal(false);
           }, 1000);
@@ -313,6 +317,8 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
    
   };
 
+
+
   const handleQuote = async () => {
     setIsTokenLoading({ ...isTokenLoading, rangeSlider: true });
     try {
@@ -322,7 +328,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
         selectedTokens.borrow.address,
         // "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
         selectedTokens.receive.address,
-        chain?.id
+        chain?.id == 16153 ? 137: chain?.id
       );
       setb2rRatio(value?.quoteDecimals);
     } catch (error: any) {
@@ -474,7 +480,7 @@ export default function BorrowCard({ isLoading, uniSwapTokens }: any) {
       <Modal
         className='antd_popover_content'
         centered
-        onCancel={() => setIsBorrowProgressModal(false)}
+        onCancel={() => handleBorrowModal(false)}
         open={isBorrowProgressModal}
         footer={null}
         closable={false}

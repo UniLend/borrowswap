@@ -10,10 +10,13 @@ export const waitForTransaction = async (hash: any) => {
   try {
     const receipt = await waitForTransactionReceipt( wagmiConfig, {
       hash: hash,
-      confirmations: 5
+     
     })
 
-    const status = await watchBlock(receipt.blockNumber);    
+   // const status = await watchBlock(receipt.blockNumber);  
+    
+    console.log("waitForTransaction", receipt, status);
+    
     return receipt;
   } catch (error) {
     throw error
@@ -25,7 +28,7 @@ const watchBlock = async (prevBlockNumber: any)=>{
   const blockNumber = await getBlockNumber(wagmiConfig)
 
  await new Promise((resolve, reject ) => {
-  if( blockNumber - prevBlockNumber > 3 ){
+  if( blockNumber - prevBlockNumber > 1 ){
    return resolve(true)
   } else {
     setTimeout(async() => {

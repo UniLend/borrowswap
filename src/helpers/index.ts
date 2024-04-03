@@ -72,6 +72,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
     const tokenPrice = await getTokenPrice(data, chain);
    
    
+   console.log("poolGraph", data, allPositions, poolsData);
    
     for (const pool of poolsData) {
       const openPosiions = allPositions.filter(
@@ -133,7 +134,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
 
     store.dispatch(setPools(poolData));
     store.dispatch(setTokens(tokenList));
-    console.log({ poolData, tokenList , allPositions, data});
+    console.log("graphEnd", { poolData, tokenList , allPositions, data});
   }
 };
 
@@ -225,7 +226,7 @@ export const getBorrowAmount = (
   const borrowAmount =
     (Number(amount) + Number(collateralToken.lendBalanceFixed) ) * Number(collateralToken.priceRatio) * (ltv / 100) -  Number(selectedToken.borrowBalanceFixed);
 
-    console.log("borrowed", borrowed);
+    console.log("borrowed", borrowed, borrowAmount, );
     
 
   return borrowAmount > 0 ?borrowAmount: 0;
