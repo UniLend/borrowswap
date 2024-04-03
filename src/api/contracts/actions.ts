@@ -31,10 +31,12 @@ export const waitForTransaction = async (hash: any) => {
   try {
     const receipt = await waitForTransactionReceipt(wagmiConfig, {
       hash: hash,
-      confirmations: 5,
     });
 
-    const status = await watchBlock(receipt.blockNumber);
+    // const status = await watchBlock(receipt.blockNumber);
+
+    console.log("waitForTransaction", receipt, status);
+
     return receipt;
   } catch (error) {
     throw error;

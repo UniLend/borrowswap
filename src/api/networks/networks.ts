@@ -192,6 +192,21 @@ export const supportedNetworks = {
     baseCurrency: 'ETH',
   },
 
+  16153: {
+    chainId: 16153,
+    chainName: 'unilendtest',
+    nativeCurrency: {
+      name: 'token',
+      symbol: 'token',
+      decimals: 18,
+    },
+    logoUrl: polygon,
+    rpcUrls: ['https://polygon-rpc.com/'],
+    blockExplorerUrls: ['https://polygonscan.com/'],
+    graphAvailable: true,
+    baseCurrency: 'eth',
+  },
+
   // 11155111: {
   //   chainId: 11155111,
   //   chainName: "Sepolia Test Network",
