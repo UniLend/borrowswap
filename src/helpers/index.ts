@@ -271,3 +271,54 @@ export const tokensURLs = {
 // const handleAllowance = async (tokenAddress: string) => {
 //   const hash = await handleApproval(tokenAddress, address, lendAmount);
 // };
+
+export function debounce(func: Function, delay: number) {
+  let timeoutId: ReturnType<typeof setTimeout>;
+
+  return function (...args: any[]) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      func.apply(null, args);
+    }, delay);
+  };
+}
+
+export const getButtonAction = (
+  selectedTokens: any,
+  lendAmount: string,
+  receiveAmount: string,
+  isTokenLoading: any,
+  quoteError: boolean,
+  isLowLiquidity: boolean
+) => {
+  let btn = {
+    text: "Borrow",
+    disable: false,
+  };
+
+  const { lend, borrow, receive } = selectedTokens;
+
+  if (lend === null) {
+    btn.text = "Select pay token";
+  } else if (borrow === null) {
+    btn.text = "Select borrow token";
+  } else if (isTokenLoading.pools === true) {
+    btn.text = "Pools are loading";
+  } else if (receive === null) {
+    btn.text = "Select receive token";
+  } else if (isTokenLoading.rangeSlider) {
+    btn.text = "Quote data loading";
+  } else if (quoteError) {
+    btn.text = "Swap not available";
+  } else if (isLowLiquidity) {
+    btn.text = "Low liquidity";
+  } else if (lendAmount === "" || +lendAmount == 0) {
+    btn.text = "Enter pay token value";
+  } else if (receiveAmount === "" || +receiveAmount == 0) {
+    btn.text = "Increase LTV";
+  }
+
+  btn.disable = !!(btn.text !== "Borrow");
+
+  return btn;
+};

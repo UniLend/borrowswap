@@ -8,9 +8,11 @@ import {
   handleSwap,
 } from "../../../api/contracts/actions";
 import {
+  debounce,
   decimal2Fixed,
   fixed2Decimals,
   getBorrowAmount,
+  getButtonAction,
   getCurrentLTV,
   truncateToDecimals,
 } from "../../../helpers";
@@ -64,8 +66,10 @@ export default function BorrowCard({ uniSwapTokens }: any) {
   const [currentLTV, setCurrentLTV] = useState("0");
   const [b2rRatio, setb2rRatio] = useState(1);
   const [userProxy, setUserProxy] = useState(address);
+  const [quoteError, setQuoteError] = useState(false);
+  const [isLowLiquidity, setIsLowLiquidity] = useState(false);
   // TODO: add enum for below state;
-  const [borrowBtn, setBorrowBtn] = useState("Select you pay token");
+  // const [borrowBtn, setBorrowBtn] = useState("Select you pay token");
   const [isTokenLoading, setIsTokenLoading] = useState({
     lend: true,
     borrow: false,
@@ -74,6 +78,15 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     rangeSlider: false,
   });
   const [operationProgress, setOperationProgress] = useState(0);
+
+  const borrowBtn = getButtonAction(
+    selectedTokens,
+    lendAmount,
+    receiveAmount,
+    isTokenLoading,
+    quoteError,
+    isLowLiquidity
+  );
 
   const handleLendAmount = (amount: string) => {
     setLendAmount(amount);
@@ -137,8 +150,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
 
     const borrowAmount = getBorrowAmount(
       lendAmount,
-      currentLTV ? value - Number(currentLTV) : value, // TODO fix error
-      // value,
+      currentLTV ? value - Number(currentLTV) : value,
       selectedTokens.lend,
       selectedTokens.borrow
     );
@@ -146,12 +158,63 @@ export default function BorrowCard({ uniSwapTokens }: any) {
 
     if (selectedTokens?.receive) {
       let receiveVal = borrowAmount * b2rRatio;
+      console.log("borrowAmount", borrowAmount);
       if (isNaN(receiveVal) || receiveVal < 0) {
         receiveVal = 0;
       }
       setReceiveAmount(receiveVal.toString());
     }
   };
+
+  const checkLiquidity = (lendAmount: string) => {
+    if (+lendAmount > 0) {
+      let liquidity;
+      if (unilendPool?.token0?.address === selectedTokens?.borrow?.address) {
+        liquidity = unilendPool?.liquidity0;
+      } else {
+        liquidity = unilendPool?.liquidity1;
+      }
+
+      console.log("BORROW_AMOUNT", borrowAmount);
+      console.log("LIQUIDITY_AMOUNT", truncateToDecimals(Number(liquidity), 9));
+      // if (borrowAmount > truncateToDecimals(Number(liquidity), 9)) {
+      if (borrowAmount > 1.3) {
+        setIsLowLiquidity(true);
+        console.log("LOW_LIQUITY");
+      } else {
+        setIsLowLiquidity(false);
+      }
+    }
+    // console.log("BORROW_TOKEN", selectedTokens.borrow);
+  };
+
+  useEffect(() => {
+    checkLiquidity(lendAmount);
+  }, [lendAmount, b2rRatio]);
+
+  // const debouncedHandleLTVSlider = debounce((value: number) => {
+  //   setSelectedLTV(value);
+
+  //   const borrowAmount = getBorrowAmount(
+  //     lendAmount,
+  //     currentLTV ? value - Number(currentLTV) : value,
+  //     selectedTokens.lend,
+  //     selectedTokens.borrow
+  //   );
+  //   setBorrowAmount(borrowAmount);
+
+  //   if (selectedTokens?.receive) {
+  //     let receiveVal = borrowAmount * b2rRatio;
+  //     if (isNaN(receiveVal) || receiveVal < 0) {
+  //       receiveVal = 0;
+  //     }
+  //     setReceiveAmount(receiveVal.toString());
+  //   }
+  // }, 300);
+
+  // const handleLTVSlider = (value: number) => {
+  //   debouncedHandleLTVSlider(value);
+  // };
 
   useEffect(() => {
     getProxy();
@@ -205,7 +268,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       setSelectedLTV(+currentLtv);
       // handleLTV(Number(currentLtv));
     }
-
+    console.log("POOL_DATA", data);
     setUnilendPool(data);
     setIsTokenLoading({ ...isTokenLoading, pools: false });
   };
@@ -288,7 +351,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     });
     setIsBorrowProgressModal(false);
     setOperationProgress(0);
-    setBorrowBtn("Select you pay token");
+    // setBorrowBtn("Select you pay token");
     setCurrentLTV("0");
     setb2rRatio(0);
   };
@@ -317,7 +380,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     if (tokenListStatus.operation == "lend") {
       handleSelectLendToken(token.address);
       setSelectedTokens({
-        [tokenListStatus.operation]: token,
+        [tokenListStatus.operation]: { ...token, ...tokenBal },
         ["borrow"]: null,
         ["receive"]: null,
       });
@@ -326,14 +389,14 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       handleSelectBorrowToken(token.address);
       setSelectedTokens({
         ...selectedTokens,
-        [tokenListStatus.operation]: token,
+        [tokenListStatus.operation]: { ...token, ...tokenBal },
         ["receive"]: null,
       });
       setReceiveAmount("");
     } else {
       setSelectedTokens({
         ...selectedTokens,
-        [tokenListStatus.operation]: token,
+        [tokenListStatus.operation]: { ...token, ...tokenBal },
       });
     }
   };
@@ -351,8 +414,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
         setb2rRatio(value?.quoteDecimals);
       }
     } catch (error: any) {
-      console.error("Error in handleQuote:", error);
-      setBorrowBtn("swap not available");
+      setQuoteError(true);
       NotificationMessage(
         "error",
         error?.message || "Error occurred in handleQuote"
@@ -385,39 +447,6 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     checkLoading(isTokenLoading);
   }, [isTokenLoading]);
 
-  // useEffect(() => {
-  //   if (selectedTokens?.receive) {
-  //     handleQuote();
-  //   }
-  // }, [selectedTokens]);
-
-  useEffect(() => {
-    const { lend, borrow, receive } = selectedTokens;
-    // TODO: confirm these messages
-    switch (true) {
-      case lend === null:
-        setBorrowBtn("Select pay token");
-        break;
-
-      case borrow === null:
-        setBorrowBtn("Select borrow token");
-        break;
-      case isTokenLoading.pools === true:
-        setBorrowBtn("Pools are loading");
-        break;
-      case receive === null:
-        setBorrowBtn("Select receive token");
-        break;
-      case lendAmount === "":
-        setBorrowBtn("Enter pay token value");
-        break;
-      case isTokenLoading.rangeSlider:
-        setBorrowBtn("Quote data loading");
-        break;
-      default:
-        setBorrowBtn("Borrow");
-    }
-  }, [lendAmount, selectedTokens, isTokenLoading]);
   return (
     <>
       <div className='borrow_container'>
@@ -495,13 +524,14 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           />
         </div>
         <Button
-          disabled={borrowBtn !== "Borrow"}
+          // disabled={borrowBtn.text !== "Borrow"}
+          disabled={borrowBtn.disable}
           className='primary_btn'
           onClick={handleSwapTransaction}
           title='please slect you pay token'
           loading={isTokenLoading.pools || isTokenLoading.rangeSlider}
         >
-          {borrowBtn}
+          {borrowBtn.text}
         </Button>
       </div>
       <Modal
