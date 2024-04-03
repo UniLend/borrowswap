@@ -33,7 +33,7 @@ export default function RepayCard({isLoading, uniSwapTokens }: any) {
   const { tokenList, poolList, positions } = unilendV2Data;
     console.log("positions", positions)
   const { address, isConnected, chain } = useWalletHook();
-  const [lendAmount, setLendAmount] = useState("");
+  const [lendAmount, setLendAmount] = useState<string>("");
   const [borrowAmount, setBorrowAmount] = useState(0);
   const [receiveAmount, setReceiveAmount] = useState("");
   const [b2rRatio, setb2rRatio] = useState(1);

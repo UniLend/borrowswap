@@ -274,35 +274,7 @@ export const supportedNetworks = {
   // },
 };
 
-export const ChangeNetwork = async (networkId) => {
-  try {
-    if (!window.ethereum) throw new Error('No crypto wallet found');
-    const account = await window.ethereum.request({
-      method: 'wallet_switchEthereumChain',
-      params: [
-        {
-          chainId: `0x${Number(Number(networkId)).toString(16)}`,
-        },
-      ],
-    });
-  } catch (switchError) {
-    // This error code indicates that the chain has not been added to MetaMask.
-    if (switchError.code === 4902) {
-      try {
-        await window.ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [
-            {
-              ...networks[networkId],
-            },
-          ],
-        });
-      } catch (err) {
-        setError(err.message);
-      }
-    }
-  }
-};
+
 
 export const allNetworkIds = {
   mainNet: '1',

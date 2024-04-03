@@ -15,7 +15,7 @@ export function getTokenSymbol(symbol: string): string {
   }
 }
 
-export function getChainSymbol(symbol: string): string {
+export function getChainSymbol(symbol: number): string {
   if (chainsBySymbol[symbol]) {
     return chainsBySymbol[symbol].logo;
   } else {

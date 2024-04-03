@@ -2,8 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { FiSearch } from "react-icons/fi";
 import PoolCard from "../PoolCard";
 import "./index.scss";
-import { getTokenSymbol } from "../../../utils";
-
 interface Token {
   logoURI?: string;
   logo: string;
