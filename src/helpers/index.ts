@@ -9,6 +9,14 @@ import { getUserProxy } from "../api/contracts/actions";
 
 const READABLE_FORM_LEN = 4;
 
+export const isZeroAddress = (address: any) => {
+  if(address == '0x0000000000000000000000000000000000000000'){
+    return true
+  } else {
+    return false
+  }
+}
+
 export function fromReadableAmount(
   amount: number,
   decimals: number

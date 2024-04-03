@@ -1,7 +1,7 @@
 import { borrowswapABI, controllerABI, coreAbi, erc20Abi, helperAbi } from "./abi";
 import { readContracts, writeContract } from "wagmi/actions";
 import { getEtherContract } from "./ethers";
-import { add, decimal2Fixed, div, fixed2Decimals, fromBigNumber, greaterThan, mul, sub, toAPY } from '../../helpers/index';
+import { add, decimal2Fixed, div, fixed2Decimals, fromBigNumber, greaterThan, isZeroAddress, mul, sub, toAPY } from '../../helpers/index';
 import { readContract, waitForTransactionReceipt, getBlockNumber, getChainId } from '@wagmi/core'
 import { wagmiConfig } from "../../main";
 import { contractAddresses } from "./address";
@@ -76,6 +76,10 @@ export const getUserProxy = async (user: any) => {
     const controllerAddress = contractAddresses[chainId as keyof  typeof contractAddresses]?.controller;
     const instance = await getEtherContract(controllerAddress, controllerABI, false);
     const proxy = await instance?.proxyAddress(user)
+    if(proxy &&  isZeroAddress(proxy)) {
+      return user;
+    }
+
     return proxy ? proxy : user
   } catch (error) {
     return user; //if no proxy just use the users address as
