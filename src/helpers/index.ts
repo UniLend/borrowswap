@@ -58,21 +58,19 @@ export const checkOpenPosition = (position: any) => {
 
 export const loadPoolsWithGraph = async (chain: any, address: any) => {
   if (true) {
-
-    const proxy = await getUserProxy(address)
+    const proxy = await getUserProxy(address);
     const query = getPoolCreatedGraphQuery(proxy);
 
-    const data = await fetchGraphQlData(chain?.id, query);    
+    const data = await fetchGraphQlData(chain?.id, query);
     const allPositions = data?.positions;
     const poolData: any = {};
     const tokenList: any = {};
 
     const poolsData = Array.isArray(data.pools) && data.pools;
     const tokenPrice = await getTokenPrice(data, chain);
-   
-   
-   console.log("poolGraph", data, allPositions, poolsData);
-   
+
+    console.log("poolGraph", data, allPositions, poolsData);
+
     for (const pool of poolsData) {
       const openPosiions = allPositions.filter(
         (el: any) => el?.pool?.pool == pool.pool
@@ -133,7 +131,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
 
     store.dispatch(setPools(poolData));
     store.dispatch(setTokens(tokenList));
-    console.log("graphEnd", { poolData, tokenList , allPositions, data});
+    console.log("graphEnd", { poolData, tokenList, allPositions, data });
   }
 };
 
@@ -223,12 +221,12 @@ export const getBorrowAmount = (
     Number(Number(getCurrentLTV(selectedToken, collateralToken)) / 100);
 
   const borrowAmount =
-    (Number(amount) + Number(collateralToken.lendBalanceFixed) ) * Number(collateralToken.priceRatio) * (ltv / 100) -  Number(selectedToken.borrowBalanceFixed);
-
-    console.log("borrowed", borrowed, borrowAmount, );
-    
-
-  return borrowAmount > 0 ?borrowAmount: 0;
+    (Number(amount) + Number(collateralToken.lendBalanceFixed)) *
+      Number(collateralToken.priceRatio) *
+      (ltv / 100) -
+    Number(selectedToken.borrowBalanceFixed);
+  console.log("borrowed", borrowed, borrowAmount);
+  return borrowAmount > 0 ? borrowAmount : 0;
 };
 
 export const tokensURLs = {
@@ -274,3 +272,54 @@ export const tokensURLs = {
 // const handleAllowance = async (tokenAddress: string) => {
 //   const hash = await handleApproval(tokenAddress, address, lendAmount);
 // };
+
+export function debounce(func: Function, delay: number) {
+  let timeoutId: ReturnType<typeof setTimeout>;
+
+  return function (...args: any[]) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      func.apply(null, args);
+    }, delay);
+  };
+}
+
+export const getButtonAction = (
+  selectedTokens: any,
+  lendAmount: string,
+  receiveAmount: string,
+  isTokenLoading: any,
+  quoteError: boolean,
+  isLowLiquidity: boolean
+) => {
+  let btn = {
+    text: "Borrow",
+    disable: false,
+  };
+
+  const { lend, borrow, receive } = selectedTokens;
+
+  if (lend === null) {
+    btn.text = "Select pay token";
+  } else if (borrow === null) {
+    btn.text = "Select borrow token";
+  } else if (isTokenLoading.pools === true) {
+    btn.text = "Pools are loading";
+  } else if (receive === null) {
+    btn.text = "Select receive token";
+  } else if (isTokenLoading.rangeSlider) {
+    btn.text = "Quote data loading";
+  } else if (quoteError) {
+    btn.text = "Swap not available";
+  } else if (isLowLiquidity) {
+    btn.text = "Low liquidity";
+  } else if (lendAmount === "" || +lendAmount == 0) {
+    btn.text = "Enter pay token value";
+  } else if (receiveAmount === "" || +receiveAmount == 0) {
+    btn.text = "Increase LTV";
+  }
+
+  btn.disable = !!(btn.text !== "Borrow");
+
+  return btn;
+};

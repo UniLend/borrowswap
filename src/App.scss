@@ -51,6 +51,10 @@ body,
   user-select: none; /* Standard syntax */
 }
 
+.logo_loader {
+  height: 100vh;
+}
+
 /* width */
 ::-webkit-scrollbar {
   width: 5px;
@@ -69,7 +73,6 @@ body,
 ::-webkit-scrollbar-thumb:hover {
   background: #3a7cff;
 }
-
 
 ::-webkit-scrollbar {
   width: 5px;
