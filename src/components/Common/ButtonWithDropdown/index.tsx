@@ -2,7 +2,7 @@ import React, { memo } from "react";
 import { FaChevronDown } from "react-icons/fa";
 import { FiChevronDown } from "react-icons/fi";
 import "./index.scss";
-import { getTokenSymbol } from "../../../utils";
+import { getTokenLogo } from "../../../utils";
 
 interface ButtonWithDropdownProps {
   buttonText: string;
@@ -27,7 +27,7 @@ const ButtonWithDropdown: React.FC<ButtonWithDropdownProps> = ({
       title={title}
     >
       <div onClick={() => console.log("dropdown")} className='token_tab'>
-        {buttonText === "Select Token" ? (
+        {buttonText === "Select" ? (
           isTokensLoading ? (
             <h2>loading...</h2>
           ) : (
@@ -35,7 +35,7 @@ const ButtonWithDropdown: React.FC<ButtonWithDropdownProps> = ({
           )
         ) : (
           <>
-            <img src={getTokenSymbol(buttonText)} alt='logo' />
+            <img src={getTokenLogo(buttonText)} alt='logo' />
             <h2>{buttonText}</h2>
           </>
         )}
@@ -50,7 +50,7 @@ const ButtonWithDropdown: React.FC<ButtonWithDropdownProps> = ({
 export default memo(ButtonWithDropdown);
 
 ButtonWithDropdown.defaultProps = {
-  buttonText: "Select Token",
+  buttonText: "Select",
   onClick: () => console.log("Clicked"),
   className: "",
   title: "",

@@ -14,6 +14,7 @@ import {
   fixed2Decimals,
   fromBigNumber,
   greaterThan,
+  isZeroAddress,
   mul,
   sub,
   toAPY,
@@ -36,7 +37,6 @@ export const waitForTransaction = async (hash: any) => {
     // const status = await watchBlock(receipt.blockNumber);
 
     console.log("waitForTransaction", receipt, status);
-
     return receipt;
   } catch (error) {
     throw error;
@@ -80,16 +80,15 @@ export const handleApproval = async (
 
 export const getUserProxy = async (user: any) => {
   try {
-    const chainId = getChainId(wagmiConfig);
-    const controllerAddress =
-      contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
-    const instance = await getEtherContract(
-      controllerAddress,
-      controllerABI,
-      false
-    );
-    const proxy = await instance?.proxyAddress(user);
-    return proxy ? proxy : user;
+    const chainId = getChainId(wagmiConfig)  
+    const controllerAddress = contractAddresses[chainId as keyof  typeof contractAddresses]?.controller;
+    const instance = await getEtherContract(controllerAddress, controllerABI, false);
+    const proxy = await instance?.proxyAddress(user)
+    if(proxy &&  isZeroAddress(proxy)) {
+      return user;
+    }
+
+    return proxy ? proxy : user
   } catch (error) {
     return user; //if no proxy just use the users address as
   }
@@ -163,7 +162,6 @@ export const getAllowance = async (
       Number(fromBigNumber(allowance)) == Number(maxAllow)
         ? fromBigNumber(allowance)
         : fixed2Decimals(fromBigNumber(allowance), token.decimals);
-
     const bal = await instance?.balanceOf(user);
 
     return {
@@ -186,12 +184,17 @@ export const getPoolBasicData = async (
   poolData: any,
   userAddress: any
 ) => {
-  //  console.log(contracts, poolAddress, poolData, userAddress);
 
+   console.log("contracts", contracts)
+   console.log("poolAddress", poolAddress)
+   console.log("poolData", poolData)
+   console.log("userAddress", userAddress)
   let pool = { ...poolData };
+  console.log("actionPool", pool)
   if (true) {
     try {
       const proxy = await getUserProxy(userAddress);
+      console.log("proxy", proxy, userAddress)
       const instance = await getEtherContract(
         contracts.helperAddress,
         helperAbi

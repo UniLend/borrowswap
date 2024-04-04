@@ -1,4 +1,5 @@
 import { Chain } from '@rainbow-me/rainbowkit';
+import MATIC from "../../assets/matic.svg"
 export const zkEVMTestNet = {
   id: 1442,
   name: 'zkEVM Testnet',
@@ -137,8 +138,9 @@ export const mumbaiTestnet = {
 
 export const unilendTestnet = {
   id: 16153,
-  name: 'unilend test',
+  name: 'Unilend Test',
   network: 'unilendtest',
+  iconUrl:MATIC,
   nativeCurrency: { name: 'token', symbol: 'TOKEN', decimals: 18 },
   rpcUrls: {
     default: {

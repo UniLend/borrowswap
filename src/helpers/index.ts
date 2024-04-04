@@ -2,12 +2,20 @@ import { ethers, BigNumber as bigNumber } from "ethers";
 import BigNumber from "bignumber.js";
 import { fetchGraphQlData, getTokenPrice } from "../api/axios/calls";
 import { store } from "../states/store";
-import { setPools, setTokens } from "../states/unilendV2Reducer";
-import { getTokenSymbol } from "../utils";
+import { setPools, setTokens, setPositions } from "../states/unilendV2Reducer";
+import { getTokenLogo } from "../utils";
 import { getPoolCreatedGraphQuery } from "../api/axios/query";
 import { getUserProxy } from "../api/contracts/actions";
 
 const READABLE_FORM_LEN = 4;
+
+export const isZeroAddress = (address: any) => {
+  if(address == '0x0000000000000000000000000000000000000000'){
+    return true
+  } else {
+    return false
+  }
+}
 
 export function fromReadableAmount(
   amount: number,
@@ -59,12 +67,14 @@ export const checkOpenPosition = (position: any) => {
 export const loadPoolsWithGraph = async (chain: any, address: any) => {
   if (true) {
     const proxy = await getUserProxy(address);
-    const query = getPoolCreatedGraphQuery(proxy);
+    const query = getPoolCreatedGraphQuery('0x4406609618630Db072fa3E27CF5C54A05957beeB');
 
     const data = await fetchGraphQlData(chain?.id, query);
     const allPositions = data?.positions;
+    console.log('allPositions', allPositions)
     const poolData: any = {};
     const tokenList: any = {};
+
     const poolsData = Array.isArray(data.pools) && data.pools;
     const tokenPrice = await getTokenPrice(data, chain);
 
@@ -77,7 +87,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
       const poolInfo = {
         ...pool,
         poolAddress: pool?.pool,
-
+        
         totalLiquidity:
           fixed2Decimals(pool.liquidity0, pool.token0.decimals) *
             tokenPrice[pool?.token0?.id] +
@@ -99,14 +109,14 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
         token0: {
           ...pool.token0,
           address: pool?.token0?.id,
-          logo: getTokenSymbol(pool.token0.symbol),
+          logo: getTokenLogo(pool.token0.symbol),
           priceUSD: tokenPrice[pool?.token0?.id] * pool.token0.decimals,
           pricePerToken: tokenPrice[pool?.token0?.id],
         },
         token1: {
           ...pool.token1,
           address: pool?.token1?.id,
-          logo: getTokenSymbol(pool.token1.symbol),
+          logo: getTokenLogo(pool.token1.symbol),
           priceUSD: tokenPrice[pool?.token1?.id] * pool.token1.decimals,
           pricePerToken: tokenPrice[pool?.token1?.id],
         },
@@ -114,14 +124,16 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
       tokenList[String(pool.token0.id).toUpperCase()] = {
         ...pool.token0,
         address: pool?.token0?.id,
-        logo: getTokenSymbol(pool.token0.symbol),
+        source: 'Unilend',
+        logo: getTokenLogo(pool.token0.symbol),
         priceUSD: tokenPrice[pool?.token0?.id] * pool.token0.decimals,
         pricePerToken: tokenPrice[pool?.token0?.id],
       };
       tokenList[String(pool.token1.id).toUpperCase()] = {
         ...pool.token1,
         address: pool?.token1?.id,
-        logo: getTokenSymbol(pool.token1.symbol),
+        source: 'Unilend',
+        logo: getTokenLogo(pool.token1.symbol),
         priceUSD: tokenPrice[pool?.token1?.id] * pool.token1.decimals,
         pricePerToken: tokenPrice[pool?.token1?.id],
       };
@@ -130,6 +142,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
 
     store.dispatch(setPools(poolData));
     store.dispatch(setTokens(tokenList));
+    store.dispatch(setPositions(allPositions));
     console.log("graphEnd", { poolData, tokenList, allPositions, data });
   }
 };
