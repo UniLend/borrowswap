@@ -1,6 +1,7 @@
 import React from "react";
 import "./index.scss";
 import { truncateToDecimals } from "../../../helpers";
+import { getTokenLogo } from "../../../utils";
 
 interface Token {
   logoURI?: string;
@@ -10,6 +11,7 @@ interface Token {
   pairToken: any; //TODO update
   maxLTV: string;
   borrowApy: string;
+  source: string
 }
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -44,7 +46,7 @@ const TokenCard: React.FC<TokenCardProps> = ({
       {operation === ActiveOperation.BRROW ? (
         <div onClick={handleTokensList} className='token_card'>
           <div className='tokens_details'>
-            <img src={token.logoURI || token.logo} alt='' />
+            <img src={getTokenLogo(token.symbol)} alt='' />
             <div>
               <div className='token_pool_logo'>
                 <h3>{token.symbol}</h3>
@@ -66,8 +68,8 @@ const TokenCard: React.FC<TokenCardProps> = ({
           {/* TODO: update token pool data */}
           <div className='pool_details'>
             <div>
-              <p className='paragraph06'>Unilend</p>
-              <img src={token.logoURI || token.logo} alt='' />
+              <p className='paragraph06'>{token?.source}</p>
+              <img src={getTokenLogo('UFT')} alt='' />
             </div>
             {showPoolData && (
               <p className='paragraph06'>Max LTV: {token.maxLTV}%</p>

@@ -3,7 +3,7 @@ import BigNumber from "bignumber.js";
 import { fetchGraphQlData, getTokenPrice } from "../api/axios/calls";
 import { store } from "../states/store";
 import { setPools, setTokens, setPositions } from "../states/unilendV2Reducer";
-import { getTokenSymbol } from "../utils";
+import { getTokenLogo } from "../utils";
 import { getPoolCreatedGraphQuery } from "../api/axios/query";
 import { getUserProxy } from "../api/contracts/actions";
 
@@ -109,14 +109,14 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
         token0: {
           ...pool.token0,
           address: pool?.token0?.id,
-          logo: getTokenSymbol(pool.token0.symbol),
+          logo: getTokenLogo(pool.token0.symbol),
           priceUSD: tokenPrice[pool?.token0?.id] * pool.token0.decimals,
           pricePerToken: tokenPrice[pool?.token0?.id],
         },
         token1: {
           ...pool.token1,
           address: pool?.token1?.id,
-          logo: getTokenSymbol(pool.token1.symbol),
+          logo: getTokenLogo(pool.token1.symbol),
           priceUSD: tokenPrice[pool?.token1?.id] * pool.token1.decimals,
           pricePerToken: tokenPrice[pool?.token1?.id],
         },
@@ -124,14 +124,16 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
       tokenList[String(pool.token0.id).toUpperCase()] = {
         ...pool.token0,
         address: pool?.token0?.id,
-        logo: getTokenSymbol(pool.token0.symbol),
+        source: 'Unilend',
+        logo: getTokenLogo(pool.token0.symbol),
         priceUSD: tokenPrice[pool?.token0?.id] * pool.token0.decimals,
         pricePerToken: tokenPrice[pool?.token0?.id],
       };
       tokenList[String(pool.token1.id).toUpperCase()] = {
         ...pool.token1,
         address: pool?.token1?.id,
-        logo: getTokenSymbol(pool.token1.symbol),
+        source: 'Unilend',
+        logo: getTokenLogo(pool.token1.symbol),
         priceUSD: tokenPrice[pool?.token1?.id] * pool.token1.decimals,
         pricePerToken: tokenPrice[pool?.token1?.id],
       };

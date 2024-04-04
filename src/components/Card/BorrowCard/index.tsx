@@ -35,6 +35,15 @@ enum ActiveOperation {
   REPAY = "Swap_Repay",
 }
 
+const compoundColleteralTokens = [{
+  address: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+  symbol: 'WETH',
+  name: 'wrap eth',
+  decimals: 18,
+  source: 'Compound',
+  logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
+}]
+
 export default function BorrowCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList } = unilendV2Data;
@@ -284,7 +293,9 @@ console.log("tokenPools", tokenPools)
 
   const getOprationToken = () => {
     if (tokenListStatus.operation === "lend") {
-      return lendingTokens;
+console.log("tokenOperatrion", [...lendingTokens, ...compoundColleteralTokens]);
+
+      return  [...lendingTokens, ...compoundColleteralTokens];
     } else if (tokenListStatus.operation === "borrow") {
       return borrowingTokens;
     } else if (tokenListStatus.operation === "receive") {
@@ -509,7 +520,7 @@ console.log("tokenPools", tokenPools)
               ? "please select you borrow token"
               : ""
           }
-          readonly
+          
           //   isTokensLoading={isTokenLoading.pools}
         />
         <div className='range_container'>

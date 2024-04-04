@@ -2,7 +2,7 @@ import React, { memo } from "react";
 import { FaChevronDown } from "react-icons/fa";
 import { FiChevronDown } from "react-icons/fi";
 import "./index.scss";
-import { getTokenSymbol } from "../../../utils";
+import { getTokenLogo } from "../../../utils";
 
 interface ButtonWithDropdownProps {
   buttonText: string;
@@ -35,7 +35,7 @@ const ButtonWithDropdown: React.FC<ButtonWithDropdownProps> = ({
           )
         ) : (
           <>
-            <img src={getTokenSymbol(buttonText)} alt='logo' />
+            <img src={getTokenLogo(buttonText)} alt='logo' />
             <h2>{buttonText}</h2>
           </>
         )}
