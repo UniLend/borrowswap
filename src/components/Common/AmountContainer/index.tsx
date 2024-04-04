@@ -45,7 +45,6 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
   };
 
   useEffect(() => {
-  
     setInputValue(value);
   }, [value]);
 
@@ -55,7 +54,7 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
         <Input
           value={inputValue}
           placeholder='0'
-          onChange={handleInputChange} // Use the custom handler
+          onChange={handleInputChange}
           readOnly={readonly}
         />
         {isShowMaxBtn && (

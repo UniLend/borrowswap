@@ -79,13 +79,18 @@ export default function BorrowCard({ uniSwapTokens }: any) {
   });
   const [operationProgress, setOperationProgress] = useState(0);
 
+  const isLowBal: boolean =
+    +lendAmount >
+    truncateToDecimals(selectedTokens?.lend?.balanceFixed || 0, 4);
+
   const borrowBtn = getButtonAction(
     selectedTokens,
     lendAmount,
     receiveAmount,
     isTokenLoading,
     quoteError,
-    isLowLiquidity
+    isLowLiquidity,
+    isLowBal
   );
 
   const handleLendAmount = (amount: string) => {
@@ -181,7 +186,11 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       }
 
       console.log("BORROW_AMOUNT", borrowAmount);
-      console.log("LIQUIDITY_AMOUNT", truncateToDecimals(Number(liquidity), 9));
+      console.log(
+        "LIQUIDITY_AMOUNT",
+        truncateToDecimals(Number(liquidity) || 0, 9)
+      );
+      // truncateToDecimals(selectedTokens?.lend?.balanceFixed || 0, 4);
       // if (borrowAmount > truncateToDecimals(Number(liquidity), 9)) {
       if (borrowAmount > 1.3) {
         setIsLowLiquidity(true);
@@ -195,35 +204,9 @@ export default function BorrowCard({ uniSwapTokens }: any) {
 
   useEffect(() => {
     checkLiquidity(lendAmount);
-  }, [lendAmount, b2rRatio]);
-
-  // const debouncedHandleLTVSlider = debounce((value: number) => {
-  //   setSelectedLTV(value);
-
-  //   const borrowAmount = getBorrowAmount(
-  //     lendAmount,
-  //     currentLTV ? value - Number(currentLTV) : value,
-  //     selectedTokens.lend,
-  //     selectedTokens.borrow
-  //   );
-  //   setBorrowAmount(borrowAmount);
-
-  //   if (selectedTokens?.receive) {
-  //     let receiveVal = borrowAmount * b2rRatio;
-  //     if (isNaN(receiveVal) || receiveVal < 0) {
-  //       receiveVal = 0;
-  //     }
-  //     setReceiveAmount(receiveVal.toString());
-  //   }
-  // }, 300);
-
-  // const handleLTVSlider = (value: number) => {
-  //   debouncedHandleLTVSlider(value);
-  // };
+  }, [lendAmount, selectedLTV]);
 
   useEffect(() => {
-    // getProxy();
-
     if (selectedTokens?.lend?.priceRatio) {
       handleLTVSlider(5);
     }
@@ -417,11 +400,13 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       if (value?.quoteDecimals) {
         setb2rRatio(value?.quoteDecimals);
       }
+      setQuoteError(false);
     } catch (error: any) {
       setQuoteError(true);
       NotificationMessage(
         "error",
-        error?.message || "Error occurred in handleQuote"
+        // error?.message || "Error occurred in handleQuote"
+        `Swap is not available for ${selectedTokens.receive.symbol}, please select different receive token.`
       );
     } finally {
       setIsTokenLoading({ ...isTokenLoading, rangeSlider: false });
@@ -525,6 +510,9 @@ export default function BorrowCard({ uniSwapTokens }: any) {
             min={5}
             max={unilendPool?.maxLTV || 75}
             className='range_slider'
+            disabled={
+              isLowBal || quoteError || lendAmount === "" || +lendAmount === 0
+            }
           />
         </div>
         <Button

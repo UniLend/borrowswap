@@ -289,7 +289,8 @@ export const getButtonAction = (
   receiveAmount: string,
   isTokenLoading: any,
   quoteError: boolean,
-  isLowLiquidity: boolean
+  isLowLiquidity: boolean,
+  isLowBal: boolean
 ) => {
   let btn = {
     text: "Borrow",
@@ -300,14 +301,16 @@ export const getButtonAction = (
 
   if (lend === null) {
     btn.text = "Select pay token";
-  } else if (borrow === null) {
-    btn.text = "Select borrow token";
   } else if (isTokenLoading.pools === true) {
     btn.text = "Pools are loading";
-  } else if (receive === null) {
-    btn.text = "Select receive token";
   } else if (isTokenLoading.rangeSlider) {
     btn.text = "Quote data loading";
+  } else if (isLowBal) {
+    btn.text = "Low balance";
+  } else if (borrow === null) {
+    btn.text = "Select borrow token";
+  } else if (receive === null) {
+    btn.text = "Select receive token";
   } else if (quoteError) {
     btn.text = "Swap not available";
   } else if (isLowLiquidity) {
