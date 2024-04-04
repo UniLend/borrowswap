@@ -297,7 +297,10 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
       setReceiveAmount("");
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
-    
+      setSelectedData({
+                ...selectedData,
+                ["lend"]: data,
+              });
     } else if (tokenListStatus.operation == "receive") {
         setSelectedData({
                 ...selectedData,
