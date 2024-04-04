@@ -197,7 +197,7 @@ const handleQuote = async () => {
 
     if (b2rRatio && selectedData?.borrow?.borrowBalanceFixed) {
       const calculatedLendAmount = b2rRatio * selectedData.borrow.borrowBalanceFixed;
-      setLendAmount(calculatedLendAmount);
+      setLendAmount(calculatedLendAmount.toString());
     }
 
     setReceiveAmount(selectedData.receive.collateralBalanceFixed);
@@ -297,7 +297,7 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
       setReceiveAmount("");
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
-        
+    
     } else if (tokenListStatus.operation == "receive") {
         setSelectedData({
                 ...selectedData,
@@ -404,14 +404,14 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
             tokenList={getOprationToken()}
             onSelectToken={(token: any) => handleTokenSelection(token)}
             operation={ActiveOperation.REPAY}
-            tokenListOperation={tokenListStatus.operation}
+            // tokenListOperation={tokenListStatus.operation}
             isTokenListLoading={isLoading}
             showPoolData={true}
             positionData={Object.values(positions).filter(
               (item) => item.borrowBalance0 !== 0 || item.token1.borrowBalance1 !== 0
           )}
           pools ={pools}
-            selectedData={selectedData} // Pass selectedData to PoolListModal
+            // selectedData={selectedData} // Pass selectedData to PoolListModal
           />
         </Modal>
       ) : tokenListStatus.operation == "lend" ||
@@ -428,10 +428,10 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
             tokenList={getOprationToken()}
             onSelectToken={(token: any) => handleTokenSelection(token)}
             operation={ActiveOperation.REPAY}
-            tokenListOperation={tokenListStatus.operation}
+            // tokenListOperation={tokenListStatus.operation}
             isTokenListLoading={isLoading}
             showPoolData={false}
-            selectedData={selectedData} // Pass selectedTokens to TokenListModal
+            // selectedData={selectedData} // Pass selectedTokens to TokenListModal
           />
         </Modal>
       ) : null}

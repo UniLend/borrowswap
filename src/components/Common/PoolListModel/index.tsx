@@ -2,24 +2,13 @@ import React, { useState, useRef, useEffect } from "react";
 import { FiSearch } from "react-icons/fi";
 import PoolCard from "../PoolCard";
 import "./index.scss";
+import UnilendLoader from "../../Loader/UnilendLoader";
 interface Token {
-  logoURI?: string;
-  logo: string;
-  name: string;
-  symbol: string;
-  pairToken: any; //TODO update
-  maxLTV: string;
-  borrowApy: string;
+  pool:any;
+  borrowToken: any;
+  otherToken: string;
 }
-interface Item {
-  logoURI?: string;
-  logo: string;
-  name: string;
-  symbol: string;
-  pairToken: any; //TODO update
-  maxLTV: string;
-  borrowApy: string;
-}
+
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -34,6 +23,7 @@ interface TokenListModalProps {
   showpositionData?: boolean;
   positionData?: any; // update later
   pools?: any; 
+  showPoolData?:any;
 }
 
 const TokenListModal: React.FC<TokenListModalProps> = ({
@@ -119,17 +109,17 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
       </div>
       {isTokenListLoading ? (
         <div className='token_list'>
-          <p className='paragraph01'>Positions are loading...</p>
+           <UnilendLoader width='200px' height='200px' className='logo_loader' />
         </div>
       ) : (
         <div ref={container} className='token_list'>
           {filteredTokenList.length > 0  ? (
-            filteredTokenList.map((Item: Token, i: number) =>
+            filteredTokenList.map((token: Token, i: number) =>
               i < page * 100 ? (
                 <PoolCard
                   key={i}
-                  token={Item}
-                  onClick={() => handleTokensList(Item)}
+                  token={token}
+                  onClick={() => handleTokensList(token)}
                   operation={operation}
                   showPoolData={showPoolData}
                 />

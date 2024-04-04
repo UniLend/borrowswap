@@ -11,7 +11,11 @@ interface Token {
   pairToken: any; //TODO update
   maxLTV: string;
   borrowApy: string;
+  borrowToken?:any;
+  otherToken?:any;
+  pools?:any;
 }
+
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
   REPAY = "Swap_Repay",
@@ -100,7 +104,6 @@ const TokenCard: React.FC<TokenCardProps> = ({
 TokenCard.defaultProps = {
   onClick: (token: Token) => {},
   showPoolData: false,
-  poolData: [],
 };
 
 export default TokenCard;

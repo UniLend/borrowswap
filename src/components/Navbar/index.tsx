@@ -8,7 +8,6 @@ import { FaChevronDown } from "react-icons/fa";
 import { FiCopy } from "react-icons/fi";
 import useWalletHook from "../../api/hooks/useWallet";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { supportedNetworks } from "../../api/networks/networks";
 import { useDisconnect } from "wagmi";
 import { getChainSymbol } from "../../utils";
 import { shortenAddress } from "../../api/utils";
@@ -20,9 +19,6 @@ export default function Navbar() {
   const { address, chainId, isReconnected } = useWalletHook();
   const { disconnect } = useDisconnect();
   const [wrongNetworkModal, setWrongNetworkModal] = useState(false);
-  const availableChain = Object.values(supportedNetworks).map(
-    (net) => net.chainId
-  );
 
   const [visible, setVisible] = useState(false);
   const [isNetworkVisible, setIsNetworkVisible] = useState(false);
@@ -93,11 +89,13 @@ export default function Navbar() {
   });
   const PopoverContent = () => {
     const [copied, setCopied] = useState(false);
-
-    const copyToClipboard = () => {
-      navigator.clipboard.writeText(currentUser);
-      setCopied(true);
-    };
+  
+     const copyToClipboard = () => {
+      if (currentUser) {
+        navigator.clipboard.writeText(currentUser);
+        setCopied(true);
+      }
+  };
 
     return (
       <div className="popover-content">
