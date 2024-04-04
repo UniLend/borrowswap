@@ -10,13 +10,13 @@ import useWalletHook from "../../api/hooks/useWallet";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useDisconnect } from "wagmi";
 import { getChainSymbol } from "../../utils";
-import { shortenAddress } from "../../api/utils";
+import { shortenAddress } from "../../utils";
 import { useSwitchChain } from "wagmi";
 
 export default function Navbar() {
   const { chains, switchChain } = useSwitchChain();
 
-  const { address, chainId, isReconnected } = useWalletHook();
+  const { address, chainId } = useWalletHook()
   const { disconnect } = useDisconnect();
   const [wrongNetworkModal, setWrongNetworkModal] = useState(false);
 
@@ -31,15 +31,6 @@ export default function Navbar() {
     setVisible(newVisible);
   };
 
-  //Handle chain Not availble Modal
-  useEffect(() => {
-    if (chainId && false) {
-      setWrongNetworkModal(true);
-    } else {
-      setWrongNetworkModal(false);
-    }
-    // handleDomain(user);
-  }, [isReconnected]);
 
 
   const WalletModalBody = () => {
@@ -219,6 +210,7 @@ export default function Navbar() {
                             </div>
                           </div>
                         )}
+                        
                       </Popover>
                       <Popover
                         content={<PopoverContent />}
