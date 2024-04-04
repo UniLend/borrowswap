@@ -183,7 +183,7 @@ const getOprationToken = () => {
 const handleQuote = async () => {
   try {
     const value = await getQuote(
-      decimal2Fixed(1, selectedData.borrow.decimals),
+      decimal2Fixed(1, selectedData?.borrow?.decimals),
       // decimal2Fixed(selectedData.borrow.borrowBalanceFixed),
       address,
       selectedData?.borrow?.address,
@@ -231,7 +231,7 @@ useEffect(() => {
 // Handle Recieve Data 
 
 const handleRepayToken = async (poolData: any) => {
-
+console.log("pooolData", poolData)
 const tokenPool = Object.values(poolList).find((pool) => {
   if (
     (pool.pool == poolData.pool )
@@ -263,7 +263,7 @@ console.log("tokenPool", tokenPool);
 // }
 
 
-  if (parseFloat(data.token0.borrowBalanceFixed) > 0) {
+  if (parseFloat(data.token0.borrowBalanceFixed) > 0 && data.token0.address === poolData.borrowToken.id) {
     setSelectedData({
       ...selectedData,
         ["pool"]: poolData,
@@ -273,14 +273,14 @@ console.log("tokenPool", tokenPool);
     });
 }
 
-if (parseFloat(data.token1.borrowBalanceFixed) > 0) {
-  setSelectedData({
-    ...selectedData,
-    ["pool"]: poolData,
-    ["lend"]:null,
-    ["receive"]:data.token0,
-    ["borrow"]:data.token1
-  });
+if (parseFloat(data.token1.borrowBalanceFixed) > 0 && data.token1.address === poolData.borrowToken.id) {
+    setSelectedData({
+      ...selectedData,
+      ["pool"]: poolData,
+      ["lend"]:null,
+      ["receive"]:data.token0,
+      ["borrow"]:data.token1
+    });
 }
 };
 
