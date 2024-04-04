@@ -205,7 +205,7 @@ export default function Navbar() {
                                   style={{ width: 28, height: 28 }}
                                 />
                               )}
-                              <p>{chain.name}</p>
+                              <p> {chain.name} </p>
                               <FaChevronDown />
                             </div>
                           </div>
