@@ -42,9 +42,9 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     token1: "0",
     token2: "0",
   });
-  const [modalMsg, setModalMsg] = useState("");
   const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState("");
+  const [modalMsg, setModalMsg] = useState('');
   const [borrowAmount, setBorrowAmount] = useState(0);
   const [receiveAmount, setReceiveAmount] = useState("");
   const [lendingTokens, setLendingTokens] = useState<Array<any>>([]);
@@ -110,6 +110,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
   };
 
   const handleSelectLendToken = (token: string) => {
+    console.log("mylendToken", token)
     setIsTokenLoading((prevLoading) => ({ ...prevLoading, borrow: true }));
 
     const tokenPools = Object.values(poolList).filter((pool) => {
@@ -117,7 +118,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
         return true;
       }
     });
-
+console.log("tokenPools", tokenPools)
     const borrowTokens = tokenPools.map((pool) => {
       if (pool.token0.address == token) {
         return {
@@ -230,6 +231,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
   }, [lendAmount, selectedTokens?.receive]);
 
   const handleSelectBorrowToken = async (token: string) => {
+    console.log(token)
     setIsTokenLoading({ ...isTokenLoading, pools: true });
     const tokenPool = Object.values(poolList).find((pool) => {
       if (
@@ -239,8 +241,9 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           pool.token1.address == selectedTokens.lend?.address)
       ) {
         return true;
-      }
+      }  
     });
+    console.log("tokenPool", tokenPool);
 
     const contracts =
       contractAddresses[chain?.id as keyof typeof contractAddresses];
@@ -250,6 +253,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       tokenPool,
       address
     );
+    console.log("data", data);
 
     if (data.token0.address == selectedTokens.lend.address) {
       setSelectedTokens({
@@ -389,6 +393,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       });
       setReceiveAmount("");
     } else if (tokenListStatus.operation == "borrow") {
+      console.log(token.address)
       handleSelectBorrowToken(token.address);
       setSelectedTokens({
         ...selectedTokens,
@@ -405,7 +410,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
   };
 
   const handleQuote = async () => {
-    try {
+    try {                                                                                                                                            
       const value = await getQuote(
         decimal2Fixed(1, selectedTokens.borrow.decimals),
         address,

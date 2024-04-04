@@ -83,7 +83,7 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
 AmountContainer.defaultProps = {
   value: "",
   onChange: () => console.log("onChange"),
-  buttonText: "Select Token",
+  buttonText: "Select",
   onClick: () => console.log("onClick"),
   onMaxClick: () => console.log("onMaxClick"),
   balance: "0",

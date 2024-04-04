@@ -1,18 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FiSearch } from "react-icons/fi";
-import TokenCard from "../TokenCard";
+import PoolCard from "../PoolCard";
 import "./index.scss";
 import UnilendLoader from "../../Loader/UnilendLoader";
-
 interface Token {
-  logoURI?: string;
-  logo: string;
-  name: string;
-  symbol: string;
-  pairToken: any; //TODO update
-  maxLTV: string;
-  borrowApy: string;
+  pool:any;
+  borrowToken: any;
+  otherToken: any;
 }
+
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -24,8 +20,10 @@ interface TokenListModalProps {
   onSelectToken: (token: Token) => void;
   operation: ActiveOperation;
   isTokenListLoading?: boolean;
-  showPoolData?: boolean;
-  poolData?: any; // update later
+  showpositionData?: boolean;
+  positionData?: any; // update later
+  pools?: any; 
+  showPoolData?:any;
 }
 
 const TokenListModal: React.FC<TokenListModalProps> = ({
@@ -34,25 +32,55 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
   operation,
   isTokenListLoading,
   showPoolData,
-  poolData,
+  positionData,
+  pools
 }) => {
   // TODO: update typeScript here
-  console.log("tokenList", tokenList)
   const container = useRef<any>(null);
   const [page, setPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const handleTokensList = (token: Token) => {
     onSelectToken(token);
-    setSearchQuery("");
   };
 
-  const filteredTokenList = tokenList.filter(
-    (token) =>
-      token.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      token.symbol.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  let list = [];
+  for (let i = 0; i < positionData.length; i++) {
+    if (positionData[i].borrowBalance0 > 0 && positionData[i].borrowBalance1 > 0) {
+      let temp0 = {
+        borrowToken: positionData[i].pool.token0,
+        otherToken: positionData[i].pool.token1,
+        pool: positionData[i].pool.pool,
+      };
+      list.push(temp0);
+      let temp1 = {
+        borrowToken: positionData[i].pool.token1,
+        otherToken: positionData[i].pool.token0,
+        pool: positionData[i].pool.pool,
+      };
+      list.push(temp1);
+    } else if (positionData[i].borrowBalance0 > 0) {
+      let temp = {
+        borrowToken: positionData[i].pool.token0,
+        otherToken: positionData[i].pool.token1,
+        pool: positionData[i].pool.pool,
+      };
+      list.push(temp);
+    } else if (positionData[i].borrowBalance1 > 0) {
+      let temp = {
+        borrowToken: positionData[i].pool.token1,
+        otherToken: positionData[i].pool.token0,
+        pool: positionData[i].pool.pool,
+      };
+      list.push(temp);
+    }
+  }
+  console.log(list)
 
+  const filteredTokenList = list.filter((token) =>
+    token.borrowToken.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
   useEffect(() => {
     container?.current?.addEventListener("scroll", () => {
       if (
@@ -81,37 +109,24 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
       </div>
       {isTokenListLoading ? (
         <div className='token_list'>
-          <UnilendLoader width='200px' height='200px' className='logo_loader' />
+           <UnilendLoader width='200px' height='200px' className='logo_loader' />
         </div>
       ) : (
         <div ref={container} className='token_list'>
-          {/* {filteredTokenList?.map(
-            (token: Token, i: number) =>
-              i < page * 100 && (
-                <TokenCard
-                  key={i}
-                  token={token}
-                  onClick={() => handleTokensList(token)}
-                  operation={operation}
-                />
-              )
-          )}
-          {filteredTokenList?.length === 0 && <h2>Tokens are not available</h2>} */}
-          {filteredTokenList.length > 0 ? (
+          {filteredTokenList.length > 0  ? (
             filteredTokenList.map((token: Token, i: number) =>
               i < page * 100 ? (
-                <TokenCard
+                <PoolCard
                   key={i}
                   token={token}
                   onClick={() => handleTokensList(token)}
                   operation={operation}
                   showPoolData={showPoolData}
-                  poolData={poolData}
                 />
               ) : null
             )
           ) : (
-            <p className='paragraph01'>Tokens are not available</p>
+            <p className='paragraph01'>No Positions Found!</p>
           )}
         </div>
       )}
@@ -125,8 +140,9 @@ TokenListModal.defaultProps = {
   onSelectToken: (token: Token) => {},
   operation: ActiveOperation.BRROW,
   isTokenListLoading: false,
-  showPoolData: false,
-  poolData: [],
+  showpositionData: false,
+  positionData: [],
+  pools:[]
 };
 
 export default TokenListModal;

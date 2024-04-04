@@ -34,9 +34,13 @@ const TokenCard: React.FC<TokenCardProps> = ({
   const handleTokensList = () => {
     onClick(token);
   };
+  const handlePoolList = () => {
+    onClick(poolData);
+  };
 
   return (
     <>
+
       {operation === ActiveOperation.BRROW ? (
         <div onClick={handleTokensList} className='token_card'>
           <div className='tokens_details'>
@@ -86,8 +90,13 @@ const TokenCard: React.FC<TokenCardProps> = ({
               <img src={token.logo} alt='' />
               <img src={token.logo} alt='' />
             </div>
-            <p className='paragraph06'>Repay: 512.02</p>
+            {/* <p className='paragraph06'>Repay: 512.02</p> */}
           </div>
+
+    
+
+
+
         </div>
       )}
     </>

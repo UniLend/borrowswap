@@ -1,4 +1,4 @@
-import { tokensBYSymbol } from "./tokenDetails";
+import { tokensBYSymbol, chainsBySymbol } from "./tokenDetails";
 
 export function imgError(source: any): boolean {
   source.target.src =
@@ -14,3 +14,12 @@ export function getTokenSymbol(symbol: string): string {
     return "https://e7.pngegg.com/pngimages/407/710/png-clipart-ethereum-cryptocurrency-bitcoin-cash-smart-contract-bitcoin-blue-angle-thumbnail.png";
   }
 }
+
+export function getChainSymbol(symbol: number): string {
+  if (chainsBySymbol[symbol]) {
+    return chainsBySymbol[symbol].logo;
+  } else {
+    return "https://e7.pngegg.com/pngimages/407/710/png-clipart-ethereum-cryptocurrency-bitcoin-cash-smart-contract-bitcoin-blue-angle-thumbnail.png";
+  }
+}
+
