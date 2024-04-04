@@ -6,7 +6,7 @@ import UnilendLoader from "../../Loader/UnilendLoader";
 interface Token {
   pool:any;
   borrowToken: any;
-  otherToken: string;
+  otherToken: any;
 }
 
 
