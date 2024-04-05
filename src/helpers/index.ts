@@ -17,6 +17,33 @@ export const isZeroAddress = (address: any) => {
   }
 };
 
+export const findBorrowToken = (poolList: any, token: any) => {
+  const tokenPools = Object.values(poolList).filter((pool: any) => {
+    if (pool.token0.address == token || pool.token1.address == token) {
+      return true;
+    }
+  });
+
+  const borrowTokens = tokenPools.map((pool: any) => {
+    if (pool.token0.address == token) {
+      return {
+        ...pool.token1,
+        maxLTV: pool.maxLTV,
+        borrowApy: pool.borrowApy0,
+        pairToken: pool.token0,
+      };
+    } else {
+      return {
+        ...pool.token0,
+        maxLTV: pool.maxLTV,
+        borrowApy: pool.borrowApy1,
+        pairToken: pool.token1,
+      };
+    }
+  });
+  return borrowTokens
+}
+
 export function fromReadableAmount(
   amount: number,
   decimals: number
@@ -110,6 +137,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
           openPosiions.length > 0 && checkOpenPosition(openPosiions[0]),
         token0: {
           ...pool.token0,
+          source: 'Unilend',
           address: pool?.token0?.id,
           logo: getTokenLogo(pool.token0.symbol),
           priceUSD: tokenPrice[pool?.token0?.id] * pool.token0.decimals,
@@ -117,6 +145,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
         },
         token1: {
           ...pool.token1,
+          source: 'Unilend',
           address: pool?.token1?.id,
           logo: getTokenLogo(pool.token1.symbol),
           priceUSD: tokenPrice[pool?.token1?.id] * pool.token1.decimals,
@@ -224,22 +253,45 @@ export function getCurrentLTV(selectedToken: any, collateralToken: any) {
   return (Number(prevLTV.toFixed(4)) * 100).toFixed(2);
 }
 
+export const getCompoundCurrentLTV = (borrowBal: string, collteralBal: string , priceRatio: string) => {
+
+  const ltv = Number(borrowBal) > 0 ? Number(borrowBal) / (Number(collteralBal) * Number(priceRatio)): 0 ;
+  
+  return (Number(ltv.toFixed(4)) * 100).toFixed(2);
+}
+
 export const getBorrowAmount = (
   amount: any,
   ltv: any,
   collateralToken: any,
   selectedToken: any
 ) => {
-  const borrowed =
-    Number(amount) *
-    Number(Number(getCurrentLTV(selectedToken, collateralToken)) / 100);
+
 
   const borrowAmount =
     (Number(amount) + Number(collateralToken.lendBalanceFixed)) *
       Number(collateralToken.priceRatio) *
       (ltv / 100) -
     Number(selectedToken.borrowBalanceFixed);
-  console.log("borrowed", borrowed, borrowAmount);
+  console.log("borrowed",  borrowAmount);
+  return borrowAmount > 0 ? borrowAmount : 0;
+};
+
+export const getCompoundBorrowAmount = (
+  amount: any,
+  ltv: any,
+  collateralTokenBalance: any,
+  borrowBalanceFixed: any,
+  priceRatio: any
+) => {
+
+
+  const borrowAmount =
+    ((Number(amount) + (Number(collateralTokenBalance))) *
+      Number(priceRatio)) *
+      (ltv / 100) -
+    Number(borrowBalanceFixed);
+  console.log("borrowed",  borrowAmount);
   return borrowAmount > 0 ? borrowAmount : 0;
 };
 
