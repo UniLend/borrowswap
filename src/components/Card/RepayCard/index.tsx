@@ -8,6 +8,7 @@ import {
 } from "../../../api/contracts/actions";
 import {
   decimal2Fixed,
+  truncateToDecimals,
 } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
 
@@ -274,10 +275,14 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0 && data.token1.address === po
 
   const handleTokenSelection = async(data: any) => {
     console.log("data", data)
-    setSelectedData({
+       setSelectedData({
       ...selectedData,
-      [tokenListStatus.operation]: data,
+      [tokenListStatus.operation]: { ...data, map: true },
     });
+    // setSelectedData({
+    //   ...selectedData,
+    //   [tokenListStatus.operation]: data,
+    // });
 
     if (tokenListStatus.operation == "pool") {
       handleRepayToken(data);
@@ -285,8 +290,13 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0 && data.token1.address === po
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
       // // setBorrowAmount(selectedData.borrow.borrowBalanceFixed);
-      //  const tokenBal = await getAllowance(data, address);
-      // console.log("tokenBal", tokenBal);
+       const tokenBal = await getAllowance(data, address);
+      console.log("tokenBal", tokenBal);
+      setSelectedData({
+        ...selectedData,
+        [tokenListStatus.operation]: { ...data, ...tokenBal },
+      });
+
     } else if (tokenListStatus.operation == "receive") {
       setSelectedData({
         ...selectedData,
@@ -340,7 +350,10 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0 && data.token1.address === po
         </div>
         <p className="paragraph06 label">You Pay</p>
         <AmountContainer
-          balance="125.25"
+          balance={truncateToDecimals(
+            selectedData?.lend?.balanceFixed || 0,
+            4
+          ).toString()}
           value={Number(lendAmount) > 0 ? lendAmount : "0"}
           onChange={(e: any) => handleLendAmount(e.target.value)}
           onMaxClick={() => console.log("Max Clicked")}
