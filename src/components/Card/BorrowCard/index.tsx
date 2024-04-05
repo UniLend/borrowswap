@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Button, Slider, Modal } from "antd";
 import {
   getAllowance,
+  getBorrowTokenData,
   getColleteralTokenData,
   getPoolBasicData,
   getUserProxy,
@@ -16,6 +17,7 @@ import {
   fixed2Decimals,
   getBorrowAmount,
   getButtonAction,
+  getCompoundCurrentLTV,
   getCurrentLTV,
   truncateToDecimals,
 } from "../../../helpers";
@@ -138,7 +140,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     setTokenListStatus({ isOpen: false, operation: "" });
   };
 
-  const handleSelectLendToken = (token: any) => {
+  const handleSelectLendToken = async (token: any) => {
     console.log("mylendToken", token)
     if(token.source == 'Unilend'){
       setIsTokenLoading((prevLoading) => ({ ...prevLoading, borrow: true }));
@@ -149,7 +151,8 @@ export default function BorrowCard({ uniSwapTokens }: any) {
      setIsTokenLoading((prevLoading) => ({ ...prevLoading, borrow: false }));
     } else {
       console.log("compound");
-      const colleteralToken = getColleteralTokenData(token, address)
+      const colleteralToken = await getColleteralTokenData(token, address)
+     
       setSelectedTokens({
         ...selectedTokens,
         ["lend"]: { ...selectedTokens.lend, ...colleteralToken },
@@ -307,9 +310,20 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     setIsTokenLoading({ ...isTokenLoading, pools: false });
   } else {
     console.log("borrow");
-    
+    const borrowedToken = await getBorrowTokenData(token, address)
+    const ltv = getCompoundCurrentLTV(borrowedToken?.BorrowBalanceFixed,  selectedTokens?.lend?.colleteralBalanceFixed, selectedTokens?.lend?.price )
+   setCurrentLTV(ltv)
+    setSelectedTokens({
+      ...selectedTokens,
+      ["borrow"]: { ...selectedTokens.borrow, ...borrowedToken },
+    });
   }
   };
+
+  useEffect(()=>{
+console.log("selectedTokens", selectedTokens);
+
+  }, [selectedTokens])
 
   const getOprationToken = () => {
     if (tokenListStatus.operation === "lend") {
@@ -554,7 +568,7 @@ console.log("tokenOperatrion", [...lendingTokens, ...compoundColleteralTokens]);
           <div>
             <p className='paragraph06 '>New LTV</p>
             <p className='paragraph06'>
-              {selectedLTV}%/{unilendPool?.maxLTV || "75"}%
+              {selectedLTV}%/{unilendPool?.maxLTV || selectedTokens?.lend?.ltv || "75"}%
             </p>
           </div>
           <Slider
@@ -562,7 +576,7 @@ console.log("tokenOperatrion", [...lendingTokens, ...compoundColleteralTokens]);
             defaultValue={50}
             onChange={(value) => handleLTVSlider(value)}
             min={5}
-            max={unilendPool?.maxLTV || 75}
+            max={unilendPool?.maxLTV ||  selectedTokens?.lend?.ltv|| 75}
             className='range_slider'
           />
         </div>

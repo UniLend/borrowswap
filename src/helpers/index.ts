@@ -251,6 +251,13 @@ export function getCurrentLTV(selectedToken: any, collateralToken: any) {
   return (Number(prevLTV.toFixed(4)) * 100).toFixed(2);
 }
 
+export const getCompoundCurrentLTV = (borrowBal: string, collteralBal: string , priceRatio: string) => {
+
+  const ltv = Number(borrowBal) > 0 ? Number(borrowBal) / (Number(collteralBal) * Number(priceRatio)): 0 ;
+  
+  return (Number(ltv.toFixed(4)) * 100).toFixed(2);
+}
+
 export const getBorrowAmount = (
   amount: any,
   ltv: any,
