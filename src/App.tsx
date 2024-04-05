@@ -3,17 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import "./App.scss";
 const Card = lazy(() => import("./components/Card"));
 import Navbar from "./components/Navbar";
-import SwapCard from "./components/SwapCard";
 
 import { fetchGraphQlData, getTokenPrice } from "./api/axios/calls";
 import useWalletHook from "./api/hooks/useWallet";
 import { getPoolCreatedGraphQuery } from "./api/axios/query";
 import { loadPoolsWithGraph } from "./helpers";
-import { connectWallet } from "./api/services/wallet";
 import UnilendLoader from "./components/Loader/UnilendLoader";
 function App() {
   document.body.className = `body dark`;
-  const { address, chain, isConnected } = useWalletHook();
+  const { address, chain } = useWalletHook();
   // const query = getPoolCreatedGraphQuery('0xC6e35522F7847F3D44D1F7D57AFc843A7D679fC5');
   // const { data, isLoading, refetch } = useQuery({
   //   queryKey: ["pools"],

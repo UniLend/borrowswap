@@ -3,7 +3,7 @@ import "./index.scss";
 import { Input, Button } from "antd";
 import ButtonWithDropdown from "../ButtonWithDropdown";
 import { truncateToDecimals } from "../../../helpers";
-
+import {Tooltip} from "antd";
 interface AmountContainerProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -65,9 +65,11 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
         )}
       </div>
       <div className='amount_container_right amount_div'>
+        <Tooltip title={`${truncateToDecimals(Number(balance), 6)}`}> 
         <p className='paragraph06 right'>
           Balance: {truncateToDecimals(Number(balance), 4)}
         </p>
+        </Tooltip>
         <ButtonWithDropdown
           buttonText={buttonText}
           onClick={onClick}

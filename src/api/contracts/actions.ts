@@ -144,6 +144,53 @@ export const handleSwap = async (
     throw error;
   }
 };
+//handle repay borrow
+export const handleRepay = async (
+  lend: any,
+  pool: any,
+  selectedData: any,
+  user: any,
+  amount: any
+) => {
+  try {
+    const chainId = getChainId(wagmiConfig);
+    const controllerAddress =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
+      const instance = await getEtherContract(controllerAddress, controllerABI);
+
+    console.log(
+        "repay",
+      // address _pool,  pool Address 
+      // address _tokenIn, - erc token address
+      // address _borrowedToken, -- borrow token address
+      // int256 _amount, -- repay amount 
+      // uint256 _nftID - position ID
+      selectedData.pool.pool,
+      selectedData.lend.address,
+      selectedData.borrow.address,
+      decimal2Fixed(amount),
+      selectedData.pool.positionId,
+      instance
+    );
+
+    const { hash } = await instance?.repayBorrow(
+      selectedData.pool.pool,
+      selectedData.lend.address,
+      selectedData.borrow.address,
+      decimal2Fixed(amount),
+      selectedData.pool.positionId
+    );
+    console.log("transaction", hash);
+    const receipt = await waitForTransaction(hash);
+    return receipt;
+    return "";
+  } catch (error) {
+    console.log("Error", { error });
+
+    throw error;
+  }
+};
+
 
 export const getAllowance = async (
   token: any,
@@ -175,6 +222,8 @@ export const getAllowance = async (
     throw error;
   }
 };
+
+
 
 export const getPoolData = (poolAddress: string) => {};
 

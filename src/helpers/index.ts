@@ -67,7 +67,7 @@ export const checkOpenPosition = (position: any) => {
 export const loadPoolsWithGraph = async (chain: any, address: any) => {
   if (true) {
     const proxy = await getUserProxy(address);
-    const query = getPoolCreatedGraphQuery('0x4406609618630Db072fa3E27CF5C54A05957beeB');
+    const query = getPoolCreatedGraphQuery(proxy);
 
     const data = await fetchGraphQlData(chain?.id, query);
     const allPositions = data?.positions;

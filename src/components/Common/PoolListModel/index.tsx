@@ -36,6 +36,7 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
   pools
 }) => {
   // TODO: update typeScript here
+  console.log("positionData", positionData)
   const container = useRef<any>(null);
   const [page, setPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -51,12 +52,14 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
         borrowToken: positionData[i].pool.token0,
         otherToken: positionData[i].pool.token1,
         pool: positionData[i].pool.pool,
+        positionId: positionData[i].id
       };
       list.push(temp0);
       let temp1 = {
         borrowToken: positionData[i].pool.token1,
         otherToken: positionData[i].pool.token0,
         pool: positionData[i].pool.pool,
+        positionId: positionData[i].id
       };
       list.push(temp1);
     } else if (positionData[i].borrowBalance0 > 0) {
@@ -64,6 +67,7 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
         borrowToken: positionData[i].pool.token0,
         otherToken: positionData[i].pool.token1,
         pool: positionData[i].pool.pool,
+        positionId: positionData[i].id,
       };
       list.push(temp);
     } else if (positionData[i].borrowBalance1 > 0) {
@@ -71,12 +75,12 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
         borrowToken: positionData[i].pool.token1,
         otherToken: positionData[i].pool.token0,
         pool: positionData[i].pool.pool,
+        positionId: positionData[i].id
       };
       list.push(temp);
     }
   }
-  console.log(list)
-
+  
   const filteredTokenList = list.filter((token) =>
     token.borrowToken.name.toLowerCase().includes(searchQuery.toLowerCase())
   );

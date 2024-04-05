@@ -4,7 +4,7 @@ import {
   getAllowance,
   getPoolBasicData,
   handleApproval,
-  handleSwap,
+  handleRepay,
 } from "../../../api/contracts/actions";
 import {
   decimal2Fixed,
@@ -34,7 +34,7 @@ export default function RepayCard({isLoading, uniSwapTokens }: any) {
     console.log("positions", positions)
   const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState<string>("");
-  const [borrowAmount, setBorrowAmount] = useState(0);
+  const [borrowAmount, setBorrowAmount] = useState("");
   const [receiveAmount, setReceiveAmount] = useState("");
   const [b2rRatio, setb2rRatio] = useState(1);
   const [tokens, setTokens] = useState(uniSwapTokens);
@@ -145,13 +145,13 @@ const getOprationToken = () => {
 
       if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
         setModalMsg('Spend Aprroval for '+ selectedData.lend.symbol)
-        await handleApproval(selectedData?.lend.address, address, lendAmount);
+        await handleApproval(selectedData?.lend?.address, address, lendAmount);
         setOperationProgress(1);
         // console.log("setOperationProgress(1)", operationProgress);
 
         handleRepayTransaction();
-      } else if (Number(borrowAmount) > Number(repayToken.allowanceFixed)) {
-        setModalMsg('Spend Aprroval for '+ selectedData.lend.symbol)
+      } else if (Number(borrowAmount) > Number(borrowToken.allowanceFixed)) {
+        setModalMsg('Spend Aprroval for '+ selectedData.borrow.symbol)
         setOperationProgress(1);
         // console.log("setOperationProgress(11)", operationProgress);
         await handleApproval(
@@ -165,9 +165,15 @@ const getOprationToken = () => {
       } else {
         setModalMsg(selectedData.lend.symbol+'-'+selectedData.borrow.symbol+'-'+selectedData.receive.symbol)
         setOperationProgress(2);
+        console.log('borrowAmount',borrowAmount)
         // console.log("setOperationProgress(22)", operationProgress);
-        const hash = await handleSwap(lendAmount);
-        // console.log("hash", hash);
+       const hash = await handleRepay(
+          lendAmount,
+          unilendPool,
+          selectedData,
+          address,
+          borrowAmount
+        );
         if (hash) {
           setOperationProgress(3);
         }
@@ -178,35 +184,29 @@ const getOprationToken = () => {
   };
 
 
-
 //handle quote for Uniswap
 const handleQuote = async () => {
   try {
-    const value = await getQuote(
-      decimal2Fixed(1, selectedData?.borrow?.decimals),
-      // decimal2Fixed(selectedData.borrow.borrowBalanceFixed),
-      address,
-      selectedData?.borrow?.address,
-      selectedData?.lend?.address,
-      chain?.id
-    );
+    const borrowDecimals = selectedData?.borrow?.decimals;
+    const lendAddress = selectedData?.lend?.address;
+    const borrowAddress = selectedData?.borrow?.address;
+    const chainId = chain?.id;
+
+    const value = await getQuote(decimal2Fixed(1, borrowDecimals), address, borrowAddress, lendAddress, chainId);
+
     if (value?.quoteDecimals) {
-      setb2rRatio(value?.quoteDecimals);
+      setb2rRatio(value.quoteDecimals);
+      const payLendAmount = value.quoteDecimals * (selectedData?.borrow?.borrowBalanceFixed || 0);
+      console.log("pay amount",payLendAmount)
+      setLendAmount(payLendAmount.toString());
     }
-    console.log("ratio", value?.quoteDecimals)
+    
+    setBorrowAmount(selectedData?.borrow?.borrowBalanceFixed || 0);
+    setReceiveAmount((selectedData?.receive?.collateralBalanceFixed || 0) + (selectedData?.receive?.redeemBalanceFixed || 0));
 
-    if (b2rRatio && selectedData?.borrow?.borrowBalanceFixed) {
-      const calculatedLendAmount = b2rRatio * selectedData.borrow.borrowBalanceFixed;
-      setLendAmount(calculatedLendAmount.toString());
-    }
-
-    setReceiveAmount(selectedData.receive.collateralBalanceFixed);
   } catch (error: any) {
     console.error("Error in handleQuote:", error);
-    NotificationMessage(
-      "error",
-      error?.message || "Error occurred in handleQuote"
-    );
+    NotificationMessage("error", error?.message || "Error occurred in handleQuote");
   } finally {
     setIsTokenLoading({ ...isTokenLoading, quotation: false });
   }
@@ -221,6 +221,7 @@ useEffect(() => {
     console.log("quotation loading", isTokenLoading.quotation)
     setReceiveAmount("");
     setLendAmount("");
+    // setRepayAmount("");
     handleQuote();
   }
 }, [selectedData?.lend]);
@@ -240,8 +241,6 @@ const tokenPool = Object.values(poolList).find((pool) => {
   }  
 });
 
-console.log("tokenPool", tokenPool);
-
   const contracts =
     contractAddresses[chain?.id as keyof typeof contractAddresses];
   const data = await getPoolBasicData(
@@ -250,18 +249,6 @@ console.log("tokenPool", tokenPool);
     tokenPool,
     address
   );
-
-  console.log("repay", data)
-//   if (parseFloat(data.token0.borrowBalanceFixed) > 0 && parseFloat(data.token1.borrowBalanceFixed) > 0) {
-//     setSelectedData({
-//       ...selectedData,
-//         ["pool"]: poolData,
-//         ["lend"]:null,
-//       ["receive"]:data.token1,
-//       ["borrow"]:data.token0
-//     });
-// }
-
 
   if (parseFloat(data.token0.borrowBalanceFixed) > 0 && data.token0.address === poolData.borrowToken.id) {
     setSelectedData({
@@ -285,8 +272,8 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0 && data.token1.address === po
 };
 
 
-  const handleTokenSelection = (data: any) => {
-    console.log("handletokendata", data)
+  const handleTokenSelection = async(data: any) => {
+    console.log("data", data)
     setSelectedData({
       ...selectedData,
       [tokenListStatus.operation]: data,
@@ -297,12 +284,14 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0 && data.token1.address === po
       setReceiveAmount("");
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
-        
+      // // setBorrowAmount(selectedData.borrow.borrowBalanceFixed);
+      //  const tokenBal = await getAllowance(data, address);
+      // console.log("tokenBal", tokenBal);
     } else if (tokenListStatus.operation == "receive") {
-        setSelectedData({
-                ...selectedData,
-                ["receive"]: data,
-              });
+      setSelectedData({
+        ...selectedData,
+        ["receive"]: data,
+      });
     }
     setTokenListStatus({ isOpen: false, operation: "" });
   };
@@ -327,7 +316,7 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0 && data.token1.address === po
         setRepayBtn("Select your lend token");
         break;
         case isTokenLoading.quotation:
-          setRepayBtn("Quote data loading");
+          setRepayBtn("Quote data Loading");
           break;
       default:
         setRepayBtn("Repay");
@@ -369,12 +358,12 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0 && data.token1.address === po
           balance={selectedData?.receive?.balanceFixed}
           value={Number(receiveAmount) > 0 ? receiveAmount : "0"}
           onChange={(e: any) => handleReceiveAmount(e.target.value)}
-          onMaxClick={() => setReceiveAmount(selectedData.receive.collateralBalanceFixed)}
+          onMaxClick={() => (selectedData?.receive?.collateralBalanceFixed || 0) + (selectedData?.receive?.redeemBalanceFixed || 0)}
           buttonText={selectedData?.pool?.otherToken?.symbol}
           isShowMaxBtn
            onClick={
             selectedData?.pool !== null
-              ? () => handleOpenTokenList("lend")
+              ? () => handleOpenTokenList("pool")
               : () => {}
           }
           readonly
