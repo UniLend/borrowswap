@@ -8,6 +8,7 @@
   border: 1px solid var(--button-border);
   border-radius: 30px;
   margin: 6px auto;
+
   .token_tab {
     box-sizing: border-box;
     width: 100%;
@@ -54,6 +55,13 @@
       width: 28px;
       height: 14px;
     }
+  }
+}
+
+.disable_btn {
+  .token_tab,
+  .dropdown {
+    cursor: not-allowed !important;
   }
 }
 

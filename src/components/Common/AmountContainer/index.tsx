@@ -16,6 +16,7 @@ interface AmountContainerProps {
   title?: string;
   isTokensLoading?: boolean;
   readonly?: boolean;
+  btnClass?: string;
 }
 
 const AmountContainer: React.FC<AmountContainerProps> = ({
@@ -30,6 +31,7 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
   title,
   isTokensLoading,
   readonly,
+  btnClass,
 }) => {
   const [inputValue, setInputValue] = useState(value);
 
@@ -72,6 +74,7 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
           onClick={onClick}
           title={title}
           isTokensLoading={isTokensLoading}
+          className={btnClass}
         />
       </div>
     </div>
@@ -91,6 +94,7 @@ AmountContainer.defaultProps = {
   title: "",
   isTokensLoading: false,
   readonly: false,
+  btnClass: "",
 };
 
 export default AmountContainer;

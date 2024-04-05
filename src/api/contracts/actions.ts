@@ -80,15 +80,20 @@ export const handleApproval = async (
 
 export const getUserProxy = async (user: any) => {
   try {
-    const chainId = getChainId(wagmiConfig)  
-    const controllerAddress = contractAddresses[chainId as keyof  typeof contractAddresses]?.controller;
-    const instance = await getEtherContract(controllerAddress, controllerABI, false);
-    const proxy = await instance?.proxyAddress(user)
-    if(proxy &&  isZeroAddress(proxy)) {
+    const chainId = getChainId(wagmiConfig);
+    const controllerAddress =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
+    const instance = await getEtherContract(
+      controllerAddress,
+      controllerABI,
+      false
+    );
+    const proxy = await instance?.proxyAddress(user);
+    if (proxy && isZeroAddress(proxy)) {
       return user;
     }
 
-    return proxy ? proxy : user
+    return proxy ? proxy : user;
   } catch (error) {
     return user; //if no proxy just use the users address as
   }
@@ -184,17 +189,16 @@ export const getPoolBasicData = async (
   poolData: any,
   userAddress: any
 ) => {
-
-   console.log("contracts", contracts)
-   console.log("poolAddress", poolAddress)
-   console.log("poolData", poolData)
-   console.log("userAddress", userAddress)
+  console.log("contracts", contracts);
+  console.log("poolAddress", poolAddress);
+  console.log("poolData", poolData);
+  console.log("userAddress", userAddress);
   let pool = { ...poolData };
-  console.log("actionPool", pool)
+  console.log("actionPool", pool);
   if (true) {
     try {
       const proxy = await getUserProxy(userAddress);
-      console.log("proxy", proxy, userAddress)
+      console.log("proxy", proxy, userAddress);
       const instance = await getEtherContract(
         contracts.helperAddress,
         helperAbi
@@ -461,7 +465,7 @@ export const getPoolBasicData = async (
       console.log("poolData", pool);
       return pool;
     } catch (error) {
-      console.error(error);
+      console.error("REPAY_POOLDATA_ERROR", error);
       throw error;
     }
   }
