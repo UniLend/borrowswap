@@ -264,16 +264,32 @@ export const getBorrowAmount = (
   collateralToken: any,
   selectedToken: any
 ) => {
-  const borrowed =
-    Number(amount) *
-    Number(Number(getCurrentLTV(selectedToken, collateralToken)) / 100);
+
 
   const borrowAmount =
     (Number(amount) + Number(collateralToken.lendBalanceFixed)) *
       Number(collateralToken.priceRatio) *
       (ltv / 100) -
     Number(selectedToken.borrowBalanceFixed);
-  console.log("borrowed", borrowed, borrowAmount);
+  console.log("borrowed",  borrowAmount);
+  return borrowAmount > 0 ? borrowAmount : 0;
+};
+
+export const getCompoundBorrowAmount = (
+  amount: any,
+  ltv: any,
+  collateralTokenBalance: any,
+  borrowBalanceFixed: any,
+  priceRatio: any
+) => {
+
+
+  const borrowAmount =
+    ((Number(amount) + (Number(collateralTokenBalance))) *
+      Number(priceRatio)) *
+      (ltv / 100) -
+    Number(borrowBalanceFixed);
+  console.log("borrowed",  borrowAmount);
   return borrowAmount > 0 ? borrowAmount : 0;
 };
 

@@ -522,21 +522,28 @@ export const getBorrowTokenData = async (token: any, address: any) => {
 }
 
 
-export const handleCompoundSwap = async (user: any) => {
+export const handleCompoundSwap = async ( tokenIn: string, borrowAsset: string, tokenOut: string, supplyAmount: string, borrowAmount: string, user: any) => {
   const chainId = getChainId(wagmiConfig);
   const controllerAddress =
     contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
   const instance = await getEtherContract(controllerAddress, controllerABI);
 
-  console.log("instance", instance);
+  console.log("instance", instance, {      tokenIn,
+    borrowAsset,
+    tokenOut,
+    supplyAmount,
+    borrowAmount,
+    user});
   
  const {hash } = await instance?.compoundBorrow(
-      '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
-      '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-      '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
-      '1000000000000000000',
-      '200000000',
+      tokenIn,
+      borrowAsset,
+      tokenOut,
+      supplyAmount,
+      borrowAmount,
       user
     );
+
+   const receipt = await  waitForTransaction(hash);
     return hash
 }
