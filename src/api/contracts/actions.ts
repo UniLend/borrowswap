@@ -1,5 +1,6 @@
 import {
   borrowswapABI,
+  compoundABI,
   controllerABI,
   coreAbi,
   erc20Abi,
@@ -113,17 +114,7 @@ export const handleSwap = async (
       0.1
     ).toString();
 
-    console.log(
-      "pool",
-      instance,
-      pool.pool,
-      selectedTokens.lend.address,
-      selectedTokens.receive.address,
-      selectedTokens.borrow.address,
-      decimal2Fixed(amount),
-      String(decimal2Fixed(borrow, selectedTokens.borrow.decimals)),
-      user
-    );
+
 
     const { hash } = await instance?.uniBorrow(
       pool.pool,
@@ -185,16 +176,13 @@ export const getPoolBasicData = async (
   userAddress: any
 ) => {
 
-   console.log("contracts", contracts)
-   console.log("poolAddress", poolAddress)
-   console.log("poolData", poolData)
-   console.log("userAddress", userAddress)
+
   let pool = { ...poolData };
-  console.log("actionPool", pool)
+
   if (true) {
     try {
       const proxy = await getUserProxy(userAddress);
-      console.log("proxy", proxy, userAddress)
+   
       const instance = await getEtherContract(
         contracts.helperAddress,
         helperAbi
@@ -466,3 +454,77 @@ export const getPoolBasicData = async (
     }
   }
 };
+
+export const getColleteralTokenData = async (token: any, address: any) => {
+  const chainId = getChainId(wagmiConfig);
+  const compoundAddress =
+    contractAddresses[chainId as keyof typeof contractAddresses]?.compound;
+  const comet = await getEtherContract(compoundAddress, compoundABI)
+ 
+  const proxy = await getUserProxy(address);
+  console.log("comp", comet, proxy);
+  const tokenAddress = token?.address
+
+  const assetInfo = await comet?.getAssetInfoByAddress(tokenAddress)
+  const colleteralBal = await comet?.userCollateral( proxy, tokenAddress)
+  const Bal = await comet?.balanceOf( proxy)
+  const quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
+   const price = await comet?.getPrice( assetInfo.priceFeed)
+  const info = {
+    ...token,
+    ltv: fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor))*100,
+    collateralBalance: fromBigNumber(colleteralBal.balance),
+    price: Number(fromBigNumber(price)) / 10**6,
+    bal: fromBigNumber(Bal),
+    quote: fixed2Decimals(fromBigNumber(quote))
+  }
+  console.log("getColleteralTokenData", info, price, Bal,  colleteralBal);
+  return info
+}
+
+export const getBorrowTokenData = async (token: any, address: any) => {
+  const chainId = getChainId(wagmiConfig);
+  const compoundAddress =
+    contractAddresses[chainId as keyof typeof contractAddresses]?.compound;
+  const comet = await getEtherContract(compoundAddress, compoundABI)
+ 
+  const proxy = await getUserProxy(address);
+  console.log("comp", comet, proxy);
+  const tokenAddress = token?.address
+
+  const assetInfo = await comet?.getAssetInfoByAddress(tokenAddress)
+  const BorrowBal = await comet?.borrowBalanceOf(proxy)
+  const Bal = await comet?.balanceOf( proxy)
+  const quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
+   const price = await comet?.getPrice( assetInfo.priceFeed)
+  const info = {
+    ...token,
+    ltv: fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor))*100,
+    BorrowBal: fromBigNumber(BorrowBal),
+    price: Number(fromBigNumber(price)) / 10**6,
+    bal: fromBigNumber(Bal),
+    quote: fixed2Decimals(fromBigNumber(quote))
+  }
+  console.log("getBorrowTokenData", info, price, Bal,  BorrowBal);
+  return info
+}
+
+
+export const handleCompoundSwap = async (user: any) => {
+  const chainId = getChainId(wagmiConfig);
+  const controllerAddress =
+    contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
+  const instance = await getEtherContract(controllerAddress, controllerABI);
+
+  console.log("instance", instance);
+  
+ const {hash } = await instance?.compoundBorrow(
+      '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+      '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+      '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+      '1000000000000000000',
+      '200000000',
+      user
+    );
+    return hash
+}

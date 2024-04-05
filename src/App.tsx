@@ -9,7 +9,6 @@ import { fetchGraphQlData, getTokenPrice } from "./api/axios/calls";
 import useWalletHook from "./api/hooks/useWallet";
 import { getPoolCreatedGraphQuery } from "./api/axios/query";
 import { loadPoolsWithGraph } from "./helpers";
-import { connectWallet } from "./api/services/wallet";
 import UnilendLoader from "./components/Loader/UnilendLoader";
 function App() {
   document.body.className = `body dark`;
