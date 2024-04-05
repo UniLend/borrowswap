@@ -46,7 +46,7 @@ const TokenCard: React.FC<TokenCardProps> = ({
       {operation === ActiveOperation.BRROW ? (
         <div onClick={handleTokensList} className='token_card'>
           <div className='tokens_details'>
-            <img src={getTokenLogo(token.symbol)} alt='' />
+            <img src={ token.logoURI || token.logo || getTokenLogo(token.symbol)} alt='' />
             <div>
               <div className='token_pool_logo'>
                 <h3>{token.symbol}</h3>

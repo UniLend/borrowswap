@@ -17,6 +17,33 @@ export const isZeroAddress = (address: any) => {
   }
 }
 
+export const findBorrowToken = (poolList: any, token: any) => {
+  const tokenPools = Object.values(poolList).filter((pool: any) => {
+    if (pool.token0.address == token || pool.token1.address == token) {
+      return true;
+    }
+  });
+
+  const borrowTokens = tokenPools.map((pool: any) => {
+    if (pool.token0.address == token) {
+      return {
+        ...pool.token1,
+        maxLTV: pool.maxLTV,
+        borrowApy: pool.borrowApy0,
+        pairToken: pool.token0,
+      };
+    } else {
+      return {
+        ...pool.token0,
+        maxLTV: pool.maxLTV,
+        borrowApy: pool.borrowApy1,
+        pairToken: pool.token1,
+      };
+    }
+  });
+  return borrowTokens
+}
+
 export function fromReadableAmount(
   amount: number,
   decimals: number
@@ -108,6 +135,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
           openPosiions.length > 0 && checkOpenPosition(openPosiions[0]),
         token0: {
           ...pool.token0,
+          source: 'Unilend',
           address: pool?.token0?.id,
           logo: getTokenLogo(pool.token0.symbol),
           priceUSD: tokenPrice[pool?.token0?.id] * pool.token0.decimals,
@@ -115,6 +143,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
         },
         token1: {
           ...pool.token1,
+          source: 'Unilend',
           address: pool?.token1?.id,
           logo: getTokenLogo(pool.token1.symbol),
           priceUSD: tokenPrice[pool?.token1?.id] * pool.token1.decimals,

@@ -2,14 +2,17 @@ import React, { useEffect, useState } from "react";
 import { Button, Slider, Modal } from "antd";
 import {
   getAllowance,
+  getColleteralTokenData,
   getPoolBasicData,
   getUserProxy,
   handleApproval,
+  handleCompoundSwap,
   handleSwap,
 } from "../../../api/contracts/actions";
 import {
   debounce,
   decimal2Fixed,
+  findBorrowToken,
   fixed2Decimals,
   getBorrowAmount,
   getButtonAction,
@@ -41,7 +44,24 @@ const compoundColleteralTokens = [{
   name: 'wrap eth',
   decimals: 18,
   source: 'Compound',
-  logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
+  // logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
+},
+{
+  address: '0x0000000000000000000000000000000000000000',
+  symbol: 'MATIC',
+  name: 'Matic',
+  decimals: 18,
+  source: 'Compound',
+  // logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
+}
+]
+
+const baseTokens = [{
+  address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+  symbol:'USDC',
+  name:'USDC',
+  decimals: 6,
+  source: 'Compound'
 }]
 
 export default function BorrowCard({ uniSwapTokens }: any) {
@@ -118,36 +138,25 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     setTokenListStatus({ isOpen: false, operation: "" });
   };
 
-  const handleSelectLendToken = (token: string) => {
+  const handleSelectLendToken = (token: any) => {
     console.log("mylendToken", token)
-    setIsTokenLoading((prevLoading) => ({ ...prevLoading, borrow: true }));
+    if(token.source == 'Unilend'){
+      setIsTokenLoading((prevLoading) => ({ ...prevLoading, borrow: true }));
 
-    const tokenPools = Object.values(poolList).filter((pool) => {
-      if (pool.token0.address == token || pool.token1.address == token) {
-        return true;
-      }
-    });
-console.log("tokenPools", tokenPools)
-    const borrowTokens = tokenPools.map((pool) => {
-      if (pool.token0.address == token) {
-        return {
-          ...pool.token1,
-          maxLTV: pool.maxLTV,
-          borrowApy: pool.borrowApy0,
-          pairToken: pool.token0,
-        };
-      } else {
-        return {
-          ...pool.token0,
-          maxLTV: pool.maxLTV,
-          borrowApy: pool.borrowApy1,
-          pairToken: pool.token1,
-        };
-      }
-    });
-
-    setBorrowingTokens(borrowTokens);
-    setIsTokenLoading((prevLoading) => ({ ...prevLoading, borrow: false }));
+      const borrowTokens = findBorrowToken(poolList, token?.address)
+ 
+     setBorrowingTokens(borrowTokens);
+     setIsTokenLoading((prevLoading) => ({ ...prevLoading, borrow: false }));
+    } else {
+      console.log("compound");
+      const colleteralToken = getColleteralTokenData(token, address)
+      setSelectedTokens({
+        ...selectedTokens,
+        ["lend"]: { ...selectedTokens.lend, ...colleteralToken },
+       
+      })
+    }
+   
   };
 
   const handleLTV = (value: number) => {
@@ -165,7 +174,7 @@ console.log("tokenPools", tokenPools)
 
     const borrowAmount = getBorrowAmount(
       lendAmount,
-      currentLTV ? value - Number(currentLTV) : value,
+       value,
       selectedTokens.lend,
       selectedTokens.borrow
     );
@@ -204,6 +213,10 @@ console.log("tokenPools", tokenPools)
   };
 
   useEffect(() => {
+    if(address){
+      //handleCompoundSwap(address)
+    }
+    
     checkLiquidity(lendAmount);
   }, [lendAmount, b2rRatio]);
 
@@ -239,14 +252,17 @@ console.log("tokenPools", tokenPools)
     }
   }, [lendAmount, selectedTokens?.receive]);
 
-  const handleSelectBorrowToken = async (token: string) => {
-    console.log(token)
+  const handleSelectBorrowToken = async (token: any) => {
+   
+    console.log("source", token);
+    
+    if(token.source == 'Unilend'){
     setIsTokenLoading({ ...isTokenLoading, pools: true });
     const tokenPool = Object.values(poolList).find((pool) => {
       if (
-        (pool.token1.address == token &&
+        (pool.token1.address == token.address &&
           pool.token0.address == selectedTokens.lend?.address) ||
-        (pool.token0.address == token &&
+        (pool.token0.address == token.address &&
           pool.token1.address == selectedTokens.lend?.address)
       ) {
         return true;
@@ -289,6 +305,10 @@ console.log("tokenPools", tokenPools)
     console.log("POOL_DATA", data);
     setUnilendPool(data);
     setIsTokenLoading({ ...isTokenLoading, pools: false });
+  } else {
+    console.log("borrow");
+    
+  }
   };
 
   const getOprationToken = () => {
@@ -297,7 +317,7 @@ console.log("tokenOperatrion", [...lendingTokens, ...compoundColleteralTokens]);
 
       return  [...lendingTokens, ...compoundColleteralTokens];
     } else if (tokenListStatus.operation === "borrow") {
-      return borrowingTokens;
+      return [...borrowingTokens,...baseTokens];
     } else if (tokenListStatus.operation === "receive") {
       // TODO: return receive tokens dynamically
       //   return receiveToken;
@@ -311,19 +331,21 @@ console.log("tokenOperatrion", [...lendingTokens, ...compoundColleteralTokens]);
     try {
       const lendToken = await getAllowance(selectedTokens?.lend, address);
       const borrowToken = await getAllowance(selectedTokens?.borrow, address);
+      console.log("allowance", lendToken, borrowToken);
+      
       setIsBorrowProgressModal(true);
       if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
         setModalMsg("Spend Aprroval for " + selectedTokens.lend.symbol);
         await handleApproval(selectedTokens?.lend.address, address, lendAmount);
 
         handleSwapTransaction();
-      } else if (Number(borrowAmount) > Number(borrowToken.allowanceFixed)) {
+      } else if (Number(10) > Number(borrowToken.allowanceFixed)) {
         setOperationProgress(1);
         setModalMsg("Spend Aprroval for " + selectedTokens.borrow.symbol);
         await handleApproval(
           selectedTokens?.borrow.address,
           address,
-          borrowAmount
+          10
         );
 
         handleSwapTransaction();
@@ -334,15 +356,16 @@ console.log("tokenOperatrion", [...lendingTokens, ...compoundColleteralTokens]);
             "-" +
             selectedTokens.borrow.symbol +
             "-" +
-            selectedTokens.receive.symbol
+            selectedTokens?.receive?.symbol
         );
-        const hash = await handleSwap(
-          lendAmount,
-          unilendPool,
-          selectedTokens,
-          address,
-          borrowAmount
-        );
+        // const hash = await handleSwap(
+        //   lendAmount,
+        //   unilendPool,
+        //   selectedTokens,
+        //   address,
+        //   borrowAmount
+        // );
+        const hash = await handleCompoundSwap(address)
         console.log("hash", hash);
 
         if (hash) {
@@ -396,7 +419,7 @@ console.log("tokenOperatrion", [...lendingTokens, ...compoundColleteralTokens]);
     });
 
     if (tokenListStatus.operation == "lend") {
-      handleSelectLendToken(token.address);
+      handleSelectLendToken(token);
       setSelectedTokens({
         [tokenListStatus.operation]: { ...token, ...tokenBal },
         ["borrow"]: null,
@@ -405,7 +428,7 @@ console.log("tokenOperatrion", [...lendingTokens, ...compoundColleteralTokens]);
       setReceiveAmount("");
     } else if (tokenListStatus.operation == "borrow") {
       console.log(token.address)
-      handleSelectBorrowToken(token.address);
+      handleSelectBorrowToken(token);
       setSelectedTokens({
         ...selectedTokens,
         [tokenListStatus.operation]: { ...token, ...tokenBal },
@@ -545,7 +568,7 @@ console.log("tokenOperatrion", [...lendingTokens, ...compoundColleteralTokens]);
         </div>
         <Button
           // disabled={borrowBtn.text !== "Borrow"}
-          disabled={borrowBtn.disable}
+          //disabled={borrowBtn.disable}
           className='primary_btn'
           onClick={handleSwapTransaction}
           title='please slect you pay token'
