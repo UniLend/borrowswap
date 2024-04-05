@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button, Slider, Modal } from "antd";
 import {
   getAllowance,
@@ -17,6 +17,7 @@ import {
   fixed2Decimals,
   getBorrowAmount,
   getButtonAction,
+  getCompoundBorrowAmount,
   getCompoundCurrentLTV,
   getCurrentLTV,
   truncateToDecimals,
@@ -91,6 +92,8 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     borrow: null,
     receive: null,
   });
+  const selectedTokensRef = useRef(selectedTokens)
+  selectedTokensRef.current = selectedTokens
   const [selectedLTV, setSelectedLTV] = useState<number>(5);
   const [unilendPool, setUnilendPool] = useState(null as any | null);
 
@@ -150,12 +153,14 @@ export default function BorrowCard({ uniSwapTokens }: any) {
      setBorrowingTokens(borrowTokens);
      setIsTokenLoading((prevLoading) => ({ ...prevLoading, borrow: false }));
     } else {
-      console.log("compound");
+  
       const colleteralToken = await getColleteralTokenData(token, address)
      
+      console.log("compound", selectedTokensRef?.current?.lend, selectedTokens.lend, colleteralToken, { ...selectedTokens.lend, ...colleteralToken });
+      
       setSelectedTokens({
         ...selectedTokens,
-        ["lend"]: { ...selectedTokens.lend, ...colleteralToken },
+        ["lend"]: { ...selectedTokensRef?.current?.lend, ...colleteralToken },
        
       })
     }
@@ -174,13 +179,19 @@ export default function BorrowCard({ uniSwapTokens }: any) {
 
   const handleLTVSlider = (value: number) => {
     setSelectedLTV(value);
-
-    const borrowAmount = getBorrowAmount(
-      lendAmount,
-       value,
-      selectedTokens.lend,
-      selectedTokens.borrow
-    );
+    // const borrowAmount = getBorrowAmount(
+    //   lendAmount,
+    //    value,
+    //   selectedTokens.lend,
+    //   selectedTokens.borrow
+    // );
+    const borrowAmount = getCompoundBorrowAmount(
+     lendAmount,
+     value,
+     selectedTokens.lend.colleteralBalanceFixed,
+     selectedTokens.borrow.BorrowBalanceFixed,
+     selectedTokens.lend.price
+    )
     setBorrowAmount(borrowAmount);
 
     if (selectedTokens?.receive) {
@@ -379,7 +390,14 @@ console.log("tokenOperatrion", [...lendingTokens, ...compoundColleteralTokens]);
         //   address,
         //   borrowAmount
         // );
-        const hash = await handleCompoundSwap(address)
+        const hash = await handleCompoundSwap(
+          selectedTokens.lend.address,
+          selectedTokens.borrow.address,
+          selectedTokens.receive.address,
+          decimal2Fixed(lendAmount, selectedTokens.lend.decimals),
+          decimal2Fixed(borrowAmount, selectedTokens.borrow.decimals),
+          address
+        );
         console.log("hash", hash);
 
         if (hash) {
