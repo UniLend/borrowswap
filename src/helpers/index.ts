@@ -18,8 +18,11 @@ export const isZeroAddress = (address: any) => {
 };
 
 export const findBorrowToken = (poolList: any, token: any) => {
+         console.log("tokenPools", poolList)
   const tokenPools = Object.values(poolList).filter((pool: any) => {
+
     if (pool.token0.address == token || pool.token1.address == token) {
+          console.log("tokenPools", token)
       return true;
     }
   });

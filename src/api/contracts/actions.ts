@@ -184,6 +184,51 @@ export const handleRepay = async (
   }
 };
 
+export const handleCompoundRepay = async (
+  lend: any,
+  pool: any,
+  selectedData: any,
+  user: any,
+  amount: any
+) => {
+  try {
+    const chainId = getChainId(wagmiConfig);
+    const controllerAddress =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
+      const instance = await getEtherContract(controllerAddress, controllerABI);
+
+    console.log(
+        "repay",
+      // address _pool,  pool Address 
+      // address _tokenIn, - erc token address
+      // address _borrowedToken, -- borrow token address
+      // int256 _amount, -- pay amount 
+      // uint256 _nftID - position ID
+      selectedData.lend.address,
+      selectedData.borrow.address,
+      decimal2Fixed(lend),
+      selectedData.pool.positionId,
+      instance
+    );
+
+    const { hash } = await instance?.repayBorrow(
+      selectedData.pool.pool,
+      selectedData.lend.address,
+      selectedData.borrow.address,
+      decimal2Fixed(lend),
+      selectedData.pool.positionId
+    );
+    console.log("transaction", hash);
+    const receipt = await waitForTransaction(hash);
+    return receipt;
+    return "";
+  } catch (error) {
+    console.log("Error", { error });
+
+    throw error;
+  }
+};
+
 
 export const getAllowance = async (
   token: any,
