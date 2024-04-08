@@ -107,14 +107,20 @@ export default function RepayCard({ uniSwapTokens }: any) {
   function arraysEqual(a: any, b: any) {
     return JSON.stringify(a) === JSON.stringify(b);
   }
-
 const borrowToken = baseTokens;
 
 const borrow = () => {
   return new Promise((resolve, reject) => {
     getBorrowTokenData(borrowToken, address)
       .then((data) => {
-        resolve(data);
+        const result = {
+          pool:{
+          token0: baseTokens[0],
+          token1: compoundColleteralTokens[0]
+          }
+        
+        };
+        resolve({...data, ...result});
       })
       .catch((error) => {
         reject(error);
@@ -125,6 +131,7 @@ const borrow = () => {
 borrow().then((borrowTokens) => {
   console.log('borrowTokens', borrowTokens);
 });
+
 
 
   //select data state
