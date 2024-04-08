@@ -160,20 +160,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       setBorrowingTokens(borrowTokens);
       setIsTokenLoading((prevLoading) => ({ ...prevLoading, borrow: false }));
     } else {
-      const colleteralToken = await getColleteralTokenData(token, address);
 
-      console.log(
-        "compound",
-        selectedTokensRef?.current?.lend,
-        selectedTokens.lend,
-        colleteralToken,
-        { ...selectedTokens.lend, ...colleteralToken }
-      );
-
-      setSelectedTokens({
-        ...selectedTokens,
-        ["lend"]: { ...selectedTokensRef?.current?.lend, ...colleteralToken },
-      });
     }
   };
 
@@ -298,15 +285,18 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       setIsTokenLoading({ ...isTokenLoading, pools: false });
     } else {
       console.log("borrow");
+      const colleteralToken = await getColleteralTokenData(selectedTokensRef?.current?.lend, address);
+
       const borrowedToken = await getBorrowTokenData(token, address);
       const ltv = getCompoundCurrentLTV(
         borrowedToken?.BorrowBalanceFixed,
-        selectedTokens?.lend?.colleteralBalanceFixed,
-        selectedTokens?.lend?.price
+        colleteralToken?.colleteralBalanceFixed,
+        colleteralToken?.price
       );
       setCurrentLTV(ltv);
       setSelectedTokens({
         ...selectedTokens,
+        ["lend"]: { ...selectedTokensRef?.current?.lend, ...colleteralToken },
         ["borrow"]: { ...selectedTokens.borrow, ...borrowedToken },
       });
     }
@@ -443,6 +433,9 @@ export default function BorrowCard({ uniSwapTokens }: any) {
         ...selectedTokens,
         [tokenListStatus.operation]: { ...token, ...tokenBal },
       });
+      setIsTokenLoading({ ...isTokenLoading, rangeSlider: true });
+      setReceiveAmount("");
+      handleQuote();
     }
   
   };
@@ -450,10 +443,10 @@ export default function BorrowCard({ uniSwapTokens }: any) {
   const handleQuote = async () => {
     try {
       const value = await getQuote(
-        decimal2Fixed(1, selectedTokens.borrow.decimals),
+        decimal2Fixed(1, selectedTokensRef.current.borrow.decimals),
         address,
-        selectedTokens.borrow.address,
-        selectedTokens.receive.address,
+        selectedTokensRef.current.borrow.address,
+        selectedTokensRef.current.receive.address,
         chain?.id == 16153 ? 137 : chain?.id
       );
       if (value?.quoteDecimals) {
@@ -472,13 +465,6 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     }
   };
 
-  useEffect(() => {
-    if (selectedTokens?.receive && !tokenListStatus.isOpen) {
-      setIsTokenLoading({ ...isTokenLoading, rangeSlider: true });
-      setReceiveAmount("");
-      handleQuote();
-    }
-  }, [selectedTokens]);
 
   useEffect(() => {
     if (selectedTokens.receive !== null && !isTokenLoading.rangeSlider) {
