@@ -6,6 +6,7 @@ import {
   handleApproval,
   handleRepay,
   handleCompoundRepay,
+  getBorrowTokenData
 } from "../../../api/contracts/actions";
 import {
   decimal2Fixed,
@@ -46,6 +47,7 @@ const compoundColleteralTokens = [
 
 
 const baseTokens = [
+
   {
     address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
     symbol: "USDC",
@@ -65,9 +67,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
   // console.log("PoolList", poolList);
 
 
-  // const borrowToken = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'
-  //  const positions = findBorrowToken(poolList, borrowToken);
-  // console.log('borrowTokens', positions )
+ 
 
   const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState<string>("");
@@ -107,6 +107,25 @@ export default function RepayCard({ uniSwapTokens }: any) {
   function arraysEqual(a: any, b: any) {
     return JSON.stringify(a) === JSON.stringify(b);
   }
+
+const borrowToken = baseTokens;
+
+const borrow = () => {
+  return new Promise((resolve, reject) => {
+    getBorrowTokenData(borrowToken, address)
+      .then((data) => {
+        resolve(data);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};
+
+borrow().then((borrowTokens) => {
+  console.log('borrowTokens', borrowTokens);
+});
+
 
   //select data state
   const [selectedData, setSelectedData] = useState<any>({
