@@ -472,7 +472,7 @@ export const getColleteralTokenData = async (token: any, address: any) => {
   const price = await comet?.getPrice(assetInfo.priceFeed);
   const info = {
     ...token,
-    ltv: fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor)) * 100,
+    ltv: (fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor)) * 100 ) - 0.5,
     collateralBalance: fromBigNumber(colleteralBal.balance),
     colleteralBalanceFixed: fixed2Decimals(
       fromBigNumber(colleteralBal.balance),
