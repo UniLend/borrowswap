@@ -6,9 +6,7 @@ import {
   handleApproval,
   handleSwap,
 } from "../../../api/contracts/actions";
-import {
-  decimal2Fixed,
-} from "../../../helpers";
+import { decimal2Fixed, getRepayBtnActions } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
 
 import { useSelector } from "react-redux";
@@ -28,10 +26,10 @@ enum ActiveOperation {
   REPAY = "Swap_Repay",
 }
 
-export default function RepayCard({isLoading, uniSwapTokens }: any) {
+export default function RepayCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList, positions } = unilendV2Data;
-    console.log("positions", positions)
+  console.log("positions", positions);
   const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState<string>("");
   const [borrowAmount, setBorrowAmount] = useState(0);
@@ -39,46 +37,47 @@ export default function RepayCard({isLoading, uniSwapTokens }: any) {
   const [b2rRatio, setb2rRatio] = useState(1);
   const [tokens, setTokens] = useState(uniSwapTokens);
   const [isBorrowProgressModal, setIsBorrowProgressModal] =
-  useState<boolean>(false);
+    useState<boolean>(false);
   const [pools, setPools] = useState<Array<any>>([]);
   const [repayToken, setRepayToken] = useState<Array<any>>([]);
-  const [modalMsg, setModalMsg] = useState('');
-//sorted Specific tokens acording to our choice
+  const [modalMsg, setModalMsg] = useState("");
+  const [quoteError, setQuoteError] = useState<boolean>(false);
+  //sorted Specific tokens acording to our choice
   const sortedToken = ["USDT", "USDC", "WETH"];
   useEffect(() => {
-      const customSort = (a:any, b:any) => {
-          const aIndex = sortedToken.indexOf(a.symbol);
-          const bIndex = sortedToken.indexOf(b.symbol);
-  
-          if (aIndex !== -1 && bIndex !== -1) {
-              return aIndex - bIndex;
-          } else if (aIndex !== -1) {
-              return -1;
-          } else if (bIndex !== -1) {
-              return 1;
-          } else {
-              return a.symbol.localeCompare(b.symbol);
-          }
-      };
-  
-      const sortedTokens = [...tokens].sort(customSort);
-      if (!arraysEqual(sortedTokens, tokens)) {
-          setTokens(sortedTokens);
+    const customSort = (a: any, b: any) => {
+      const aIndex = sortedToken.indexOf(a.symbol);
+      const bIndex = sortedToken.indexOf(b.symbol);
+
+      if (aIndex !== -1 && bIndex !== -1) {
+        return aIndex - bIndex;
+      } else if (aIndex !== -1) {
+        return -1;
+      } else if (bIndex !== -1) {
+        return 1;
+      } else {
+        return a.symbol.localeCompare(b.symbol);
       }
+    };
+
+    const sortedTokens = [...tokens].sort(customSort);
+    if (!arraysEqual(sortedTokens, tokens)) {
+      setTokens(sortedTokens);
+    }
   }, [tokens, sortedToken]);
-  function arraysEqual(a:any, b:any) {
-      return JSON.stringify(a) === JSON.stringify(b);
+  function arraysEqual(a: any, b: any) {
+    return JSON.stringify(a) === JSON.stringify(b);
   }
-  
-  //select data state 
+
+  //select data state
   const [selectedData, setSelectedData] = useState<any>({
     pool: null,
     lend: null,
     receive: null,
-    borrow:null
+    borrow: null,
   });
 
-  console.log('selectedData', selectedData) 
+  console.log("selectedData", selectedData);
 
   //open  diffrent modal dynamically
   const [tokenListStatus, setTokenListStatus] = useState({
@@ -87,16 +86,16 @@ export default function RepayCard({isLoading, uniSwapTokens }: any) {
   });
 
   const [isTokenLoading, setIsTokenLoading] = useState({
+    positions: true,
     pool: false,
     lend: false,
     receive: false,
-    quotation:false
+    quotation: false,
   });
   const [unilendPool, setUnilendPool] = useState(null as any | null);
 
-
   // TODO: add enum for below state;
-  const [repayBtn, setRepayBtn] = useState("Select you pay token");
+  // const [repayBtn, setRepayBtn] = useState("Select you pay token");
 
   const [operationProgress, setOperationProgress] = useState(0);
 
@@ -115,24 +114,32 @@ export default function RepayCard({isLoading, uniSwapTokens }: any) {
   useEffect(() => {
     const poolsArray = Object.values(poolList);
     setPools(poolsArray);
+    if (Object.keys(unilendV2Data.poolList).length > 0) {
+      setIsTokenLoading({ ...isTokenLoading, positions: false });
+    }
   }, [unilendV2Data]);
 
-const getOprationToken = () => {
-  if (tokenListStatus.operation === "pool") {
-    return positions;
-  } else if (tokenListStatus.operation === "lend") {
-    return tokens;
-  } else if (tokenListStatus.operation === "receive") {
-    return;
-  } else {
-    return [];
-  }
-};
+  const repayButton = getRepayBtnActions(
+    selectedData,
+    isTokenLoading,
+    quoteError
+  );
+
+  const getOprationToken = () => {
+    if (tokenListStatus.operation === "pool") {
+      return positions;
+    } else if (tokenListStatus.operation === "lend") {
+      return tokens;
+    } else if (tokenListStatus.operation === "receive") {
+      return;
+    } else {
+      return [];
+    }
+  };
 
   const handleCloseTokenList = () => {
     setTokenListStatus({ isOpen: false, operation: "" });
   };
-
 
   //handle Repay transaction function
   const handleRepayTransaction = async () => {
@@ -144,14 +151,14 @@ const getOprationToken = () => {
       console.log("handleRepayTransaction", lendToken, borrowToken);
 
       if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
-        setModalMsg('Spend Aprroval for '+ selectedData.lend.symbol)
+        setModalMsg("Spend Aprroval for " + selectedData.lend.symbol);
         await handleApproval(selectedData?.lend.address, address, lendAmount);
         setOperationProgress(1);
         // console.log("setOperationProgress(1)", operationProgress);
 
         handleRepayTransaction();
       } else if (Number(borrowAmount) > Number(repayToken.allowanceFixed)) {
-        setModalMsg('Spend Aprroval for '+ selectedData.lend.symbol)
+        setModalMsg("Spend Aprroval for " + selectedData.lend.symbol);
         setOperationProgress(1);
         // console.log("setOperationProgress(11)", operationProgress);
         await handleApproval(
@@ -163,7 +170,13 @@ const getOprationToken = () => {
         // console.log("setOperationProgress(2)", operationProgress);
         handleRepayTransaction();
       } else {
-        setModalMsg(selectedData.lend.symbol+'-'+selectedData.borrow.symbol+'-'+selectedData.receive.symbol)
+        setModalMsg(
+          selectedData.lend.symbol +
+            "-" +
+            selectedData.borrow.symbol +
+            "-" +
+            selectedData.receive.symbol
+        );
         setOperationProgress(2);
         // console.log("setOperationProgress(22)", operationProgress);
         const hash = await handleSwap(lendAmount);
@@ -177,116 +190,118 @@ const getOprationToken = () => {
     }
   };
 
+  //handle quote for Uniswap
+  const handleQuote = async () => {
+    try {
+      const value = await getQuote(
+        decimal2Fixed(1, selectedData?.borrow?.decimals),
+        address,
+        selectedData?.borrow?.address,
+        selectedData?.lend?.address,
+        chain?.id
+      );
+      if (value?.quoteDecimals) {
+        setb2rRatio(value?.quoteDecimals);
+      }
+      console.log("ratio", value?.quoteDecimals);
 
+      if (b2rRatio && selectedData?.borrow?.borrowBalanceFixed) {
+        const calculatedLendAmount =
+          b2rRatio * selectedData.borrow.borrowBalanceFixed;
+        setLendAmount(calculatedLendAmount.toString());
+      }
 
-//handle quote for Uniswap
-const handleQuote = async () => {
-  try {
-    const value = await getQuote(
-      decimal2Fixed(1, selectedData?.borrow?.decimals),
-      // decimal2Fixed(selectedData.borrow.borrowBalanceFixed),
-      address,
-      selectedData?.borrow?.address,
-      selectedData?.lend?.address,
-      chain?.id
-    );
-    if (value?.quoteDecimals) {
-      setb2rRatio(value?.quoteDecimals);
+      setReceiveAmount(selectedData.receive.collateralBalanceFixed);
+      setQuoteError(false);
+    } catch (error: any) {
+      console.error("Error in handleQuote:", error);
+      setQuoteError(true);
+      NotificationMessage(
+        "error",
+        // error?.message || "Error occurred in handleQuote"
+        `Swap is not available for ${selectedData?.lend?.symbol}, please select different pay token.`
+      );
+    } finally {
+      setIsTokenLoading({ ...isTokenLoading, quotation: false });
     }
-    console.log("ratio", value?.quoteDecimals)
+  };
 
-    if (b2rRatio && selectedData?.borrow?.borrowBalanceFixed) {
-      const calculatedLendAmount = b2rRatio * selectedData.borrow.borrowBalanceFixed;
-      setLendAmount(calculatedLendAmount.toString());
+  // Loading Quote Data based on lend State
+  useEffect(() => {
+    if (selectedData?.pool && selectedData?.lend && !tokenListStatus.isOpen) {
+      setIsTokenLoading({ ...isTokenLoading, quotation: true });
+      console.log("quotation loading", isTokenLoading.quotation);
+      setReceiveAmount("");
+      setLendAmount("");
+      handleQuote();
     }
+  }, [selectedData?.lend]);
 
-    setReceiveAmount(selectedData.receive.collateralBalanceFixed);
-  } catch (error: any) {
-    console.error("Error in handleQuote:", error);
-    NotificationMessage(
-      "error",
-      error?.message || "Error occurred in handleQuote"
+  // Handle Recieve Data
+
+  const handleRepayToken = async (poolData: any) => {
+    setIsTokenLoading({ ...isTokenLoading, pool: true });
+    console.log("pooolData", poolData);
+    const tokenPool = Object.values(poolList).find((pool) => {
+      if (pool.pool == poolData.pool) {
+        return true;
+      }
+    });
+
+    console.log("tokenPool", tokenPool);
+
+    const contracts =
+      contractAddresses[chain?.id as keyof typeof contractAddresses];
+    const data = await getPoolBasicData(
+      contracts,
+      tokenPool.pool,
+      tokenPool,
+      address
     );
-  } finally {
-    setIsTokenLoading({ ...isTokenLoading, quotation: false });
-  }
-};
 
+    console.log("repay", data);
+    //   if (parseFloat(data.token0.borrowBalanceFixed) > 0 && parseFloat(data.token1.borrowBalanceFixed) > 0) {
+    //     setSelectedData({
+    //       ...selectedData,
+    //         ["pool"]: poolData,
+    //         ["lend"]:null,
+    //       ["receive"]:data.token1,
+    //       ["borrow"]:data.token0
+    //     });
+    // }
 
-
-// Loading Quote Data based on lend State
-useEffect(() => {
-  if (selectedData?.pool && selectedData?.lend  && !tokenListStatus.isOpen) {
-    setIsTokenLoading({ ...isTokenLoading, quotation: true });
-    console.log("quotation loading", isTokenLoading.quotation)
-    setReceiveAmount("");
-    setLendAmount("");
-    handleQuote();
-  }
-}, [selectedData?.lend]);
-
-
-
-
-// Handle Recieve Data 
-
-const handleRepayToken = async (poolData: any) => {
-console.log("pooolData", poolData)
-const tokenPool = Object.values(poolList).find((pool) => {
-  if (
-    (pool.pool == poolData.pool )
-  ) {
-    return true;
-  }  
-});
-
-console.log("tokenPool", tokenPool);
-
-  const contracts =
-    contractAddresses[chain?.id as keyof typeof contractAddresses];
-  const data = await getPoolBasicData(
-    contracts,
-    tokenPool.pool,
-    tokenPool,
-    address
-  );
-
-  console.log("repay", data)
-//   if (parseFloat(data.token0.borrowBalanceFixed) > 0 && parseFloat(data.token1.borrowBalanceFixed) > 0) {
-//     setSelectedData({
-//       ...selectedData,
-//         ["pool"]: poolData,
-//         ["lend"]:null,
-//       ["receive"]:data.token1,
-//       ["borrow"]:data.token0
-//     });
-// }
-
-
-  if (parseFloat(data.token0.borrowBalanceFixed) > 0 && data.token0.address === poolData.borrowToken.id) {
-    setSelectedData({
-      ...selectedData,
+    if (
+      parseFloat(data.token0.borrowBalanceFixed) > 0 &&
+      data.token0.address === poolData.borrowToken.id
+    ) {
+      console.log("IS_DATA_SET1");
+      setSelectedData({
+        ...selectedData,
         ["pool"]: poolData,
-        ["lend"]:null,
-      ["receive"]:data.token1,
-      ["borrow"]:data.token0
-    });
-}
+        ["lend"]: null,
+        ["receive"]: data.token1,
+        ["borrow"]: data.token0,
+      });
+    }
 
-if (parseFloat(data.token1.borrowBalanceFixed) > 0 && data.token1.address === poolData.borrowToken.id) {
-    setSelectedData({
-      ...selectedData,
-      ["pool"]: poolData,
-      ["lend"]:null,
-      ["receive"]:data.token0,
-      ["borrow"]:data.token1
-    });
-}
-};
+    if (
+      parseFloat(data.token1.borrowBalanceFixed) > 0 &&
+      data.token1.address === poolData.borrowToken.id
+    ) {
+      console.log("IS_DATA_SET2");
+      setSelectedData({
+        ...selectedData,
+        ["pool"]: poolData,
+        ["lend"]: null,
+        ["receive"]: data.token0,
+        ["borrow"]: data.token1,
+      });
+    }
+    setIsTokenLoading({ ...isTokenLoading, pool: false });
+  };
 
-
-  const handleTokenSelection = (data: any) => {
-    console.log("handletokendata", data)
+  const handleTokenSelection = async (data: any) => {
+    console.log("handletokendata", data);
     setSelectedData({
       ...selectedData,
       [tokenListStatus.operation]: data,
@@ -297,12 +312,11 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0 && data.token1.address === po
       setReceiveAmount("");
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
-        
     } else if (tokenListStatus.operation == "receive") {
-        setSelectedData({
-                ...selectedData,
-                ["receive"]: data,
-              });
+      setSelectedData({
+        ...selectedData,
+        ["receive"]: data,
+      });
     }
     setTokenListStatus({ isOpen: false, operation: "" });
   };
@@ -316,29 +330,11 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0 && data.token1.address === po
     checkLoading(isTokenLoading);
   }, [isTokenLoading]);
 
-  //  Button states
-  useEffect(() => {
-    const { pool, lend } = selectedData;
-    switch (true) {
-      case pool === null:
-        setRepayBtn("Select your Position");
-        break;
-      case lend === null:
-        setRepayBtn("Select your lend token");
-        break;
-        case isTokenLoading.quotation:
-          setRepayBtn("Quote data loading");
-          break;
-      default:
-        setRepayBtn("Repay");
-    }
-  }, [selectedData, isTokenLoading]);
-
   return (
     <>
-      <div className="repay_container">
-        <div className="swap_route">
-          <p className="paragraph06 ">Select Positions</p>
+      <div className='repay_container'>
+        <div className='swap_route'>
+          <p className='paragraph06 '>Select Positions</p>
           <ButtonWithDropdown
             buttonText={
               selectedData.pool
@@ -346,12 +342,12 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0 && data.token1.address === po
                 : "Select"
             }
             onClick={() => handleOpenTokenList("pool")}
-            className="transparent_btn"
+            className='transparent_btn'
           />
         </div>
-        <p className="paragraph06 label">You Pay</p>
+        <p className='paragraph06 label'>You Pay</p>
         <AmountContainer
-          balance="125.25"
+          balance='125.25'
           value={Number(lendAmount) > 0 ? lendAmount : "0"}
           onChange={(e: any) => handleLendAmount(e.target.value)}
           onMaxClick={() => console.log("Max Clicked")}
@@ -364,36 +360,35 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0 && data.token1.address === po
           // onClick={ () => handleOpenTokenList("lend")
           readonly
         />
-        <p className="paragraph06 label">You Receive</p>
+        <p className='paragraph06 label'>You Receive</p>
         <AmountContainer
           balance={selectedData?.receive?.balanceFixed}
           value={Number(receiveAmount) > 0 ? receiveAmount : "0"}
           onChange={(e: any) => handleReceiveAmount(e.target.value)}
-          onMaxClick={() => setReceiveAmount(selectedData.receive.collateralBalanceFixed)}
+          onMaxClick={() =>
+            setReceiveAmount(selectedData.receive.collateralBalanceFixed)
+          }
           buttonText={selectedData?.pool?.otherToken?.symbol}
           isShowMaxBtn
-           onClick={
-            selectedData?.pool !== null
-              ? () => handleOpenTokenList("lend")
-              : () => {}
-          }
+          onClick={() => {}}
           readonly
+          btnClass='disable_btn'
         />
 
         <Button
-          disabled={repayBtn !== "Repay"}
-          className="primary_btn"
+          disabled={repayButton.disable}
+          className='primary_btn'
           onClick={handleRepayTransaction}
-          title="please slect you pay token"
+          title='please slect you pay token'
           loading={isTokenLoading.pool || isTokenLoading.quotation}
         >
-          {repayBtn}
+          {repayButton.text}
         </Button>
       </div>
 
       {tokenListStatus.operation == "pool" ? (
         <Modal
-          className="antd_modal_overlay"
+          className='antd_modal_overlay'
           centered
           onCancel={handleCloseTokenList}
           open={tokenListStatus.isOpen}
@@ -405,19 +400,20 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0 && data.token1.address === po
             onSelectToken={(token: any) => handleTokenSelection(token)}
             operation={ActiveOperation.REPAY}
             // tokenListOperation={tokenListStatus.operation}
-            isTokenListLoading={isLoading}
+            isTokenListLoading={isTokenLoading.positions}
             showPoolData={true}
             positionData={Object.values(positions).filter(
-              (item) => item.borrowBalance0 !== 0 || item.token1.borrowBalance1 !== 0
-          )}
-          pools ={pools}
+              (item) =>
+                item.borrowBalance0 !== 0 || item.token1.borrowBalance1 !== 0
+            )}
+            pools={pools}
             // selectedData={selectedData} // Pass selectedData to PoolListModal
           />
         </Modal>
       ) : tokenListStatus.operation == "lend" ||
         tokenListStatus.operation == "receive" ? (
         <Modal
-          className="antd_modal_overlay"
+          className='antd_modal_overlay'
           centered
           onCancel={handleCloseTokenList}
           open={tokenListStatus.isOpen}
@@ -429,7 +425,7 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0 && data.token1.address === po
             onSelectToken={(token: any) => handleTokenSelection(token)}
             operation={ActiveOperation.REPAY}
             // tokenListOperation={tokenListStatus.operation}
-            isTokenListLoading={isLoading}
+            isTokenListLoading={isTokenLoading.positions} // TODO
             showPoolData={false}
             // selectedData={selectedData} // Pass selectedTokens to TokenListModal
           />
@@ -437,18 +433,14 @@ if (parseFloat(data.token1.borrowBalanceFixed) > 0 && data.token1.address === po
       ) : null}
 
       <Modal
-        className="antd_popover_content"
+        className='antd_popover_content'
         centered
         onCancel={() => setIsBorrowProgressModal(false)}
         open={isBorrowProgressModal}
         footer={null}
         closable={false}
       >
-       
-        <BorrowLoader
-          msg={modalMsg}
-          progress={operationProgress}
-        />
+        <BorrowLoader msg={modalMsg} progress={operationProgress} />
       </Modal>
     </>
   );

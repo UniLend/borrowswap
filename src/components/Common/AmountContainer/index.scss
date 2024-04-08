@@ -39,6 +39,10 @@
       &::placeholder {
         color: var(--light-gray);
       }
+      &:read-only {
+        color: var(--light-gray);
+        cursor: not-allowed;
+      }
     }
 
     .max_btn {

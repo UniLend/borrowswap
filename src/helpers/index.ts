@@ -10,12 +10,12 @@ import { getUserProxy } from "../api/contracts/actions";
 const READABLE_FORM_LEN = 4;
 
 export const isZeroAddress = (address: any) => {
-  if(address == '0x0000000000000000000000000000000000000000'){
-    return true
+  if (address == "0x0000000000000000000000000000000000000000") {
+    return true;
   } else {
-    return false
+    return false;
   }
-}
+};
 
 export const findBorrowToken = (poolList: any, token: any) => {
   const tokenPools = Object.values(poolList).filter((pool: any) => {
@@ -94,11 +94,13 @@ export const checkOpenPosition = (position: any) => {
 export const loadPoolsWithGraph = async (chain: any, address: any) => {
   if (true) {
     const proxy = await getUserProxy(address);
-    const query = getPoolCreatedGraphQuery('0x4406609618630Db072fa3E27CF5C54A05957beeB');
+    const query = getPoolCreatedGraphQuery(
+      "0xD5b26AC46d2F43F4d82889f4C7BBc975564859e3"
+    );
 
     const data = await fetchGraphQlData(chain?.id, query);
     const allPositions = data?.positions;
-    console.log('allPositions', allPositions)
+    console.log("allPositions", allPositions);
     const poolData: any = {};
     const tokenList: any = {};
 
@@ -114,7 +116,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
       const poolInfo = {
         ...pool,
         poolAddress: pool?.pool,
-        
+
         totalLiquidity:
           fixed2Decimals(pool.liquidity0, pool.token0.decimals) *
             tokenPrice[pool?.token0?.id] +
@@ -153,7 +155,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
       tokenList[String(pool.token0.id).toUpperCase()] = {
         ...pool.token0,
         address: pool?.token0?.id,
-        source: 'Unilend',
+        source: "Unilend",
         logo: getTokenLogo(pool.token0.symbol),
         priceUSD: tokenPrice[pool?.token0?.id] * pool.token0.decimals,
         pricePerToken: tokenPrice[pool?.token0?.id],
@@ -161,7 +163,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
       tokenList[String(pool.token1.id).toUpperCase()] = {
         ...pool.token1,
         address: pool?.token1?.id,
-        source: 'Unilend',
+        source: "Unilend",
         logo: getTokenLogo(pool.token1.symbol),
         priceUSD: tokenPrice[pool?.token1?.id] * pool.token1.decimals,
         pricePerToken: tokenPrice[pool?.token1?.id],
@@ -351,10 +353,10 @@ export function debounce(func: Function, delay: number) {
 export const getButtonAction = (
   selectedTokens: any,
   lendAmount: string,
-  receiveAmount: string,
   isTokenLoading: any,
   quoteError: boolean,
-  isLowLiquidity: boolean
+  isLowLiquidity: boolean,
+  isLowBal: boolean
 ) => {
   let btn = {
     text: "Borrow",
@@ -365,25 +367,52 @@ export const getButtonAction = (
 
   if (lend === null) {
     btn.text = "Select pay token";
-  } else if (borrow === null) {
-    btn.text = "Select borrow token";
   } else if (isTokenLoading.pools === true) {
     btn.text = "Pools are loading";
-  } else if (receive === null) {
-    btn.text = "Select receive token";
   } else if (isTokenLoading.rangeSlider) {
     btn.text = "Quote data loading";
+  } else if (isLowBal) {
+    btn.text = "Low balance";
+  } else if (borrow === null) {
+    btn.text = "Select borrow token";
+  } else if (receive === null) {
+    btn.text = "Select receive token";
   } else if (quoteError) {
     btn.text = "Swap not available";
   } else if (isLowLiquidity) {
     btn.text = "Low liquidity";
   } else if (lendAmount === "" || +lendAmount == 0) {
     btn.text = "Enter pay token value";
-  } else if (receiveAmount === "" || +receiveAmount == 0) {
-    btn.text = "Increase LTV";
   }
 
   btn.disable = !!(btn.text !== "Borrow");
 
+  return btn;
+};
+
+export const getRepayBtnActions = (
+  selectedData: any,
+  isTokenLoading: any,
+  quoteError: boolean
+) => {
+  let btn = {
+    text: "Repay",
+    disable: false,
+  };
+  const { pool, lend } = selectedData;
+  const { quotation } = isTokenLoading;
+  if (pool == null) {
+    btn.text = "Select your Position";
+  } else if (isTokenLoading.pool) {
+    btn.text = "Pools are loading";
+  } else if (lend === null) {
+    btn.text = "Select your lend token";
+  } else if (quotation) {
+    btn.text = "Quote data loading";
+  } else if (quoteError) {
+    btn.text = "Swap not available";
+  }
+
+  btn.disable = !!(btn.text !== "Repay");
   return btn;
 };

@@ -12,7 +12,7 @@ interface Token {
   pairToken: any; //TODO update
   maxLTV: string;
   borrowApy: string;
-  source: string
+  source: string;
 }
 
 enum ActiveOperation {
@@ -38,7 +38,6 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
   poolData,
 }) => {
   // TODO: update typeScript here
-
   const container = useRef<any>(null);
   const [page, setPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
