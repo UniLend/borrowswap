@@ -163,12 +163,11 @@ export const handleRepay = async (
       // address _pool,  pool Address 
       // address _tokenIn, - erc token address
       // address _borrowedToken, -- borrow token address
-      // int256 _amount, -- repay amount 
+      // int256 _amount, -- pay amount 
       // uint256 _nftID - position ID
-      selectedData.pool.pool,
       selectedData.lend.address,
       selectedData.borrow.address,
-      decimal2Fixed(amount),
+      decimal2Fixed(lend),
       selectedData.pool.positionId,
       instance
     );
@@ -177,7 +176,7 @@ export const handleRepay = async (
       selectedData.pool.pool,
       selectedData.lend.address,
       selectedData.borrow.address,
-      decimal2Fixed(amount),
+      decimal2Fixed(lend),
       selectedData.pool.positionId
     );
     console.log("transaction", hash);
