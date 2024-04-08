@@ -41,8 +41,8 @@ export const findBorrowToken = (poolList: any, token: any) => {
       };
     }
   });
-  return borrowTokens
-}
+  return borrowTokens;
+};
 
 export function fromReadableAmount(
   amount: number,
@@ -137,7 +137,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
           openPosiions.length > 0 && checkOpenPosition(openPosiions[0]),
         token0: {
           ...pool.token0,
-          source: 'Unilend',
+          source: "Unilend",
           address: pool?.token0?.id,
           logo: getTokenLogo(pool.token0.symbol),
           priceUSD: tokenPrice[pool?.token0?.id] * pool.token0.decimals,
@@ -145,7 +145,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
         },
         token1: {
           ...pool.token1,
-          source: 'Unilend',
+          source: "Unilend",
           address: pool?.token1?.id,
           logo: getTokenLogo(pool.token1.symbol),
           priceUSD: tokenPrice[pool?.token1?.id] * pool.token1.decimals,
@@ -253,12 +253,18 @@ export function getCurrentLTV(selectedToken: any, collateralToken: any) {
   return (Number(prevLTV.toFixed(4)) * 100).toFixed(2);
 }
 
-export const getCompoundCurrentLTV = (borrowBal: string, collteralBal: string , priceRatio: string) => {
+export const getCompoundCurrentLTV = (
+  borrowBal: string,
+  collteralBal: string,
+  priceRatio: string
+) => {
+  const ltv =
+    Number(borrowBal) > 0
+      ? Number(borrowBal) / (Number(collteralBal) * Number(priceRatio))
+      : 0;
 
-  const ltv = Number(borrowBal) > 0 ? Number(borrowBal) / (Number(collteralBal) * Number(priceRatio)): 0 ;
-  
   return (Number(ltv.toFixed(4)) * 100).toFixed(2);
-}
+};
 
 export const getBorrowAmount = (
   amount: any,
@@ -266,14 +272,12 @@ export const getBorrowAmount = (
   collateralToken: any,
   selectedToken: any
 ) => {
-
-
   const borrowAmount =
     (Number(amount) + Number(collateralToken.lendBalanceFixed)) *
       Number(collateralToken.priceRatio) *
       (ltv / 100) -
     Number(selectedToken.borrowBalanceFixed);
-  console.log("borrowed",  borrowAmount);
+  console.log("borrowed", borrowAmount);
   return borrowAmount > 0 ? borrowAmount : 0;
 };
 
@@ -284,14 +288,12 @@ export const getCompoundBorrowAmount = (
   borrowBalanceFixed: any,
   priceRatio: any
 ) => {
-
-
   const borrowAmount =
-    ((Number(amount) + (Number(collateralTokenBalance))) *
-      Number(priceRatio)) *
+    (Number(amount) + Number(collateralTokenBalance)) *
+      Number(priceRatio) *
       (ltv / 100) -
     Number(borrowBalanceFixed);
-  console.log("borrowed",  borrowAmount);
+  console.log("borrowed", borrowAmount);
   return borrowAmount > 0 ? borrowAmount : 0;
 };
 
@@ -364,7 +366,6 @@ export const getButtonAction = (
   };
 
   const { lend, borrow, receive } = selectedTokens;
-
   if (lend === null) {
     btn.text = "Select pay token";
   } else if (isTokenLoading.pools === true) {
@@ -382,7 +383,9 @@ export const getButtonAction = (
   } else if (isLowLiquidity) {
     btn.text = "Low liquidity";
   } else if (lendAmount === "" || +lendAmount == 0) {
-    btn.text = "Enter pay token value";
+    if (lend.collateralBalanceFixed === 0) {
+      btn.text = "Enter pay token value";
+    }
   }
 
   btn.disable = !!(btn.text !== "Borrow");
