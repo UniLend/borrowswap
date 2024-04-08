@@ -233,7 +233,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       //handleCompoundSwap(address)
     }
 
-    checkLiquidity(lendAmount);
+    //checkLiquidity(lendAmount);
   }, [lendAmount, selectedLTV]);
 
   useEffect(() => {
@@ -418,7 +418,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       ...selectedTokens,
       [tokenListStatus.operation]: { ...token, map: true },
     });
-
+    setTokenListStatus({ isOpen: false, operation: "" });
     const tokenBal = await getAllowance(token, address);
 
     if (tokenListStatus.operation == "lend") {
@@ -444,7 +444,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
         [tokenListStatus.operation]: { ...token, ...tokenBal },
       });
     }
-    setTokenListStatus({ isOpen: false, operation: "" });
+  
   };
 
   const handleQuote = async () => {
@@ -500,7 +500,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       <div className='borrow_container'>
         <p className='paragraph06 label'>You Pay</p>
         <AmountContainer
-          balance={truncateToDecimals(
+           balance={truncateToDecimals(
             selectedTokens?.lend?.balanceFixed || 0,
             4
           ).toString()}
@@ -548,7 +548,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
               ? "please select you borrow token"
               : ""
           }
-          readonly
+   
           //   isTokensLoading={isTokenLoading.pools}
         />
         <div className='range_container'>
