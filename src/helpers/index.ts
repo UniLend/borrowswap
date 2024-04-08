@@ -3,18 +3,45 @@ import BigNumber from "bignumber.js";
 import { fetchGraphQlData, getTokenPrice } from "../api/axios/calls";
 import { store } from "../states/store";
 import { setPools, setTokens, setPositions } from "../states/unilendV2Reducer";
-import { getTokenSymbol } from "../utils";
+import { getTokenLogo } from "../utils";
 import { getPoolCreatedGraphQuery } from "../api/axios/query";
 import { getUserProxy } from "../api/contracts/actions";
 
 const READABLE_FORM_LEN = 4;
 
 export const isZeroAddress = (address: any) => {
-  if(address == '0x0000000000000000000000000000000000000000'){
-    return true
+  if (address == "0x0000000000000000000000000000000000000000") {
+    return true;
   } else {
-    return false
+    return false;
   }
+};
+
+export const findBorrowToken = (poolList: any, token: any) => {
+  const tokenPools = Object.values(poolList).filter((pool: any) => {
+    if (pool.token0.address == token || pool.token1.address == token) {
+      return true;
+    }
+  });
+
+  const borrowTokens = tokenPools.map((pool: any) => {
+    if (pool.token0.address == token) {
+      return {
+        ...pool.token1,
+        maxLTV: pool.maxLTV,
+        borrowApy: pool.borrowApy0,
+        pairToken: pool.token0,
+      };
+    } else {
+      return {
+        ...pool.token0,
+        maxLTV: pool.maxLTV,
+        borrowApy: pool.borrowApy1,
+        pairToken: pool.token1,
+      };
+    }
+  });
+  return borrowTokens
 }
 
 export function fromReadableAmount(
@@ -68,10 +95,9 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
   if (true) {
     const proxy = await getUserProxy(address);
     const query = getPoolCreatedGraphQuery(proxy);
-
     const data = await fetchGraphQlData(chain?.id, query);
     const allPositions = data?.positions;
-    console.log('allPositions', allPositions)
+    console.log("allPositions", allPositions);
     const poolData: any = {};
     const tokenList: any = {};
 
@@ -87,7 +113,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
       const poolInfo = {
         ...pool,
         poolAddress: pool?.pool,
-        
+
         totalLiquidity:
           fixed2Decimals(pool.liquidity0, pool.token0.decimals) *
             tokenPrice[pool?.token0?.id] +
@@ -108,15 +134,17 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
           openPosiions.length > 0 && checkOpenPosition(openPosiions[0]),
         token0: {
           ...pool.token0,
+          source: 'Unilend',
           address: pool?.token0?.id,
-          logo: getTokenSymbol(pool.token0.symbol),
+          logo: getTokenLogo(pool.token0.symbol),
           priceUSD: tokenPrice[pool?.token0?.id] * pool.token0.decimals,
           pricePerToken: tokenPrice[pool?.token0?.id],
         },
         token1: {
           ...pool.token1,
+          source: 'Unilend',
           address: pool?.token1?.id,
-          logo: getTokenSymbol(pool.token1.symbol),
+          logo: getTokenLogo(pool.token1.symbol),
           priceUSD: tokenPrice[pool?.token1?.id] * pool.token1.decimals,
           pricePerToken: tokenPrice[pool?.token1?.id],
         },
@@ -124,14 +152,16 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
       tokenList[String(pool.token0.id).toUpperCase()] = {
         ...pool.token0,
         address: pool?.token0?.id,
-        logo: getTokenSymbol(pool.token0.symbol),
+        source: "Unilend",
+        logo: getTokenLogo(pool.token0.symbol),
         priceUSD: tokenPrice[pool?.token0?.id] * pool.token0.decimals,
         pricePerToken: tokenPrice[pool?.token0?.id],
       };
       tokenList[String(pool.token1.id).toUpperCase()] = {
         ...pool.token1,
         address: pool?.token1?.id,
-        logo: getTokenSymbol(pool.token1.symbol),
+        source: "Unilend",
+        logo: getTokenLogo(pool.token1.symbol),
         priceUSD: tokenPrice[pool?.token1?.id] * pool.token1.decimals,
         pricePerToken: tokenPrice[pool?.token1?.id],
       };
@@ -220,22 +250,45 @@ export function getCurrentLTV(selectedToken: any, collateralToken: any) {
   return (Number(prevLTV.toFixed(4)) * 100).toFixed(2);
 }
 
+export const getCompoundCurrentLTV = (borrowBal: string, collteralBal: string , priceRatio: string) => {
+
+  const ltv = Number(borrowBal) > 0 ? Number(borrowBal) / (Number(collteralBal) * Number(priceRatio)): 0 ;
+  
+  return (Number(ltv.toFixed(4)) * 100).toFixed(2);
+}
+
 export const getBorrowAmount = (
   amount: any,
   ltv: any,
   collateralToken: any,
   selectedToken: any
 ) => {
-  const borrowed =
-    Number(amount) *
-    Number(Number(getCurrentLTV(selectedToken, collateralToken)) / 100);
+
 
   const borrowAmount =
     (Number(amount) + Number(collateralToken.lendBalanceFixed)) *
       Number(collateralToken.priceRatio) *
       (ltv / 100) -
     Number(selectedToken.borrowBalanceFixed);
-  console.log("borrowed", borrowed, borrowAmount);
+  console.log("borrowed",  borrowAmount);
+  return borrowAmount > 0 ? borrowAmount : 0;
+};
+
+export const getCompoundBorrowAmount = (
+  amount: any,
+  ltv: any,
+  collateralTokenBalance: any,
+  borrowBalanceFixed: any,
+  priceRatio: any
+) => {
+
+
+  const borrowAmount =
+    ((Number(amount) + (Number(collateralTokenBalance))) *
+      Number(priceRatio)) *
+      (ltv / 100) -
+    Number(borrowBalanceFixed);
+  console.log("borrowed",  borrowAmount);
   return borrowAmount > 0 ? borrowAmount : 0;
 };
 
@@ -297,10 +350,10 @@ export function debounce(func: Function, delay: number) {
 export const getButtonAction = (
   selectedTokens: any,
   lendAmount: string,
-  receiveAmount: string,
   isTokenLoading: any,
   quoteError: boolean,
-  isLowLiquidity: boolean
+  isLowLiquidity: boolean,
+  isLowBal: boolean
 ) => {
   let btn = {
     text: "Borrow",
@@ -311,25 +364,52 @@ export const getButtonAction = (
 
   if (lend === null) {
     btn.text = "Select pay token";
-  } else if (borrow === null) {
-    btn.text = "Select borrow token";
   } else if (isTokenLoading.pools === true) {
     btn.text = "Pools are loading";
-  } else if (receive === null) {
-    btn.text = "Select receive token";
   } else if (isTokenLoading.rangeSlider) {
     btn.text = "Quote data loading";
+  } else if (isLowBal) {
+    btn.text = "Low balance";
+  } else if (borrow === null) {
+    btn.text = "Select borrow token";
+  } else if (receive === null) {
+    btn.text = "Select receive token";
   } else if (quoteError) {
     btn.text = "Swap not available";
   } else if (isLowLiquidity) {
     btn.text = "Low liquidity";
   } else if (lendAmount === "" || +lendAmount == 0) {
     btn.text = "Enter pay token value";
-  } else if (receiveAmount === "" || +receiveAmount == 0) {
-    btn.text = "Increase LTV";
   }
 
   btn.disable = !!(btn.text !== "Borrow");
 
+  return btn;
+};
+
+export const getRepayBtnActions = (
+  selectedData: any,
+  isTokenLoading: any,
+  quoteError: boolean
+) => {
+  let btn = {
+    text: "Repay",
+    disable: false,
+  };
+  const { pool, lend } = selectedData;
+  const { quotation } = isTokenLoading;
+  if (pool == null) {
+    btn.text = "Select your Position";
+  } else if (isTokenLoading.pool) {
+    btn.text = "Pools are loading";
+  } else if (lend === null) {
+    btn.text = "Select your lend token";
+  } else if (quotation) {
+    btn.text = "Quote data loading";
+  } else if (quoteError) {
+    btn.text = "Swap not available";
+  }
+
+  btn.disable = !!(btn.text !== "Repay");
   return btn;
 };

@@ -11,7 +11,7 @@ export function imgError(source: any): boolean {
   return true;
 }
 
-export function getTokenSymbol(symbol: string): string {
+export function getTokenLogo(symbol: string): string {
   if (tokensBYSymbol[symbol]) {
     return tokensBYSymbol[symbol].logo;
   } else {

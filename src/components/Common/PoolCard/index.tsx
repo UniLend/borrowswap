@@ -1,7 +1,7 @@
 import React from "react";
 import "./index.scss";
 import { truncateToDecimals } from "../../../helpers";
-import { getTokenSymbol } from "../../../utils";
+import { getTokenLogo } from "../../../utils";
 
 interface Token {
   logoURI?: string;
@@ -77,7 +77,7 @@ const TokenCard: React.FC<TokenCardProps> = ({
       ) : (
         <div onClick={handleTokensList} className="token_card">
             <div className="tokens_details">
-              <img src={getTokenSymbol(token.borrowToken.symbol)} alt="" />
+              <img src={getTokenLogo(token.borrowToken.symbol)} alt="" />
               <div>
                 <div className="token_pool_logo">
                   <h3>{token.borrowToken.symbol}</h3>
@@ -89,8 +89,8 @@ const TokenCard: React.FC<TokenCardProps> = ({
             </div>
             <div className="pool_details">
                <div>
-               <img className="token_over" src={getTokenSymbol(token.borrowToken.symbol)} alt="" />
-                 <img src={getTokenSymbol(token.otherToken.symbol)} alt="" />
+               <img className="token_over" src={getTokenLogo(token.borrowToken.symbol)} alt="" />
+                 <img src={getTokenLogo(token.otherToken.symbol)} alt="" />
                </div>
                <p className="paragraph06">unilend</p>
              </div>
