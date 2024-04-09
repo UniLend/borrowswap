@@ -113,11 +113,7 @@ export const handleSwap = async (
       contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
     const instance = await getEtherContract(controllerAddress, controllerABI);
 
-    const borrowAmount = (
-      Number(decimal2Fixed(1000000000000000)) *
-      2.6 *
-      0.1
-    ).toString();
+    const borrowAmount = selectedTokens.borrow.token == 1? String(decimal2Fixed(borrow, selectedTokens.borrow.decimals)): String(decimal2Fixed(-borrow, selectedTokens.borrow.decimals))
 
     // '0x784c4a12f82204e5fb713b055de5e8008d5916b6',
     // '0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a',
@@ -127,24 +123,21 @@ export const handleSwap = async (
     // '200000000000000',
     // owner.address
 
+    console.log("handleswap", selectedTokens, borrowAmount);
+    
     const { hash } = await instance?.uniBorrow(
       pool.pool,
       selectedTokens.lend.address,
       selectedTokens.receive.address,
       selectedTokens.borrow.address,
       decimal2Fixed(amount),
-      String(decimal2Fixed(borrow, selectedTokens.borrow.decimals)),
-      // "0x784c4a12f82204e5fb713b055de5e8008d5916b6",
-      // "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
-      // "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-      // "0x172370d5cd63279efa6d502dab29171933a610af",
-      // "10000000000000000000",
-      // "200000000000000",
+      borrowAmount
+      ,
       user
     );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
-    return receipt;
+     return hash;
     return "";
   } catch (error) {
     console.log("Error", { error });
@@ -574,7 +567,7 @@ export const getPoolBasicData = async (
   }
 };
 
-export const getColleteralTokenData = async (token: any, address: any) => {
+export const getCollateralTokenData = async (token: any, address: any) => {
   const chainId = getChainId(wagmiConfig);
   const compoundAddress =
     contractAddresses[chainId as keyof typeof contractAddresses]?.compound;
@@ -585,7 +578,7 @@ export const getColleteralTokenData = async (token: any, address: any) => {
   const tokenAddress = token?.address;
 
   const assetInfo = await comet?.getAssetInfoByAddress(tokenAddress);
-  const colleteralBal = await comet?.userCollateral(proxy, tokenAddress);
+  const collateralBal = await comet?.userCollateral(proxy, tokenAddress);
   // quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
   const price = await comet?.getPrice(assetInfo.priceFeed);
   const info = {
@@ -593,15 +586,15 @@ export const getColleteralTokenData = async (token: any, address: any) => {
     ltv:
       fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor)) * 100 -
       0.5,
-    collateralBalance: fromBigNumber(colleteralBal.balance),
-    colleteralBalanceFixed: fixed2Decimals(
-      fromBigNumber(colleteralBal.balance),
+    collateralBalance: fromBigNumber(collateralBal.balance),
+    collateralBalanceFixed: fixed2Decimals(
+      fromBigNumber(collateralBal.balance),
       token?.decimals || 18
     ),
     price: Number(fromBigNumber(price)) / 10 ** 8,
     //quote: fixed2Decimals(fromBigNumber(quote))
   };
-  console.log("getColleteralTokenData", info);
+  console.log("getCollateralTokenData", info);
   return info;
 };
 
@@ -621,6 +614,7 @@ export const getBorrowTokenData = async (token: any, address: any) => {
     //  const Bal = await comet?.balanceOf( proxy)
     // const quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
     const borrowMin = await comet?.baseBorrowMin();
+    const baseToken = await comet?.baseToken()
     const baseTokenPriceFeed = await comet?.baseTokenPriceFeed();
     const price = await comet?.getPrice(baseTokenPriceFeed);
     const info = {

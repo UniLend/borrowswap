@@ -142,6 +142,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
         token0: {
           ...pool.token0,
           source: "Unilend",
+          token: 0,
           address: pool?.token0?.id,
           logo: getTokenLogo(pool.token0.symbol),
           priceUSD: tokenPrice[pool?.token0?.id] * pool.token0.decimals,
@@ -150,6 +151,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
         token1: {
           ...pool.token1,
           source: "Unilend",
+          token: 1,
           address: pool?.token1?.id,
           logo: getTokenLogo(pool.token1.symbol),
           priceUSD: tokenPrice[pool?.token1?.id] * pool.token1.decimals,
@@ -370,7 +372,6 @@ export const getButtonAction = (
   };
 
   const { lend, borrow, receive } = selectedTokens;
-
   if (lend === null) {
     btn.text = "Select pay token";
   } else if (isTokenLoading.pools === true) {
@@ -388,7 +389,9 @@ export const getButtonAction = (
   } else if (isLowLiquidity) {
     btn.text = "Low liquidity";
   } else if (lendAmount === "" || +lendAmount == 0) {
-    btn.text = "Enter pay token value";
+    if (lend.collateralBalanceFixed === 0) {
+      btn.text = "Enter pay token value";
+    }
   }
 
   btn.disable = !!(btn.text !== "Borrow");
