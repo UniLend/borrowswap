@@ -186,9 +186,8 @@ export const handleRepay = async (
 
 export const handleCompoundRepay = async (
   lend: any,
-  pool: any,
+  user:any,
   selectedData: any,
-  user: any,
   amount: any
 ) => {
   try {
@@ -199,24 +198,29 @@ export const handleCompoundRepay = async (
 
     console.log(
         "repay",
-      // address _pool,  pool Address 
-      // address _tokenIn, - erc token address
-      // address _borrowedToken, -- borrow token address
-      // int256 _amount, -- pay amount 
-      // uint256 _nftID - position ID
-      selectedData.lend.address,
+    
+      // address _borrowedToken,   borrow token address
+        // address _tokenIn, erc token address
+        // address _user, user address
+        // address _collateralToken, recive token address
+        // uint256 _collateralAmount, colltaral amount
+        // uint256 _repayAmount repay amount
       selectedData.borrow.address,
+      selectedData.lend.address,
+      user,
+      selectedData.other.address,
+      selectedData.other.collateralAmount,
       decimal2Fixed(lend),
-      selectedData.pool.positionId,
       instance
     );
 
     const { hash } = await instance?.repayBorrow(
-      selectedData.pool.pool,
-      selectedData.lend.address,
       selectedData.borrow.address,
+      selectedData.lend.address,
+      user,
+      selectedData.other.address,
+      selectedData.other.collateralAmount,
       decimal2Fixed(lend),
-      selectedData.pool.positionId
     );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
