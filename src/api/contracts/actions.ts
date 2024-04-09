@@ -119,6 +119,14 @@ export const handleSwap = async (
       0.1
     ).toString();
 
+    // '0x784c4a12f82204e5fb713b055de5e8008d5916b6',
+    // '0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a',
+    // '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+    // '0x172370d5cd63279efa6d502dab29171933a610af',
+    // '10000000000000000000',
+    // '200000000000000',
+    // owner.address
+
     const { hash } = await instance?.uniBorrow(
       pool.pool,
       selectedTokens.lend.address,
@@ -126,6 +134,12 @@ export const handleSwap = async (
       selectedTokens.borrow.address,
       decimal2Fixed(amount),
       String(decimal2Fixed(borrow, selectedTokens.borrow.decimals)),
+      // "0x784c4a12f82204e5fb713b055de5e8008d5916b6",
+      // "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
+      // "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+      // "0x172370d5cd63279efa6d502dab29171933a610af",
+      // "10000000000000000000",
+      // "200000000000000",
       user
     );
     console.log("transaction", hash);
@@ -144,30 +158,31 @@ export const handleRepay = async (
   pool: any,
   selectedData: any,
   user: any,
-  amount: any
+  borrowAmount: any
 ) => {
   try {
     const chainId = getChainId(wagmiConfig);
     const controllerAddress =
       contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
-      const instance = await getEtherContract(controllerAddress, controllerABI);
+    const instance = await getEtherContract(controllerAddress, controllerABI);
+    //borrowBalanceFixed: 0.024147835188104056
 
     console.log(
-        "repay",
-        // address _pool,
-        // address _tokenIn, //erc 20 token address
-        // address _borrowedToken, // borrowed token address
-        // address _user,  // user address
-        // uint256 _nftID, // position Id
-        // int256 _amountOut,  // erc20 pay token 
-        // int256 _repayAmount,  // borrowed amount amount
+      "repay",
+      // address _pool,
+      // address _tokenIn, //erc 20 token address
+      // address _borrowedToken, // borrowed token address
+      // address _user,  // user address
+      // uint256 _nftID, // position Id
+      // int256 _amountOut,  // erc20 pay token
+      // int256 _repayAmount,  // borrowed amount amount
       selectedData.pool.pool,
       selectedData.lend.address,
       selectedData.borrow.address,
       user,
       selectedData.pool.positionId,
       decimal2Fixed(lend),
-      decimal2Fixed(borrow),
+      decimal2Fixed(borrowAmount),
       instance
     );
 
@@ -178,7 +193,7 @@ export const handleRepay = async (
       user,
       selectedData.pool.positionId,
       decimal2Fixed(lend),
-      decimal2Fixed(borrow),
+      decimal2Fixed(borrowAmount)
     );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
@@ -193,25 +208,25 @@ export const handleRepay = async (
 
 export const handleCompoundRepay = async (
   lend: any,
-  user:any,
+  user: any,
   selectedData: any,
-  amount: any
+  borrowAmount: any
 ) => {
   try {
     const chainId = getChainId(wagmiConfig);
     const controllerAddress =
       contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
-      const instance = await getEtherContract(controllerAddress, controllerABI);
+    const instance = await getEtherContract(controllerAddress, controllerABI);
 
     console.log(
-        "repay",
-    
+      "repay",
+
       // address _borrowedToken,   borrow token address
-        // address _tokenIn, erc token address
-        // address _user, user address
-        // address _collateralToken, recive token address
-        // uint256 _collateralAmount, colltaral amount
-        // uint256 _repayAmount repay amount
+      // address _tokenIn, erc token address
+      // address _user, user address
+      // address _collateralToken, recive token address
+      // uint256 _collateralAmount, colltaral amount
+      // uint256 _repayAmount repay amount
 
       selectedData.borrow.address,
       selectedData.lend.address,
@@ -228,7 +243,7 @@ export const handleCompoundRepay = async (
       user,
       selectedData.other.address,
       selectedData.other.collateralAmount,
-      decimal2Fixed(lend),
+      decimal2Fixed(lend)
     );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
@@ -240,7 +255,6 @@ export const handleCompoundRepay = async (
     throw error;
   }
 };
-
 
 export const getAllowance = async (
   token: any,
@@ -272,8 +286,6 @@ export const getAllowance = async (
     throw error;
   }
 };
-
-
 
 export const getPoolData = (poolAddress: string) => {};
 
@@ -577,7 +589,9 @@ export const getColleteralTokenData = async (token: any, address: any) => {
   const price = await comet?.getPrice(assetInfo.priceFeed);
   const info = {
     ...token,
-    ltv: (fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor)) * 100 ) - 0.5,
+    ltv:
+      fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor)) * 100 -
+      0.5,
     collateralBalance: fromBigNumber(colleteralBal.balance),
     colleteralBalanceFixed: fixed2Decimals(
       fromBigNumber(colleteralBal.balance),

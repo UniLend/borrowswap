@@ -2,14 +2,16 @@ import React, { useEffect, useState } from "react";
 import { Button, Slider, Modal } from "antd";
 import {
   getAllowance,
+  getBorrowTokenData,
   getPoolBasicData,
   handleApproval,
+  handleCompoundRepay,
   handleRepay,
 } from "../../../api/contracts/actions";
 import {
   decimal2Fixed,
   truncateToDecimals,
-  getRepayBtnActions
+  getRepayBtnActions,
 } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
 
@@ -30,6 +32,58 @@ enum ActiveOperation {
   REPAY = "Swap_Repay",
 }
 
+const compoundTempPosition = [
+  {
+    id: "100",
+    owner: "0xd5b26ac46d2f43f4d82889f4c7bbc975564859e3",
+    BorrowBalance: "0",
+    BorrowBalanceFixed: 0,
+    borrowMin: "100000000",
+    borrowMinFixed: 1e-10,
+    price: 1.00007938,
+    borrowBalance0: "24130340833838900",
+    borrowBalance1: "0",
+    source: "Compound",
+    pool: {
+      token0: {
+        address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+        symbol: "USDC",
+        name: "USDC",
+        decimals: 6,
+        source: "Compound",
+      },
+      token1: {
+        address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+        symbol: "WETH",
+        name: "wrap eth",
+        decimals: 18,
+        source: "Compound",
+      },
+    },
+  },
+];
+
+const compoundColleteralTokens = [
+  {
+    address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+    symbol: "WETH",
+    name: "wrap eth",
+    decimals: 18,
+    source: "Compound",
+    // logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
+  },
+];
+
+const baseTokens = [
+  {
+    address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    symbol: "USDC",
+    name: "USDC",
+    decimals: 6,
+    source: "Compound",
+  },
+];
+
 export default function RepayCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList, positions } = unilendV2Data;
@@ -46,32 +100,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
   const [repayToken, setRepayToken] = useState<Array<any>>([]);
   const [modalMsg, setModalMsg] = useState("");
   const [quoteError, setQuoteError] = useState<boolean>(false);
-  //sorted Specific tokens acording to our choice
-  const sortedToken = ["USDT", "USDC", "WETH"];
-  useEffect(() => {
-    const customSort = (a: any, b: any) => {
-      const aIndex = sortedToken.indexOf(a.symbol);
-      const bIndex = sortedToken.indexOf(b.symbol);
-
-      if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-      } else if (aIndex !== -1) {
-        return -1;
-      } else if (bIndex !== -1) {
-        return 1;
-      } else {
-        return a.symbol.localeCompare(b.symbol);
-      }
-    };
-
-    const sortedTokens = [...tokens].sort(customSort);
-    if (!arraysEqual(sortedTokens, tokens)) {
-      setTokens(sortedTokens);
-    }
-  }, [tokens, sortedToken]);
-  function arraysEqual(a: any, b: any) {
-    return JSON.stringify(a) === JSON.stringify(b);
-  }
 
   //select data state
   const [selectedData, setSelectedData] = useState<any>({
@@ -102,6 +130,33 @@ export default function RepayCard({ uniSwapTokens }: any) {
   // const [repayBtn, setRepayBtn] = useState("Select you pay token");
 
   const [operationProgress, setOperationProgress] = useState(0);
+
+  //sorted Specific tokens acording to our choice
+  const sortedToken = ["USDT", "USDC", "WETH"];
+  useEffect(() => {
+    const customSort = (a: any, b: any) => {
+      const aIndex = sortedToken.indexOf(a.symbol);
+      const bIndex = sortedToken.indexOf(b.symbol);
+
+      if (aIndex !== -1 && bIndex !== -1) {
+        return aIndex - bIndex;
+      } else if (aIndex !== -1) {
+        return -1;
+      } else if (bIndex !== -1) {
+        return 1;
+      } else {
+        return a.symbol.localeCompare(b.symbol);
+      }
+    };
+
+    const sortedTokens = [...tokens].sort(customSort);
+    if (!arraysEqual(sortedTokens, tokens)) {
+      setTokens(sortedTokens);
+    }
+  }, [tokens, sortedToken]);
+  function arraysEqual(a: any, b: any) {
+    return JSON.stringify(a) === JSON.stringify(b);
+  }
 
   const handleLendAmount = (amount: string) => {
     setLendAmount(amount);
@@ -162,7 +217,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
 
         handleRepayTransaction();
       } else if (Number(borrowAmount) > Number(borrowToken.allowanceFixed)) {
-        setModalMsg('Spend Aprroval for '+ selectedData.borrow.symbol)
+        setModalMsg("Spend Aprroval for " + selectedData.borrow.symbol);
         setOperationProgress(1);
         // console.log("setOperationProgress(11)", operationProgress);
         await handleApproval(
@@ -182,115 +237,160 @@ export default function RepayCard({ uniSwapTokens }: any) {
             selectedData.receive.symbol
         );
         setOperationProgress(2);
-        console.log('borrowAmount',borrowAmount)
-        // console.log("setOperationProgress(22)", operationProgress);
-       const hash = await handleRepay(
+        console.log("borrowAmount", borrowAmount);
+        console.log("setOperationProgress(22)", operationProgress);
+        const hash = await handleRepay(
           lendAmount,
           unilendPool,
           selectedData,
           address,
           borrowAmount
         );
-        if (hash) {
-          setOperationProgress(3);
-        }
+
+        // const hash = await handleCompoundRepay(
+        //   lendAmount,
+        //   address,
+        //   selectedData,
+        //   borrowAmount
+        // );
+        // console.log("Repay_HASH", hash);
+        // if (hash) {
+        //   setOperationProgress(3);
+        //   handleClear();
+        //   setTimeout(() => {
+        //     setIsBorrowProgressModal(false);
+        //   }, 1000);
+        // }
       }
     } catch (error) {
       console.log("Error1", { error });
     }
   };
 
-
-//handle quote for Uniswap
-const handleQuote = async () => {
-  try {
-    const borrowDecimals = selectedData?.borrow?.decimals;
-    const lendAddress = selectedData?.lend?.address;
-    const borrowAddress = selectedData?.borrow?.address;
-    const chainId = chain?.id;
-
-    const value = await getQuote(decimal2Fixed(1, borrowDecimals), address, borrowAddress, lendAddress, chainId);
-
-    if (value?.quoteDecimals) {
-      setb2rRatio(value.quoteDecimals);
-      const payLendAmount = value.quoteDecimals * (selectedData?.borrow?.borrowBalanceFixed || 0);
-      console.log("pay amount",payLendAmount)
-      setLendAmount(payLendAmount.toString());
-    }
-    
-    setBorrowAmount(selectedData?.borrow?.borrowBalanceFixed || 0);
-    setReceiveAmount((selectedData?.receive?.collateralBalanceFixed || 0) + (selectedData?.receive?.redeemBalanceFixed || 0));
-
-  } catch (error: any) {
-    console.error("Error in handleQuote:", error);
-    NotificationMessage("error", error?.message || "Error occurred in handleQuote");
-  } finally {
-    setIsTokenLoading({ ...isTokenLoading, quotation: false });
-  }
-};
-
-
-// Loading Quote Data based on lend State
-useEffect(() => {
-  if (selectedData?.pool && selectedData?.lend  && !tokenListStatus.isOpen) {
-    setIsTokenLoading({ ...isTokenLoading, quotation: true });
-    console.log("quotation loading", isTokenLoading.quotation)
-    setReceiveAmount("");
+  const handleClear = () => {
     setLendAmount("");
-    // setRepayAmount("");
-    handleQuote();
-  }
-}, [selectedData?.lend]);
+    setBorrowAmount("");
+    setReceiveAmount("");
+    setSelectedData({
+      pool: null,
+      lend: null,
+      receive: null,
+      borrow: null,
+    });
+    setIsBorrowProgressModal(false);
+    setOperationProgress(0);
+    setb2rRatio(0);
+  };
 
+  //handle quote for Uniswap
+  const handleQuote = async () => {
+    try {
+      const borrowDecimals = selectedData?.borrow?.decimals;
+      const lendAddress = selectedData?.lend?.address;
+      const borrowAddress = selectedData?.borrow?.address;
+      const chainId = 16153 ? 137 : chain?.id;
 
+      const value = await getQuote(
+        decimal2Fixed(1, borrowDecimals),
+        address,
+        borrowAddress,
+        lendAddress,
+        chainId
+      );
 
+      if (value?.quoteDecimals) {
+        setb2rRatio(value.quoteDecimals);
+        const payLendAmount =
+          value.quoteDecimals * (selectedData?.borrow?.borrowBalanceFixed || 0);
+        console.log("pay amount", payLendAmount);
+        setLendAmount(payLendAmount.toString());
+      }
 
-// Handle Recieve Data 
+      setBorrowAmount(selectedData?.borrow?.borrowBalanceFixed || 0);
+      setReceiveAmount(
+        (selectedData?.receive?.collateralBalanceFixed || 0) +
+          (selectedData?.receive?.redeemBalanceFixed || 0)
+      );
+    } catch (error: any) {
+      console.error("Error in handleQuote:", error);
+      NotificationMessage(
+        "error",
+        error?.message || "Error occurred in handleQuote"
+      );
+    } finally {
+      setIsTokenLoading({ ...isTokenLoading, quotation: false });
+    }
+  };
 
-const handleRepayToken = async (poolData: any) => {
-console.log("pooolData", poolData)
-const tokenPool = Object.values(poolList).find((pool) => {
-  if (
-    (pool.pool == poolData.pool )
-  ) {
-    return true;
-  }  
-});
+  // Loading Quote Data based on lend State
+  useEffect(() => {
+    if (selectedData?.pool && selectedData?.lend && !tokenListStatus.isOpen) {
+      setIsTokenLoading({ ...isTokenLoading, quotation: true });
+      console.log("quotation loading", isTokenLoading.quotation);
+      setReceiveAmount("");
+      setLendAmount("");
+      // setRepayAmount("");
+      handleQuote();
+    }
+  }, [selectedData?.lend]);
 
-  const contracts =
-    contractAddresses[chain?.id as keyof typeof contractAddresses];
-  const data = await getPoolBasicData(
-    contracts,
-    tokenPool.pool,
-    tokenPool,
-    address
-  );
+  // Handle Recieve Data
 
-  if (parseFloat(data.token0.borrowBalanceFixed) > 0 && data.token0.address === poolData.borrowToken.id) {
-      console.log("IS_DATA_SET1");
+  const handleRepayToken = async (poolData: any) => {
+    console.log("pooolData", poolData);
+    if (poolData.source === "Unilend") {
+      const tokenPool = Object.values(poolList).find((pool) => {
+        if (pool.pool == poolData.pool) {
+          return true;
+        }
+      });
+
+      const contracts =
+        contractAddresses[chain?.id as keyof typeof contractAddresses];
+      const data = await getPoolBasicData(
+        contracts,
+        tokenPool.pool,
+        tokenPool,
+        address
+      );
+
+      if (
+        parseFloat(data.token0.borrowBalanceFixed) > 0 &&
+        data.token0.address === poolData.borrowToken.id
+      ) {
+        console.log("IS_DATA_SET1");
+        setSelectedData({
+          ...selectedData,
+          ["pool"]: poolData,
+          ["lend"]: null,
+          ["receive"]: data.token1,
+          ["borrow"]: data.token0,
+        });
+      }
+
+      if (
+        parseFloat(data.token1.borrowBalanceFixed) > 0 &&
+        data.token1.address === poolData.borrowToken.id
+      ) {
+        console.log("IS_DATA_SET2");
+        setSelectedData({
+          ...selectedData,
+          ["pool"]: poolData,
+          ["lend"]: null,
+          ["receive"]: data.token0,
+          ["borrow"]: data.token1,
+        });
+      }
+      setIsTokenLoading({ ...isTokenLoading, pool: false });
+    } else {
       setSelectedData({
         ...selectedData,
         ["pool"]: poolData,
         ["lend"]: null,
-        ["receive"]: data.token1,
-        ["borrow"]: data.token0,
+        ["receive"]: poolData.otherToken,
+        ["borrow"]: poolData.borrowToken,
       });
     }
-
-    if (
-      parseFloat(data.token1.borrowBalanceFixed) > 0 &&
-      data.token1.address === poolData.borrowToken.id
-    ) {
-      console.log("IS_DATA_SET2");
-      setSelectedData({
-        ...selectedData,
-        ["pool"]: poolData,
-        ["lend"]: null,
-        ["receive"]: data.token0,
-        ["borrow"]: data.token1,
-      });
-    }
-    setIsTokenLoading({ ...isTokenLoading, pool: false });
   };
 
   const handleTokenSelection = async (data: any) => {
@@ -310,13 +410,12 @@ const tokenPool = Object.values(poolList).find((pool) => {
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
       // // setBorrowAmount(selectedData.borrow.borrowBalanceFixed);
-       const tokenBal = await getAllowance(data, address);
+      const tokenBal = await getAllowance(data, address);
       console.log("tokenBal", tokenBal);
       setSelectedData({
         ...selectedData,
         [tokenListStatus.operation]: { ...data, ...tokenBal },
       });
-
     } else if (tokenListStatus.operation == "receive") {
       setSelectedData({
         ...selectedData,
@@ -373,10 +472,13 @@ const tokenPool = Object.values(poolList).find((pool) => {
           balance={selectedData?.receive?.balanceFixed}
           value={Number(receiveAmount) > 0 ? receiveAmount : "0"}
           onChange={(e: any) => handleReceiveAmount(e.target.value)}
-          onMaxClick={() => (selectedData?.receive?.collateralBalanceFixed || 0) + (selectedData?.receive?.redeemBalanceFixed || 0)}
+          onMaxClick={() =>
+            (selectedData?.receive?.collateralBalanceFixed || 0) +
+            (selectedData?.receive?.redeemBalanceFixed || 0)
+          }
           buttonText={selectedData?.pool?.otherToken?.symbol}
           isShowMaxBtn
-           onClick={
+          onClick={
             selectedData?.pool !== null
               ? () => handleOpenTokenList("pool")
               : () => {}
@@ -412,7 +514,10 @@ const tokenPool = Object.values(poolList).find((pool) => {
             // tokenListOperation={tokenListStatus.operation}
             isTokenListLoading={isTokenLoading.positions}
             showPoolData={true}
-            positionData={Object.values(positions).filter(
+            positionData={[
+              ...Object.values(positions),
+              ...compoundTempPosition,
+            ].filter(
               (item) =>
                 item.borrowBalance0 !== 0 || item.token1.borrowBalance1 !== 0
             )}

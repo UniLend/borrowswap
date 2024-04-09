@@ -160,7 +160,6 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       setBorrowingTokens(borrowTokens);
       setIsTokenLoading((prevLoading) => ({ ...prevLoading, borrow: false }));
     } else {
-
     }
   };
 
@@ -174,7 +173,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     setSelectedLTV(value);
     const borrowAmount = getBorrowAmount(
       lendAmount,
-       value,
+      value,
       selectedTokens.lend,
       selectedTokens.borrow
     );
@@ -285,7 +284,10 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       setIsTokenLoading({ ...isTokenLoading, pools: false });
     } else {
       console.log("borrow");
-      const colleteralToken = await getColleteralTokenData(selectedTokensRef?.current?.lend, address);
+      const colleteralToken = await getColleteralTokenData(
+        selectedTokensRef?.current?.lend,
+        address
+      );
 
       const borrowedToken = await getBorrowTokenData(token, address);
       const ltv = getCompoundCurrentLTV(
@@ -350,21 +352,21 @@ export default function BorrowCard({ uniSwapTokens }: any) {
             "-" +
             selectedTokens?.receive?.symbol
         );
-        // const hash = await handleSwap(
-        //   lendAmount,
-        //   unilendPool,
-        //   selectedTokens,
-        //   address,
-        //   borrowAmount
-        // );
-        const hash = await handleCompoundSwap(
-          selectedTokens.lend.address,
-          selectedTokens.borrow.address,
-          selectedTokens.receive.address,
-          decimal2Fixed(lendAmount, selectedTokens.lend.decimals),
-          decimal2Fixed(borrowAmount, selectedTokens.borrow.decimals),
-          address
+        const hash = await handleSwap(
+          lendAmount,
+          unilendPool,
+          selectedTokens,
+          address,
+          borrowAmount
         );
+        // const hash = await handleCompoundSwap(
+        //   selectedTokens.lend.address,
+        //   selectedTokens.borrow.address,
+        //   selectedTokens.receive.address,
+        //   decimal2Fixed(lendAmount, selectedTokens.lend.decimals),
+        //   decimal2Fixed(borrowAmount, selectedTokens.borrow.decimals),
+        //   address
+        // );
         console.log("hash", hash);
 
         if (hash) {
@@ -437,7 +439,6 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       setReceiveAmount("");
       handleQuote();
     }
-  
   };
 
   const handleQuote = async () => {
@@ -465,7 +466,6 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     }
   };
 
-
   useEffect(() => {
     if (selectedTokens.receive !== null && !isTokenLoading.rangeSlider) {
       handleLTVSlider(currentLTV ? +currentLTV : 5);
@@ -486,7 +486,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       <div className='borrow_container'>
         <p className='paragraph06 label'>You Pay</p>
         <AmountContainer
-           balance={truncateToDecimals(
+          balance={truncateToDecimals(
             selectedTokens?.lend?.balanceFixed || 0,
             4
           ).toString()}
@@ -534,7 +534,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
               ? "please select you borrow token"
               : ""
           }
-   
+
           //   isTokensLoading={isTokenLoading.pools}
         />
         <div className='range_container'>
