@@ -456,7 +456,7 @@ export const getPoolBasicData = async (
   }
 };
 
-export const getColleteralTokenData = async (token: any, address: any) => {
+export const getCollateralTokenData = async (token: any, address: any) => {
   const chainId = getChainId(wagmiConfig);
   const compoundAddress =
     contractAddresses[chainId as keyof typeof contractAddresses]?.compound;
@@ -467,21 +467,23 @@ export const getColleteralTokenData = async (token: any, address: any) => {
   const tokenAddress = token?.address;
 
   const assetInfo = await comet?.getAssetInfoByAddress(tokenAddress);
-  const colleteralBal = await comet?.userCollateral(proxy, tokenAddress);
+  const collateralBal = await comet?.userCollateral(proxy, tokenAddress);
   // quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
   const price = await comet?.getPrice(assetInfo.priceFeed);
   const info = {
     ...token,
-    ltv: (fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor)) * 100 ) - 0.5,
-    collateralBalance: fromBigNumber(colleteralBal.balance),
-    colleteralBalanceFixed: fixed2Decimals(
-      fromBigNumber(colleteralBal.balance),
+    ltv:
+      fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor)) * 100 -
+      0.5,
+    collateralBalance: fromBigNumber(collateralBal.balance),
+    collateralBalanceFixed: fixed2Decimals(
+      fromBigNumber(collateralBal.balance),
       token?.decimals || 18
     ),
     price: Number(fromBigNumber(price)) / 10 ** 8,
     //quote: fixed2Decimals(fromBigNumber(quote))
   };
-  console.log("getColleteralTokenData", info);
+  console.log("getCollateralTokenData", info);
   return info;
 };
 

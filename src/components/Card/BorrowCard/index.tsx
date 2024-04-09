@@ -3,7 +3,7 @@ import { Button, Slider, Modal } from "antd";
 import {
   getAllowance,
   getBorrowTokenData,
-  getColleteralTokenData,
+  getCollateralTokenData,
   getPoolBasicData,
   getUserProxy,
   handleApproval,
@@ -41,7 +41,7 @@ enum ActiveOperation {
   REPAY = "Swap_Repay",
 }
 
-const compoundColleteralTokens = [
+const compoundCollateralTokens = [
   {
     address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
     symbol: "WETH",
@@ -160,7 +160,6 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       setBorrowingTokens(borrowTokens);
       setIsTokenLoading((prevLoading) => ({ ...prevLoading, borrow: false }));
     } else {
-
     }
   };
 
@@ -174,14 +173,14 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     setSelectedLTV(value);
     // const borrowAmount = getBorrowAmount(
     //   lendAmount,
-    //    value,
+    //   value,
     //   selectedTokens.lend,
     //   selectedTokens.borrow
     // );
     const borrowAmount = getCompoundBorrowAmount(
       lendAmount,
       value,
-      selectedTokens.lend.colleteralBalanceFixed,
+      selectedTokens.lend.collateralBalanceFixed,
       selectedTokens.borrow.BorrowBalanceFixed,
       selectedTokens.lend.price
     );
@@ -196,21 +195,30 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     }
   };
 
-  const checkLiquidity = (lendAmount: string) => {
-    if (+lendAmount > 0) {
-      let liquidity = { value: "", decimals: "" };
-      if (unilendPool?.token0?.address === selectedTokens?.borrow?.address) {
-        liquidity.value = unilendPool?.liquidity0;
-        liquidity.decimals = unilendPool?.token0?.decimals;
+  const checkLiquidity = (lendAmount: string, source: string) => {
+    const lendAmountNumber = parseFloat(lendAmount);
+
+    if (!isNaN(lendAmountNumber) && lendAmountNumber > 0) {
+      if (source === "Unilend") {
+        let liquidity = { value: "", decimals: "" };
+        if (unilendPool?.token0?.address === selectedTokens?.borrow?.address) {
+          liquidity.value = unilendPool?.liquidity0;
+          liquidity.decimals = unilendPool?.token0?.decimals;
+        } else {
+          liquidity.value = unilendPool?.liquidity1;
+          liquidity.decimals = unilendPool?.token1?.decimals;
+        }
+        let fixedLiquidity = fixed2Decimals(
+          liquidity?.value,
+          +liquidity?.decimals
+        );
+        if (borrowAmount > truncateToDecimals(Number(fixedLiquidity) || 0, 9)) {
+          setIsLowLiquidity(true);
+        } else {
+          setIsLowLiquidity(false);
+        }
       } else {
-        liquidity.value = unilendPool?.liquidity1;
-        liquidity.decimals = unilendPool?.token1?.decimals;
-      }
-      let fixedLiquidity = fixed2Decimals(liquidity.value, +liquidity.decimals);
-      if (borrowAmount > truncateToDecimals(Number(fixedLiquidity) || 0, 9)) {
-        setIsLowLiquidity(true);
-      } else {
-        setIsLowLiquidity(false);
+        // TODO: write liquidity for compound
       }
     }
   };
@@ -219,8 +227,9 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     if (address) {
       //handleCompoundSwap(address)
     }
-
-    //checkLiquidity(lendAmount);
+    if (selectedTokens.borrow !== null) {
+      checkLiquidity(lendAmount, selectedTokens.borrow.source);
+    }
   }, [lendAmount, selectedLTV]);
 
   useEffect(() => {
@@ -267,7 +276,6 @@ export default function BorrowCard({ uniSwapTokens }: any) {
         if (+currentLtv != 0) {
           setSelectedLTV(+currentLtv);
         }
-        // handleLTV(Number(currentLtv));
       } else {
         setSelectedTokens({
           ...selectedTokens,
@@ -279,41 +287,39 @@ export default function BorrowCard({ uniSwapTokens }: any) {
         if (+currentLtv != 0) {
           setSelectedLTV(+currentLtv);
         }
-        // handleLTV(Number(currentLtv));
       }
       setUnilendPool(data);
       setIsTokenLoading({ ...isTokenLoading, pools: false });
     } else {
-      console.log("borrow");
-      const colleteralToken = await getColleteralTokenData(selectedTokensRef?.current?.lend, address);
-
+      setIsTokenLoading({ ...isTokenLoading, pools: true });
+      const collateralToken = await getCollateralTokenData(
+        selectedTokensRef?.current?.lend,
+        address
+      );
       const borrowedToken = await getBorrowTokenData(token, address);
+      setIsTokenLoading({ ...isTokenLoading, pools: false });
       const ltv = getCompoundCurrentLTV(
         borrowedToken?.BorrowBalanceFixed,
-        colleteralToken?.colleteralBalanceFixed,
-        colleteralToken?.price
+        collateralToken?.collateralBalanceFixed,
+        collateralToken?.price
       );
       setCurrentLTV(ltv);
       setSelectedTokens({
         ...selectedTokens,
-        ["lend"]: { ...selectedTokensRef?.current?.lend, ...colleteralToken },
+        ["lend"]: { ...selectedTokensRef?.current?.lend, ...collateralToken },
         ["borrow"]: { ...selectedTokens.borrow, ...borrowedToken },
       });
     }
   };
 
-  useEffect(() => {
-    console.log("selectedTokens", selectedTokens);
-  }, [selectedTokens]);
-
   const getOprationToken = () => {
     if (tokenListStatus.operation === "lend") {
       console.log("tokenOperatrion", [
         ...lendingTokens,
-        ...compoundColleteralTokens,
+        ...compoundCollateralTokens,
       ]);
 
-      return [...lendingTokens, ...compoundColleteralTokens];
+      return [...lendingTokens, ...compoundCollateralTokens];
     } else if (tokenListStatus.operation === "borrow") {
       return [...borrowingTokens, ...baseTokens];
     } else if (tokenListStatus.operation === "receive") {
@@ -437,7 +443,6 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       setReceiveAmount("");
       handleQuote();
     }
-  
   };
 
   const handleQuote = async () => {
@@ -465,7 +470,6 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     }
   };
 
-
   useEffect(() => {
     if (selectedTokens.receive !== null && !isTokenLoading.rangeSlider) {
       handleLTVSlider(currentLTV ? +currentLTV : 5);
@@ -486,7 +490,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       <div className='borrow_container'>
         <p className='paragraph06 label'>You Pay</p>
         <AmountContainer
-           balance={truncateToDecimals(
+          balance={truncateToDecimals(
             selectedTokens?.lend?.balanceFixed || 0,
             4
           ).toString()}
@@ -511,7 +515,6 @@ export default function BorrowCard({ uniSwapTokens }: any) {
             title={
               selectedTokens?.lend === null ? "please select you pay token" : ""
             }
-            // isTokensLoading={isTokenLoading.borrow}
           />
         </div>
         <p className='paragraph06 label'>You Receive</p>
@@ -534,8 +537,6 @@ export default function BorrowCard({ uniSwapTokens }: any) {
               ? "please select you borrow token"
               : ""
           }
-   
-          //   isTokensLoading={isTokenLoading.pools}
         />
         <div className='range_container'>
           <div>
@@ -562,8 +563,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           />
         </div>
         <Button
-          // disabled={borrowBtn.text !== "Borrow"}
-          //disabled={borrowBtn.disable}
+          disabled={borrowBtn.disable}
           className='primary_btn'
           onClick={handleSwapTransaction}
           title='please slect you pay token'
