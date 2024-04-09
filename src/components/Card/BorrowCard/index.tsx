@@ -172,19 +172,19 @@ export default function BorrowCard({ uniSwapTokens }: any) {
 
   const handleLTVSlider = (value: number) => {
     setSelectedLTV(value);
-    // const borrowAmount = getBorrowAmount(
-    //   lendAmount,
-    //    value,
-    //   selectedTokens.lend,
-    //   selectedTokens.borrow
-    // );
-    const borrowAmount = getCompoundBorrowAmount(
+    const borrowAmount = getBorrowAmount(
       lendAmount,
-      value,
-      selectedTokens.lend.colleteralBalanceFixed,
-      selectedTokens.borrow.BorrowBalanceFixed,
-      selectedTokens.lend.price
+       value,
+      selectedTokens.lend,
+      selectedTokens.borrow
     );
+    // const borrowAmount = getCompoundBorrowAmount(
+    //   lendAmount,
+    //   value,
+    //   selectedTokens.lend.colleteralBalanceFixed,
+    //   selectedTokens.borrow.BorrowBalanceFixed,
+    //   selectedTokens.lend.price
+    // );
     setBorrowAmount(borrowAmount);
 
     if (selectedTokens?.receive) {

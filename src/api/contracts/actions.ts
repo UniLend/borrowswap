@@ -154,24 +154,31 @@ export const handleRepay = async (
 
     console.log(
         "repay",
-      // address _pool,  pool Address 
-      // address _tokenIn, - erc token address
-      // address _borrowedToken, -- borrow token address
-      // int256 _amount, -- pay amount 
-      // uint256 _nftID - position ID
-      selectedData.lend.address,
-      selectedData.borrow.address,
-      decimal2Fixed(lend),
-      selectedData.pool.positionId,
-      instance
-    );
-
-    const { hash } = await instance?.repayBorrow(
+        // address _pool,
+        // address _tokenIn, //erc 20 token address
+        // address _borrowedToken, // borrowed token address
+        // address _user,  // user address
+        // uint256 _nftID, // position Id
+        // int256 _amountOut,  // erc20 pay token 
+        // int256 _repayAmount,  // borrowed amount amount
       selectedData.pool.pool,
       selectedData.lend.address,
       selectedData.borrow.address,
+      user,
+      selectedData.pool.positionId,
       decimal2Fixed(lend),
-      selectedData.pool.positionId
+      decimal2Fixed(borrow),
+      instance
+    );
+
+    const { hash } = await instance?.uniRepay(
+      selectedData.pool.pool,
+      selectedData.lend.address,
+      selectedData.borrow.address,
+      user,
+      selectedData.pool.positionId,
+      decimal2Fixed(lend),
+      decimal2Fixed(borrow),
     );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
@@ -205,6 +212,7 @@ export const handleCompoundRepay = async (
         // address _collateralToken, recive token address
         // uint256 _collateralAmount, colltaral amount
         // uint256 _repayAmount repay amount
+
       selectedData.borrow.address,
       selectedData.lend.address,
       user,
@@ -214,7 +222,7 @@ export const handleCompoundRepay = async (
       instance
     );
 
-    const { hash } = await instance?.repayBorrow(
+    const { hash } = await instance?.reapay(
       selectedData.borrow.address,
       selectedData.lend.address,
       user,
