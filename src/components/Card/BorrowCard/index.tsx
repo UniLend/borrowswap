@@ -51,10 +51,10 @@ const compoundCollateralTokens = [
     // logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
   },
   {
-    address: "0x0000000000000000000000000000000000000000",
-    symbol: "MATIC",
-    name: "Matic",
-    decimals: 18,
+    address: "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
+    symbol: "WBTC",
+    name: "Wrapped BTC",
+    decimals: 8,
     source: "Compound",
     // logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
   },
@@ -63,8 +63,8 @@ const compoundCollateralTokens = [
 const baseTokens = [
   {
     address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-    symbol: "USDC",
-    name: "USDC",
+    symbol: "USDC (PoS)",
+    name: "USD Coin (PoS) ",
     decimals: 6,
     source: "Compound",
   },
@@ -171,19 +171,25 @@ export default function BorrowCard({ uniSwapTokens }: any) {
 
   const handleLTVSlider = (value: number) => {
     setSelectedLTV(value);
-    // const borrowAmount = getBorrowAmount(
-    //   lendAmount,
-    //   value,
-    //   selectedTokens.lend,
-    //   selectedTokens.borrow
-    // );
-    const borrowAmount = getCompoundBorrowAmount(
+    let borrowAmount = 0;
+    if(selectedTokens.borrow.source == 'Unilend'){
+         borrowAmount = getBorrowAmount(
       lendAmount,
       value,
-      selectedTokens.lend.collateralBalanceFixed,
-      selectedTokens.borrow.BorrowBalanceFixed,
-      selectedTokens.lend.price
+      selectedTokens.lend,
+      selectedTokens.borrow
     );
+    } else {
+       borrowAmount = getCompoundBorrowAmount(
+        lendAmount,
+        value,
+        selectedTokens.lend.collateralBalanceFixed,
+        selectedTokens.borrow.BorrowBalanceFixed,
+        selectedTokens.lend.price
+      );
+    }
+  
+ 
     setBorrowAmount(borrowAmount);
 
     if (selectedTokens?.receive) {
@@ -314,14 +320,37 @@ export default function BorrowCard({ uniSwapTokens }: any) {
 
   const getOprationToken = () => {
     if (tokenListStatus.operation === "lend") {
-      console.log("tokenOperatrion", [
+      const common: any = {}
+      const tokenArray = [
         ...lendingTokens,
         ...compoundCollateralTokens,
-      ]);
+      ]
+      for(const token of tokenArray){
+        if(common[String(token.address).toLocaleUpperCase()]){
+          common[String(token.address).toLocaleUpperCase()] = {...token, ...common[token.address],  availableIn: ['unilend', 'compound']}
+        } else if(token.source == 'Unilend')  {
 
-      return [...lendingTokens, ...compoundCollateralTokens];
+          common[ String(token.address).toLocaleUpperCase()] = {...token, availableIn: ['unilend']}
+        } else if(token.source == 'Compound')  {
+
+          common[String(token.address).toLocaleUpperCase()] = {...token, availableIn: ['compound']}
+        }
+      }
+      console.log("tokenOperatrion", common, tokenArray);
+
+      return Object.values(common);
     } else if (tokenListStatus.operation === "borrow") {
-      return [...borrowingTokens, ...baseTokens];
+     
+      const tokensAvailableIn = Array.isArray(selectedTokens.lend.availableIn) && selectedTokens.lend.availableIn
+      console.log("selectedTokens", selectedTokens,  tokensAvailableIn);
+      if( tokensAvailableIn.includes('unilend') && tokensAvailableIn.includes('compound')){
+        return [...borrowingTokens, ...baseTokens];
+      } else if (tokensAvailableIn.includes('unilend')){
+        return [...borrowingTokens];
+      } else if(tokensAvailableIn.includes('compound')){
+        return [ ...baseTokens];
+      }
+     
     } else if (tokenListStatus.operation === "receive") {
       return uniSwapTokens;
     } else {
@@ -356,14 +385,17 @@ export default function BorrowCard({ uniSwapTokens }: any) {
             "-" +
             selectedTokens?.receive?.symbol
         );
-        // const hash = await handleSwap(
-        //   lendAmount,
-        //   unilendPool,
-        //   selectedTokens,
-        //   address,
-        //   borrowAmount
-        // );
-        const hash = await handleCompoundSwap(
+        let hash;
+        if(selectedTokens.borrow.source == 'Unilend'){
+           hash = await handleSwap(
+            lendAmount,
+            unilendPool,
+            selectedTokens,
+            address,
+            borrowAmount
+          );
+        } else {
+       hash = await handleCompoundSwap(
           selectedTokens.lend.address,
           selectedTokens.borrow.address,
           selectedTokens.receive.address,
@@ -371,6 +403,9 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           decimal2Fixed(borrowAmount, selectedTokens.borrow.decimals),
           address
         );
+        }
+   
+      
         console.log("hash", hash);
 
         if (hash) {
@@ -416,6 +451,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     });
     setTokenListStatus({ isOpen: false, operation: "" });
     const tokenBal = await getAllowance(token, address);
+console.log("tokenBal", tokenBal);
 
     if (tokenListStatus.operation == "lend") {
       handleSelectLendToken(token);

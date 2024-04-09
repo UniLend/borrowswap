@@ -66,7 +66,7 @@ const TokenCard: React.FC<TokenCardProps> = ({
             </div>
           </div>
           {/* TODO: update token pool data */}
-          <div className='pool_details'>
+          {/* <div className='pool_details'>
             <div>
               <p className='paragraph06'>{token?.source}</p>
               <img src={getTokenLogo('UFT')} alt='' />
@@ -74,7 +74,7 @@ const TokenCard: React.FC<TokenCardProps> = ({
             {showPoolData && (
               <p className='paragraph06'>Max LTV: {token.maxLTV}%</p>
             )}
-          </div>
+          </div> */}
         </div>
       ) : (
         <div onClick={handleTokensList} className='token_card'>
