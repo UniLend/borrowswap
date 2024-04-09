@@ -244,7 +244,8 @@ export default function RepayCard({ uniSwapTokens }: any) {
           unilendPool,
           selectedData,
           address,
-          borrowAmount
+          borrowAmount,
+          receiveAmount,
         );
 
         // const hash = await handleCompoundRepay(
@@ -339,6 +340,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
   const handleRepayToken = async (poolData: any) => {
     console.log("pooolData", poolData);
     if (poolData.source === "Unilend") {
+      setIsTokenLoading({ ...isTokenLoading, pool: true });
       const tokenPool = Object.values(poolList).find((pool) => {
         if (pool.pool == poolData.pool) {
           return true;

@@ -158,7 +158,8 @@ export const handleRepay = async (
   pool: any,
   selectedData: any,
   user: any,
-  borrowAmount: any
+  borrowAmount: any,
+  receiveAmount:any
 ) => {
   try {
     const chainId = getChainId(wagmiConfig);
@@ -182,7 +183,7 @@ export const handleRepay = async (
       user,
       selectedData.pool.positionId,
       decimal2Fixed(lend),
-      decimal2Fixed(borrowAmount),
+      decimal2Fixed(receiveAmount),
       instance
     );
 
@@ -193,7 +194,7 @@ export const handleRepay = async (
       user,
       selectedData.pool.positionId,
       decimal2Fixed(lend),
-      decimal2Fixed(borrowAmount)
+      decimal2Fixed(receiveAmount)
     );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
