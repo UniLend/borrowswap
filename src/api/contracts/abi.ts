@@ -1002,7 +1002,7 @@ export const compoundABI = [
   },
 ];
 
-export const controllerABI = [
+export const controllerABI =  [
   {
     inputs: [
       {
@@ -1088,6 +1088,44 @@ export const controllerABI = [
     inputs: [
       {
         internalType: "address",
+        name: "_borrowedToken",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_tokenIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_user",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_collateralToken",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "_collateralAmount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "_repayAmount",
+        type: "uint256",
+      },
+    ],
+    name: "reapay",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "_pool",
         type: "address",
       },
@@ -1123,6 +1161,49 @@ export const controllerABI = [
       },
     ],
     name: "uniBorrow",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_pool",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_tokenIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_borrowedToken",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_user",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "_nftID",
+        type: "uint256",
+      },
+      {
+        internalType: "int256",
+        name: "_amountOut",
+        type: "int256",
+      },
+      {
+        internalType: "int256",
+        name: "_repayAmount",
+        type: "int256",
+      },
+    ],
+    name: "uniRepay",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

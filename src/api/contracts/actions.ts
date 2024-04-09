@@ -113,24 +113,23 @@ export const handleSwap = async (
       contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
     const instance = await getEtherContract(controllerAddress, controllerABI);
 
-    const borrowAmount = (
-      Number(decimal2Fixed(1000000000000000)) *
-      2.6 *
-      0.1
-    ).toString();
+    const borrowAmount = selectedTokens.borrow.token == 1? String(decimal2Fixed(borrow, selectedTokens.borrow.decimals)): String(decimal2Fixed(-borrow, selectedTokens.borrow.decimals))
 
+    console.log("handleswap", selectedTokens, borrowAmount);
+    
     const { hash } = await instance?.uniBorrow(
       pool.pool,
       selectedTokens.lend.address,
       selectedTokens.receive.address,
       selectedTokens.borrow.address,
       decimal2Fixed(amount),
-      String(decimal2Fixed(borrow, selectedTokens.borrow.decimals)),
+      borrowAmount
+      ,
       user
     );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
-    return receipt;
+     return hash;
     return "";
   } catch (error) {
     console.log("Error", { error });
@@ -503,6 +502,7 @@ export const getBorrowTokenData = async (token: any, address: any) => {
     //  const Bal = await comet?.balanceOf( proxy)
     // const quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
     const borrowMin = await comet?.baseBorrowMin();
+    const baseToken = await comet?.baseToken()
     const baseTokenPriceFeed = await comet?.baseTokenPriceFeed();
     const price = await comet?.getPrice(baseTokenPriceFeed);
     const info = {

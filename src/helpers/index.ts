@@ -138,6 +138,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
         token0: {
           ...pool.token0,
           source: "Unilend",
+          token: 0,
           address: pool?.token0?.id,
           logo: getTokenLogo(pool.token0.symbol),
           priceUSD: tokenPrice[pool?.token0?.id] * pool.token0.decimals,
@@ -146,6 +147,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
         token1: {
           ...pool.token1,
           source: "Unilend",
+          token: 1,
           address: pool?.token1?.id,
           logo: getTokenLogo(pool.token1.symbol),
           priceUSD: tokenPrice[pool?.token1?.id] * pool.token1.decimals,
