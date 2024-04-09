@@ -239,29 +239,29 @@ export default function RepayCard({ uniSwapTokens }: any) {
         setOperationProgress(2);
         console.log("borrowAmount", borrowAmount);
         console.log("setOperationProgress(22)", operationProgress);
-        const hash = await handleRepay(
-          lendAmount,
-          unilendPool,
-          selectedData,
-          address,
-          borrowAmount,
-          receiveAmount,
-        );
-
-        // const hash = await handleCompoundRepay(
+        // const hash = await handleRepay(
         //   lendAmount,
-        //   address,
+        //   unilendPool,
         //   selectedData,
-        //   borrowAmount
+        //   address,
+        //   borrowAmount,
+        //   receiveAmount,
         // );
-        // console.log("Repay_HASH", hash);
-        // if (hash) {
-        //   setOperationProgress(3);
-        //   handleClear();
-        //   setTimeout(() => {
-        //     setIsBorrowProgressModal(false);
-        //   }, 1000);
-        // }
+
+        const hash = await handleCompoundRepay(
+          lendAmount,
+          address,
+          selectedData,
+          borrowAmount
+        );
+        console.log("Repay_HASH", hash);
+        if (hash) {
+          setOperationProgress(3);
+          handleClear();
+          setTimeout(() => {
+            setIsBorrowProgressModal(false);
+          }, 1000);
+        }
       }
     } catch (error) {
       console.log("Error1", { error });
@@ -490,7 +490,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
         />
 
         <Button
-          disabled={repayButton.disable}
+          // disabled={repayButton.disable}
           className='primary_btn'
           onClick={handleRepayTransaction}
           title='please slect you pay token'

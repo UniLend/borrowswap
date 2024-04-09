@@ -222,22 +222,28 @@ export const handleCompoundRepay = async (
       // uint256 _collateralAmount, colltaral amount
       // uint256 _repayAmount repay amount
 
-      selectedData.borrow.address,
-      selectedData.lend.address,
-      user,
-      selectedData.other.address,
-      selectedData.other.collateralAmount,
-      decimal2Fixed(lend),
-      instance
+        '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+        '0xE48023587eE9db26864E2DC0BEFE289f6CfC2B97',
+        '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+        '1000000000000000000',
+        '3545292653',
+        instance
     );
 
     const { hash } = await instance?.reapay(
-      selectedData.borrow.address,
-      selectedData.lend.address,
-      user,
-      selectedData.other.address,
-      selectedData.other.collateralAmount,
-      decimal2Fixed(lend)
+      // selectedData.borrow.address,
+      // selectedData.lend.address,
+      // user,
+      // selectedData.other.address,
+      // selectedData.other.collateralAmount,
+      // decimal2Fixed(lend)
+        '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+        '0xE48023587eE9db26864E2DC0BEFE289f6CfC2B97',
+        '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+        '1000000000000000000',
+        '3545292653',
     );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
