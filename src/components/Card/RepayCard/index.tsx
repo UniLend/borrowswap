@@ -88,7 +88,6 @@ const baseTokens = [
 export default function RepayCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList, positions } = unilendV2Data;
-  console.log("positions", positions);
   const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState<string>("");
   const [borrowAmount, setBorrowAmount] = useState("");
@@ -133,7 +132,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
   const [operationProgress, setOperationProgress] = useState(0);
 
   //sorted Specific tokens acording to our choice
-  const sortedToken = ["USDT", "USDC", "WETH"];
+  const sortedToken = ["USDT", "USDC", "WETH", "WBTC"];
   useEffect(() => {
     const customSort = (a: any, b: any) => {
       const aIndex = sortedToken.indexOf(a.symbol);
@@ -341,7 +340,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
   // Handle Recieve Data
 
   const handleRepayToken = async (poolData: any) => {
-    console.log("pooolData", poolData);
     if (poolData.source === "Unilend") {
       setIsTokenLoading({ ...isTokenLoading, pool: true });
       const tokenPool = Object.values(poolList).find((pool) => {
@@ -363,7 +361,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
         parseFloat(data.token0.borrowBalanceFixed) > 0 &&
         data.token0.address === poolData.borrowToken.id
       ) {
-        console.log("IS_DATA_SET1");
         setSelectedData({
           ...selectedData,
           ["pool"]: poolData,
@@ -377,7 +374,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
         parseFloat(data.token1.borrowBalanceFixed) > 0 &&
         data.token1.address === poolData.borrowToken.id
       ) {
-        console.log("IS_DATA_SET2");
         setSelectedData({
           ...selectedData,
           ["pool"]: poolData,
@@ -388,6 +384,8 @@ export default function RepayCard({ uniSwapTokens }: any) {
       }
       setIsTokenLoading({ ...isTokenLoading, pool: false });
     } else {
+      const tokenBal = await getAllowance( poolData.otherToken, address);
+
       const collateralToken = await getCollateralTokenData(
         poolData.otherToken,
         address
@@ -396,8 +394,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
         poolData.borrowToken,
         address
       );
-      const tokenBal = await getAllowance( poolData.otherToken, address);
-      
       setSelectedData({
         ...selectedData,
         ["pool"]: poolData,
@@ -471,7 +467,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
           onMaxClick={() => console.log("Max Clicked")}
           buttonText={selectedData?.lend?.symbol}
           onClick={
-            selectedData?.pool !== null
+            selectedData?.borrow !== null
               ? () => handleOpenTokenList("lend")
               : () => {}
           }
