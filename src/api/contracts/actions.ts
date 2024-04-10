@@ -253,7 +253,7 @@ export const handleCompoundRepay = async (
       user,
       selectedData?.receive.address,
       selectedData.receive.collateralBalance,
-      // "49999999999999998",
+      // "90000000000000000",
       // decimal2Fixed(lend), //TODO
       selectedData.borrow.BorrowBalance
       // "1364900000"
