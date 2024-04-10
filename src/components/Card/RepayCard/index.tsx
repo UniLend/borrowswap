@@ -3,6 +3,7 @@ import { Button, Slider, Modal } from "antd";
 import {
   getAllowance,
   getBorrowTokenData,
+  getCollateralTokenData,
   getPoolBasicData,
   handleApproval,
   handleCompoundRepay,
@@ -247,7 +248,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
         //   borrowAmount,
         //   receiveAmount,
         // );
-
         const hash = await handleCompoundRepay(
           lendAmount,
           address,
@@ -385,12 +385,20 @@ export default function RepayCard({ uniSwapTokens }: any) {
       }
       setIsTokenLoading({ ...isTokenLoading, pool: false });
     } else {
+      const collateralToken = await getCollateralTokenData(
+        poolData.otherToken,
+        address
+      );
+      const borrowedToken = await getBorrowTokenData(
+        poolData.borrowToken,
+        address
+      );
       setSelectedData({
         ...selectedData,
         ["pool"]: poolData,
         ["lend"]: null,
-        ["receive"]: poolData.otherToken,
-        ["borrow"]: poolData.borrowToken,
+        ["receive"]: { ...poolData.otherToken, ...collateralToken },
+        ["borrow"]: { ...poolData.borrowToken, ...borrowedToken },
       });
     }
   };
@@ -401,10 +409,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
       ...selectedData,
       [tokenListStatus.operation]: { ...data, map: true },
     });
-    // setSelectedData({
-    //   ...selectedData,
-    //   [tokenListStatus.operation]: data,
-    // });
 
     if (tokenListStatus.operation == "pool") {
       handleRepayToken(data);
@@ -467,7 +471,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
               : () => {}
           }
           // onClick={ () => handleOpenTokenList("lend")
-          readonly
+          // readonly
         />
         <p className='paragraph06 label'>You Receive</p>
         <AmountContainer
@@ -490,7 +494,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
         />
 
         <Button
-          // disabled={repayButton.disable}
+          disabled={repayButton.disable}
           className='primary_btn'
           onClick={handleRepayTransaction}
           title='please slect you pay token'
