@@ -243,7 +243,7 @@ export const handleCompoundRepay = async (
         '0xE48023587eE9db26864E2DC0BEFE289f6CfC2B97',
         '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
         '1000000000000000000',
-        '3545292653',
+        '1545292653',
     );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
@@ -260,6 +260,7 @@ export const getAllowance = async (
   token: any,
   user: `0x${string}` | undefined
 ) => {
+  console.log("allowance", token)
   try {
     var maxAllow =
       "115792089237316195423570985008687907853269984665640564039457584007913129639935";

@@ -97,7 +97,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
   if (true) {
     const proxy = await getUserProxy(address);
     console.log("PROXY", proxy);
-    const query = getPoolCreatedGraphQuery(address);
+    const query = getPoolCreatedGraphQuery(proxy);
     const data = await fetchGraphQlData(chain?.id, query);
     // const allPositions = data?.positions;
     const allPositions = data?.positions?.map((item: any) => ({
