@@ -240,21 +240,24 @@ export default function RepayCard({ uniSwapTokens }: any) {
         setOperationProgress(2);
         console.log("borrowAmount", borrowAmount);
         console.log("setOperationProgress(22)", operationProgress);
-        // const hash = await handleRepay(
-        //   lendAmount,
-        //   unilendPool,
-        //   selectedData,
-        //   address,
-        //   borrowAmount,
-        //   receiveAmount,
-        // );
-        const hash = await handleCompoundRepay(
-          lendAmount,
-          address,
-          selectedData,
-          borrowAmount
-        );
-        console.log("Repay_HASH", hash);
+        let hash;
+        if(selectedData.borrow.source == 'Unilend'){
+            hash = await handleRepay(
+            lendAmount,
+            unilendPool,
+            selectedData,
+            address,
+            borrowAmount,
+            receiveAmount,
+          );
+        } else {
+            hash = await handleCompoundRepay(
+              lendAmount,
+              address,
+              selectedData,
+              borrowAmount
+            );
+          }
         if (hash) {
           setOperationProgress(3);
           handleClear();
@@ -266,7 +269,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
     } catch (error) {
       console.log("Error1", { error });
     }
-  };
+};
 
   const handleClear = () => {
     setLendAmount("");
