@@ -265,7 +265,7 @@ export const getCompoundCurrentLTV = (
   priceRatio: string
 ) => {
   const ltv =
-    Number(borrowBal) > 0
+   ( Number(borrowBal) > 0 && (Number(collteralBal) > 0 ))
       ? Number(borrowBal) / (Number(collteralBal) * Number(priceRatio))
       : 0;
 
