@@ -396,11 +396,13 @@ export default function RepayCard({ uniSwapTokens }: any) {
         poolData.borrowToken,
         address
       );
+      const tokenBal = await getAllowance( poolData.otherToken, address);
+      
       setSelectedData({
         ...selectedData,
         ["pool"]: poolData,
         ["lend"]: null,
-        ["receive"]: { ...poolData.otherToken, ...collateralToken },
+        ["receive"]: { ...poolData.otherToken, ...collateralToken, ...tokenBal },
         ["borrow"]: { ...poolData.borrowToken, ...borrowedToken },
       });
     }
