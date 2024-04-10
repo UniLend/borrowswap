@@ -467,6 +467,7 @@ export const getCollateralTokenData = async (token: any, address: any) => {
 
   const assetInfo = await comet?.getAssetInfoByAddress(tokenAddress);
   const collateralBal = await comet?.userCollateral(proxy, tokenAddress);
+  //const baseToken = await comet?.getCollateralReserves(tokenAddress)
   // quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
   const price = await comet?.getPrice(assetInfo.priceFeed);
   const info = {
@@ -479,6 +480,7 @@ export const getCollateralTokenData = async (token: any, address: any) => {
       fromBigNumber(collateralBal.balance),
       token?.decimals || 18
     ),
+   // baseToken: fromBigNumber(baseToken),
     price: Number(fromBigNumber(price)) / 10 ** 8,
     //quote: fixed2Decimals(fromBigNumber(quote))
   };
@@ -502,7 +504,6 @@ export const getBorrowTokenData = async (token: any, address: any) => {
     //  const Bal = await comet?.balanceOf( proxy)
     // const quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
     const borrowMin = await comet?.baseBorrowMin();
-    const baseToken = await comet?.baseToken()
     const baseTokenPriceFeed = await comet?.baseTokenPriceFeed();
     const price = await comet?.getPrice(baseTokenPriceFeed);
     const info = {
@@ -512,7 +513,7 @@ export const getBorrowTokenData = async (token: any, address: any) => {
       BorrowBalanceFixed: fixed2Decimals(
         fromBigNumber(BorrowBal),
         token?.decimals || 18
-      ),
+      ),    
       borrowMin: fromBigNumber(borrowMin),
       borrowMinFixed: fixed2Decimals(
         fromBigNumber(borrowMin),
