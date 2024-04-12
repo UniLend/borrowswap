@@ -4,11 +4,10 @@ import PoolCard from "../PoolCard";
 import "./index.scss";
 import UnilendLoader from "../../Loader/UnilendLoader";
 interface Token {
-  pool:any;
+  pool: any;
   borrowToken: any;
   otherToken: any;
 }
-
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -22,8 +21,8 @@ interface TokenListModalProps {
   isTokenListLoading?: boolean;
   showpositionData?: boolean;
   positionData?: any; // update later
-  pools?: any; 
-  showPoolData?:any;
+  pools?: any;
+  showPoolData?: any;
 }
 
 const TokenListModal: React.FC<TokenListModalProps> = ({
@@ -33,9 +32,10 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
   isTokenListLoading,
   showPoolData,
   positionData,
-  pools
+  pools,
 }) => {
   // TODO: update typeScript here
+  console.log("positionData", positionData);
   const container = useRef<any>(null);
   const [page, setPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -46,17 +46,24 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
 
   let list = [];
   for (let i = 0; i < positionData.length; i++) {
-    if (positionData[i].borrowBalance0 > 0 && positionData[i].borrowBalance1 > 0) {
+    if (
+      positionData[i].borrowBalance0 > 0 &&
+      positionData[i].borrowBalance1 > 0
+    ) {
       let temp0 = {
         borrowToken: positionData[i].pool.token0,
         otherToken: positionData[i].pool.token1,
         pool: positionData[i].pool.pool,
+        positionId: positionData[i].id,
+        source: positionData[i].source,
       };
       list.push(temp0);
       let temp1 = {
         borrowToken: positionData[i].pool.token1,
         otherToken: positionData[i].pool.token0,
         pool: positionData[i].pool.pool,
+        positionId: positionData[i].id,
+        source: positionData[i].source,
       };
       list.push(temp1);
     } else if (positionData[i].borrowBalance0 > 0) {
@@ -64,6 +71,8 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
         borrowToken: positionData[i].pool.token0,
         otherToken: positionData[i].pool.token1,
         pool: positionData[i].pool.pool,
+        positionId: positionData[i].id,
+        source: positionData[i].source,
       };
       list.push(temp);
     } else if (positionData[i].borrowBalance1 > 0) {
@@ -71,16 +80,17 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
         borrowToken: positionData[i].pool.token1,
         otherToken: positionData[i].pool.token0,
         pool: positionData[i].pool.pool,
+        positionId: positionData[i].id,
+        source: positionData[i].source,
       };
       list.push(temp);
     }
   }
-  console.log(list)
 
   const filteredTokenList = list.filter((token) =>
     token.borrowToken.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   useEffect(() => {
     container?.current?.addEventListener("scroll", () => {
       if (
@@ -109,11 +119,11 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
       </div>
       {isTokenListLoading ? (
         <div className='token_list'>
-           <UnilendLoader width='200px' height='200px' className='logo_loader' />
+          <UnilendLoader width='200px' height='200px' className='logo_loader' />
         </div>
       ) : (
         <div ref={container} className='token_list'>
-          {filteredTokenList.length > 0  ? (
+          {filteredTokenList.length > 0 ? (
             filteredTokenList.map((token: Token, i: number) =>
               i < page * 100 ? (
                 <PoolCard
@@ -142,7 +152,7 @@ TokenListModal.defaultProps = {
   isTokenListLoading: false,
   showpositionData: false,
   positionData: [],
-  pools:[]
+  pools: [],
 };
 
 export default TokenListModal;

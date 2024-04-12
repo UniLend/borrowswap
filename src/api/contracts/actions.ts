@@ -113,23 +113,155 @@ export const handleSwap = async (
       contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
     const instance = await getEtherContract(controllerAddress, controllerABI);
 
-    const borrowAmount = selectedTokens.borrow.token == 1? String(decimal2Fixed(borrow, selectedTokens.borrow.decimals)): String(decimal2Fixed(-borrow, selectedTokens.borrow.decimals))
+    const borrowAmount =
+      selectedTokens.borrow.token == 1
+        ? String(decimal2Fixed(borrow, selectedTokens.borrow.decimals))
+        : String(decimal2Fixed(-borrow, selectedTokens.borrow.decimals));
+
+    // '0x784c4a12f82204e5fb713b055de5e8008d5916b6',
+    // '0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a',
+    // '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+    // '0x172370d5cd63279efa6d502dab29171933a610af',
+    // '10000000000000000000',
+    // '200000000000000',
+    // owner.address
 
     console.log("handleswap", selectedTokens, borrowAmount);
-    
+
     const { hash } = await instance?.uniBorrow(
       pool.pool,
       selectedTokens.lend.address,
       selectedTokens.receive.address,
       selectedTokens.borrow.address,
       decimal2Fixed(amount),
-      borrowAmount
-      ,
+      borrowAmount,
       user
     );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
-     return hash;
+    return hash;
+    return "";
+  } catch (error) {
+    console.log("Error", { error });
+
+    throw error;
+  }
+};
+//handle repay borrow
+export const handleRepay = async (
+  lend: any,
+  pool: any,
+  selectedData: any,
+  user: any,
+  borrowAmount: any,
+  receiveAmount: any
+) => {
+  try {
+    const chainId = getChainId(wagmiConfig);
+    const controllerAddress =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
+    const instance = await getEtherContract(controllerAddress, controllerABI);
+    //borrowBalanceFixed: 0.024147835188104056
+
+    console.log(
+      "repay",
+      // address _pool,
+      // address _tokenIn, //erc 20 token address
+      // address _borrowedToken, // borrowed token address
+      // address _user,  // user address
+      // uint256 _nftID, // position Id
+      // int256 _amountOut,  // erc20 pay token
+      // int256 _repayAmount,  // borrowed amount amount
+      selectedData.pool.pool,
+      selectedData.lend.address,
+      selectedData.borrow.address,
+      user,
+      selectedData.pool.positionId,
+      decimal2Fixed(lend),
+      decimal2Fixed(receiveAmount),
+      instance
+    );
+
+    const { hash } = await instance?.uniRepay(
+      selectedData.pool.pool,
+      selectedData.lend.address,
+      selectedData.borrow.address,
+      user,
+      selectedData.pool.positionId,
+      decimal2Fixed(lend),
+      decimal2Fixed(receiveAmount)
+    );
+    console.log("transaction", hash);
+    const receipt = await waitForTransaction(hash);
+    return receipt;
+    return "";
+  } catch (error) {
+    console.log("Error", { error });
+
+    throw error;
+  }
+};
+
+export const handleCompoundRepay = async (
+  lend: any,
+  user: any,
+  selectedData: any,
+  borrowAmount: any
+) => {
+  console.log(
+    "repay",
+
+    // address _borrowedToken,   borrow token address
+    // address _tokenIn, erc token address
+    // address _user, user address
+    // address _collateralToken, recive token address
+    // uint256 _collateralAmount, colltaral amount
+    // uint256 _repayAmount repay amount
+
+    // "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    // "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+    // "0xD5b26AC46d2F43F4d82889f4C7BBc975564859e3",
+    // "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+    // "30000000000000000",
+    // "10635878"
+    selectedData?.borrow?.address,
+    selectedData?.borrow?.address,
+    // selectedData?.lend?.address,
+    user,
+    selectedData?.receive?.address,
+    selectedData.receive.collateralBalance,
+    // decimal2Fixed(lend),
+    selectedData.borrow.BorrowBalance
+  );
+  try {
+    const chainId = getChainId(wagmiConfig);
+    const controllerAddress =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
+    const instance = await getEtherContract(controllerAddress, controllerABI);
+
+    const { hash } = await instance?.reapay(
+      // "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+      // "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+      // "0xD5b26AC46d2F43F4d82889f4C7BBc975564859e3",
+      // "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+      // "500000000000000000",
+      // // "2729875342"
+      // "1364937671"
+      selectedData?.borrow.address,
+      selectedData?.borrow.address,
+      // selectedData.lend.address, //TODO
+      user,
+      selectedData?.receive.address,
+      selectedData.receive.collateralBalance,
+      // "90000000000000000",
+      // decimal2Fixed(lend), //TODO
+      selectedData.borrow.BorrowBalance
+      // "1364900000"
+      // selectedData.borrow.BorrowBalance
+    );
+    console.log("transaction", hash);
+    const receipt = await waitForTransaction(hash);
+    return receipt;
     return "";
   } catch (error) {
     console.log("Error", { error });
@@ -142,6 +274,7 @@ export const getAllowance = async (
   token: any,
   user: `0x${string}` | undefined
 ) => {
+  console.log("allowance", token);
   try {
     var maxAllow =
       "115792089237316195423570985008687907853269984665640564039457584007913129639935";

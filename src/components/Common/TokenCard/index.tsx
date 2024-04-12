@@ -87,18 +87,18 @@ const TokenCard: React.FC<TokenCardProps> = ({
             </div>
           </div>
           {/* TODO: update token pool data */}
-          <div className='pool_details'>
+          {/* <div className='pool_details'>
             <div className='pool_logo'>
               <img src={token.logo} alt='' />
               <img src={token.logo} alt='' />
             </div>
-            {/* <p className='paragraph06'>Repay: 512.02</p> */}
+          </div> */}
+          <div className='pool_details'>
+            <div>
+              <p className='paragraph06'>Unilend</p>
+              <img src={token.logoURI || token.logo} alt='' />
+            </div>
           </div>
-
-    
-
-
-
         </div>
       )}
     </>

@@ -18,8 +18,10 @@ export const isZeroAddress = (address: any) => {
 };
 
 export const findBorrowToken = (poolList: any, token: any) => {
+  console.log("tokenPools", poolList);
   const tokenPools = Object.values(poolList).filter((pool: any) => {
     if (pool.token0.address == token || pool.token1.address == token) {
+      console.log("tokenPools", token);
       return true;
     }
   });
@@ -94,12 +96,14 @@ export const checkOpenPosition = (position: any) => {
 export const loadPoolsWithGraph = async (chain: any, address: any) => {
   if (true) {
     const proxy = await getUserProxy(address);
-    const query = getPoolCreatedGraphQuery(
-      "0xD5b26AC46d2F43F4d82889f4C7BBc975564859e3"
-    );
-
+    console.log("PROXY", proxy);
+    const query = getPoolCreatedGraphQuery(proxy);
     const data = await fetchGraphQlData(chain?.id, query);
-    const allPositions = data?.positions;
+    // const allPositions = data?.positions;
+    const allPositions = data?.positions?.map((item: any) => ({
+      ...item,
+      source: "Unilend",
+    }));
     console.log("allPositions", allPositions);
     const poolData: any = {};
     const tokenList: any = {};
