@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Slider, Modal } from "antd";
+import { Button, Modal } from "antd";
 import {
   getAllowance,
   getBorrowTokenData,
@@ -19,7 +19,6 @@ import type { UnilendV2State } from "../../../states/store";
 import { useSelector } from "react-redux";
 import "./index.scss";
 import useWalletHook from "../../../api/hooks/useWallet";
-import PoolListModel from "../../Common/PoolListModel";
 import TokenListModal from "../../Common/TokenListModal";
 import AmountContainer from "../../Common/AmountContainer";
 import ButtonWithDropdown from "../../Common/ButtonWithDropdown";
@@ -64,27 +63,6 @@ const compoundTempPosition = [
   },
 ];
 
-const compoundColleteralTokens = [
-  {
-    address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
-    symbol: "WETH",
-    name: "wrap eth",
-    decimals: 18,
-    source: "Compound",
-    // logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
-  },
-];
-
-const baseTokens = [
-  {
-    address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-    symbol: "USDC",
-    name: "USDC",
-    decimals: 6,
-    source: "Compound",
-  },
-];
-
 export default function RepayCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList, positions } = unilendV2Data;
@@ -100,7 +78,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
   const [repayToken, setRepayToken] = useState<Array<any>>([]);
   const [modalMsg, setModalMsg] = useState("");
   const [quoteError, setQuoteError] = useState<boolean>(false);
-
   //select data state
   const [selectedData, setSelectedData] = useState<any>({
     pool: null,
@@ -108,15 +85,11 @@ export default function RepayCard({ uniSwapTokens }: any) {
     receive: null,
     borrow: null,
   });
-
-  console.log("selectedData", selectedData);
-
   //open  diffrent modal dynamically
   const [tokenListStatus, setTokenListStatus] = useState({
     isOpen: false,
     operation: "",
   });
-
   const [isTokenLoading, setIsTokenLoading] = useState({
     positions: true,
     pool: false,
@@ -125,10 +98,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
     quotation: false,
   });
   const [unilendPool, setUnilendPool] = useState(null as any | null);
-
-  // TODO: add enum for below state;
-  // const [repayBtn, setRepayBtn] = useState("Select you pay token");
-
   const [operationProgress, setOperationProgress] = useState(0);
 
   //sorted Specific tokens acording to our choice
@@ -240,23 +209,23 @@ export default function RepayCard({ uniSwapTokens }: any) {
         console.log("borrowAmount", borrowAmount);
         console.log("setOperationProgress(22)", operationProgress);
         let hash;
-        if(selectedData.borrow.source == 'Unilend'){
-            hash = await handleRepay(
+        if (selectedData.borrow.source == "Unilend") {
+          hash = await handleRepay(
             lendAmount,
             unilendPool,
             selectedData,
             address,
             borrowAmount,
-            receiveAmount,
+            receiveAmount
           );
         } else {
-            hash = await handleCompoundRepay(
-              lendAmount,
-              address,
-              selectedData,
-              borrowAmount
-            );
-          }
+          hash = await handleCompoundRepay(
+            lendAmount,
+            address,
+            selectedData,
+            borrowAmount
+          );
+        }
         if (hash) {
           setOperationProgress(3);
           handleClear();
@@ -268,7 +237,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
     } catch (error) {
       console.log("Error1", { error });
     }
-};
+  };
 
   const handleClear = () => {
     setLendAmount("");
@@ -314,12 +283,14 @@ export default function RepayCard({ uniSwapTokens }: any) {
         (selectedData?.receive?.collateralBalanceFixed || 0) +
           (selectedData?.receive?.redeemBalanceFixed || 0)
       );
+      setQuoteError(false);
     } catch (error: any) {
       console.error("Error in handleQuote:", error);
       NotificationMessage(
         "error",
         error?.message || "Error occurred in handleQuote"
       );
+      setQuoteError(true);
     } finally {
       setIsTokenLoading({ ...isTokenLoading, quotation: false });
     }
@@ -329,15 +300,11 @@ export default function RepayCard({ uniSwapTokens }: any) {
   useEffect(() => {
     if (selectedData?.pool && selectedData?.lend && !tokenListStatus.isOpen) {
       setIsTokenLoading({ ...isTokenLoading, quotation: true });
-      console.log("quotation loading", isTokenLoading.quotation);
       setReceiveAmount("");
       setLendAmount("");
-      // setRepayAmount("");
       handleQuote();
     }
   }, [selectedData?.lend]);
-
-  // Handle Recieve Data
 
   const handleRepayToken = async (poolData: any) => {
     if (poolData.source === "Unilend") {
@@ -384,7 +351,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
       }
       setIsTokenLoading({ ...isTokenLoading, pool: false });
     } else {
-      const tokenBal = await getAllowance( poolData.otherToken, address);
+      const tokenBal = await getAllowance(poolData.otherToken, address);
 
       const collateralToken = await getCollateralTokenData(
         poolData.otherToken,
@@ -398,7 +365,11 @@ export default function RepayCard({ uniSwapTokens }: any) {
         ...selectedData,
         ["pool"]: poolData,
         ["lend"]: null,
-        ["receive"]: { ...poolData.otherToken, ...collateralToken, ...tokenBal },
+        ["receive"]: {
+          ...poolData.otherToken,
+          ...collateralToken,
+          ...tokenBal,
+        },
         ["borrow"]: { ...poolData.borrowToken, ...borrowedToken },
       });
     }
@@ -416,9 +387,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
       setReceiveAmount("");
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
-      // // setBorrowAmount(selectedData.borrow.borrowBalanceFixed);
       const tokenBal = await getAllowance(data, address);
-      console.log("tokenBal", tokenBal);
       setSelectedData({
         ...selectedData,
         [tokenListStatus.operation]: { ...data, ...tokenBal },
@@ -505,54 +474,30 @@ export default function RepayCard({ uniSwapTokens }: any) {
         </Button>
       </div>
 
-      {tokenListStatus.operation == "pool" ? (
-        <Modal
-          className='antd_modal_overlay'
-          centered
-          onCancel={handleCloseTokenList}
-          open={tokenListStatus.isOpen}
-          footer={null}
-          closable={false}
-        >
-          <PoolListModel
-            tokenList={getOprationToken()}
-            onSelectToken={(token: any) => handleTokenSelection(token)}
-            operation={ActiveOperation.REPAY}
-            // tokenListOperation={tokenListStatus.operation}
-            isTokenListLoading={isTokenLoading.positions}
-            showPoolData={true}
-            positionData={[
-              ...Object.values(positions),
-              ...compoundTempPosition,
-            ].filter(
-              (item) =>
-                item.borrowBalance0 !== 0 || item.token1.borrowBalance1 !== 0
-            )}
-            pools={pools}
-            // selectedData={selectedData} // Pass selectedData to PoolListModal
-          />
-        </Modal>
-      ) : tokenListStatus.operation == "lend" ||
-        tokenListStatus.operation == "receive" ? (
-        <Modal
-          className='antd_modal_overlay'
-          centered
-          onCancel={handleCloseTokenList}
-          open={tokenListStatus.isOpen}
-          footer={null}
-          closable={false}
-        >
-          <TokenListModal
-            tokenList={getOprationToken()}
-            onSelectToken={(token: any) => handleTokenSelection(token)}
-            operation={ActiveOperation.REPAY}
-            // tokenListOperation={tokenListStatus.operation}
-            isTokenListLoading={isTokenLoading.positions} // TODO
-            showPoolData={false}
-            // selectedData={selectedData} // Pass selectedTokens to TokenListModal
-          />
-        </Modal>
-      ) : null}
+      <Modal
+        className='antd_modal_overlay'
+        centered
+        onCancel={handleCloseTokenList}
+        open={tokenListStatus.isOpen}
+        footer={null}
+        closable={false}
+      >
+        <TokenListModal
+          tokenList={getOprationToken()}
+          onSelectToken={(token: any) => handleTokenSelection(token)}
+          operation={ActiveOperation.REPAY}
+          isTokenListLoading={isTokenLoading.positions}
+          showPoolData={tokenListStatus.operation == "pool" ? true : false}
+          positionData={[
+            ...Object.values(positions),
+            ...compoundTempPosition,
+          ].filter(
+            (item) =>
+              item.borrowBalance0 !== 0 || item.token1.borrowBalance1 !== 0
+          )}
+          currentOperation={tokenListStatus.operation}
+        />
+      </Modal>
 
       <Modal
         className='antd_popover_content'

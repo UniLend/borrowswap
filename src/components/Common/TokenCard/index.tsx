@@ -11,7 +11,9 @@ interface Token {
   pairToken: any; //TODO update
   maxLTV: string;
   borrowApy: string;
-  source: string
+  borrowToken?: any;
+  otherToken?: any;
+  source: string;
 }
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -23,7 +25,8 @@ interface TokenCardProps {
   onClick: (token: Token) => void;
   operation?: ActiveOperation;
   showPoolData?: boolean;
-  poolData?: any; // update later
+  // poolData?: any; // update later
+  lendTokenSymbol?: string;
 }
 
 const TokenCard: React.FC<TokenCardProps> = ({
@@ -31,34 +34,42 @@ const TokenCard: React.FC<TokenCardProps> = ({
   onClick,
   operation,
   showPoolData,
-  poolData,
+  // poolData,
+  lendTokenSymbol,
 }) => {
   const handleTokensList = () => {
     onClick(token);
   };
-  const handlePoolList = () => {
-    onClick(poolData);
-  };
+  // const handlePoolList = () => {
+  //   onClick(poolData);
+  // };
 
   return (
     <>
-
       {operation === ActiveOperation.BRROW ? (
         <div onClick={handleTokensList} className='token_card'>
           <div className='tokens_details'>
-            <img src={ token.logoURI || token.logo || getTokenLogo(token.symbol)} alt='' />
+            <img
+              src={token.logoURI || token.logo || getTokenLogo(token.symbol)}
+              alt=''
+            />
             <div>
               <div className='token_pool_logo'>
                 <h3>{token.symbol}</h3>
-                {/* TODO: update the unilend tokens condition in place if true */}
-                {true && showPoolData && (
+                {token?.source === "Unilend" && showPoolData && (
                   <div className='pool_logo'>
                     <img src={token.logo} alt='' />
                     <img src={token.pairToken?.logo} alt='' />
                   </div>
                 )}
+                {token?.source !== "Unilend" && showPoolData && (
+                  <div className='pool_logo'>
+                    <img src={getTokenLogo(token?.symbol)} alt='' />
+                    <img src={getTokenLogo(lendTokenSymbol as string)} alt='' />
+                  </div>
+                )}
               </div>
-              {showPoolData && (
+              {showPoolData && token?.source === "Unilend" && (
                 <span>
                   Borrow APY: {truncateToDecimals(+token.borrowApy, 2)}%
                 </span>
@@ -66,39 +77,59 @@ const TokenCard: React.FC<TokenCardProps> = ({
             </div>
           </div>
           {/* TODO: update token pool data */}
-          {/* <div className='pool_details'>
-            <div>
-              <p className='paragraph06'>{token?.source}</p>
-              <img src={getTokenLogo('UFT')} alt='' />
+          {showPoolData && (
+            <div className='pool_details'>
+              <div>
+                <p className='paragraph06'>{token?.source}</p>
+                <img src={getTokenLogo("UFT")} alt='' />
+              </div>
+              {token?.source === "Unilend" && (
+                <p className='paragraph06'>Max LTV: {token.maxLTV}%</p>
+              )}
             </div>
-            {showPoolData && (
-              <p className='paragraph06'>Max LTV: {token.maxLTV}%</p>
-            )}
-          </div> */}
+          )}
         </div>
       ) : (
         <div onClick={handleTokensList} className='token_card'>
-          <div className='tokens_details'>
-            <img src={token.logoURI || token.logo} alt='' />
-            <div>
-              <div className='token_pool_logo'>
-                <h3>{token.symbol}</h3>
+          {!showPoolData ? (
+            <div className='tokens_details'>
+              <img src={token.logoURI || token.logo} alt='' />
+              <div>
+                <div className='token_pool_logo'>
+                  <h3>{token.symbol}</h3>
+                </div>
               </div>
             </div>
-          </div>
-          {/* TODO: update token pool data */}
+          ) : (
+            <div className='tokens_details'>
+              <img src={getTokenLogo(token.borrowToken.symbol)} alt='' />
+              <div>
+                <div className='token_pool_logo'>
+                  <h3>{token.borrowToken.symbol}</h3>
+                </div>
+                <span>{/* Repay:.0123 */}</span>
+              </div>
+            </div>
+          )}
+          {showPoolData && (
+            <div className='pool_details'>
+              <div>
+                <img
+                  className='token_over'
+                  src={getTokenLogo(token.borrowToken.symbol)}
+                  alt=''
+                />
+                <img src={getTokenLogo(token.otherToken.symbol)} alt='' />
+              </div>
+              <p className='paragraph06'>{token.source}</p>
+            </div>
+          )}
           {/* <div className='pool_details'>
-            <div className='pool_logo'>
-              <img src={token.logo} alt='' />
-              <img src={token.logo} alt='' />
+            <div>
+              <p className='paragraph06'>{token?.source}</p>
+              <img src={getTokenLogo("UFT")} alt='' />
             </div>
           </div> */}
-          <div className='pool_details'>
-            <div>
-              <p className='paragraph06'>Unilend</p>
-              <img src={token.logoURI || token.logo} alt='' />
-            </div>
-          </div>
         </div>
       )}
     </>
@@ -109,7 +140,8 @@ const TokenCard: React.FC<TokenCardProps> = ({
 TokenCard.defaultProps = {
   onClick: (token: Token) => {},
   showPoolData: false,
-  poolData: [],
+  // poolData: [],
+  lendTokenSymbol: "logo",
 };
 
 export default TokenCard;
