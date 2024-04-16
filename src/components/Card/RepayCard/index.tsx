@@ -1,19 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button, Modal } from "antd";
-import {
-  getAllowance,
-  getBorrowTokenData,
-  getCollateralTokenData,
-  getPoolBasicData,
-  handleApproval,
-  handleCompoundRepay,
-  handleRepay,
-} from "../../../api/contracts/actions";
-import {
-  decimal2Fixed,
-  truncateToDecimals,
-  getRepayBtnActions,
-} from "../../../helpers";
+import { getAllowance } from "../../../api/contracts/actions";
+import { truncateToDecimals, getRepayBtnActions } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
 
 import { useSelector } from "react-redux";
@@ -22,10 +10,7 @@ import useWalletHook from "../../../api/hooks/useWallet";
 import TokenListModal from "../../Common/TokenListModal";
 import AmountContainer from "../../Common/AmountContainer";
 import ButtonWithDropdown from "../../Common/ButtonWithDropdown";
-import { contractAddresses } from "../../../api/contracts/address";
 import BorrowLoader from "../../Loader/BorrowLoader";
-import { getQuote } from "../../../api/axios/calls";
-import NotificationMessage from "../../Common/NotificationMessage";
 import {
   handleQuote,
   handleRepayTransaction,
