@@ -54,10 +54,10 @@ const compoundTempPosition = [
         source: "Compound",
       },
       token1: {
-        address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
-        symbol: "WETH",
-        name: "wrap eth",
-        decimals: 18,
+        address: "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
+        symbol: "WBTC",
+        name: "Wrapped BTC",
+        decimals: 8,
         source: "Compound",
       },
     },
@@ -73,6 +73,14 @@ const compoundColleteralTokens = [
     source: "Compound",
     // logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
   },
+  {
+    address: "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
+    symbol: "WBTC",
+    name: "Wrapped BTC",
+    decimals: 8,
+    source: "Compound",
+    // logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
+  }
 ];
 
 const baseTokens = [
