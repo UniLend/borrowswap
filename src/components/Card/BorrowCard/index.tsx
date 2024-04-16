@@ -35,6 +35,7 @@ import BorrowLoader from "../../Loader/BorrowLoader";
 import { quote } from "../../../api/uniswap/quotes";
 import { getQuote } from "../../../api/axios/calls";
 import NotificationMessage from "../../Common/NotificationMessage";
+import { checkLiquidity, handleLTVSlider, handleQuote } from "./utils";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -169,77 +170,114 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     setUserProxy(proxy);
   };
 
-  const handleLTVSlider = (value: number) => {
-    setSelectedLTV(value);
-    let borrowAmount = 0;
-    if (selectedTokens.borrow.source == "Unilend") {
-      borrowAmount = getBorrowAmount(
-        lendAmount,
-        value,
-        selectedTokens.lend,
-        selectedTokens.borrow
-      );
-    } else {
-      borrowAmount = getCompoundBorrowAmount(
-        lendAmount,
-        value,
-        selectedTokens.lend.collateralBalanceFixed,
-        selectedTokens.borrow.BorrowBalanceFixed,
-        selectedTokens.lend.price
-      );
-    }
-
-    setBorrowAmount(borrowAmount);
-
-    if (selectedTokens?.receive) {
-      let receiveVal = borrowAmount * b2rRatio;
-      if (isNaN(receiveVal) || receiveVal < 0) {
-        receiveVal = 0;
-      }
-      setReceiveAmount(receiveVal.toString());
-    }
+  const handleLTVSliderWithValue = (value: number) => {
+    handleLTVSlider(
+      value,
+      lendAmount,
+      selectedTokens,
+      b2rRatio,
+      setSelectedLTV,
+      setBorrowAmount,
+      setReceiveAmount,
+      getBorrowAmount,
+      getCompoundBorrowAmount
+    );
   };
 
-  const checkLiquidity = (lendAmount: string, source: string) => {
-    const lendAmountNumber = parseFloat(lendAmount);
-
-    if (!isNaN(lendAmountNumber) && lendAmountNumber > 0) {
-      if (source === "Unilend") {
-        let liquidity = { value: "", decimals: "" };
-        if (unilendPool?.token0?.address === selectedTokens?.borrow?.address) {
-          liquidity.value = unilendPool?.liquidity0;
-          liquidity.decimals = unilendPool?.token0?.decimals;
-        } else {
-          liquidity.value = unilendPool?.liquidity1;
-          liquidity.decimals = unilendPool?.token1?.decimals;
-        }
-        let fixedLiquidity = fixed2Decimals(
-          liquidity?.value,
-          +liquidity?.decimals
-        );
-        if (borrowAmount > truncateToDecimals(Number(fixedLiquidity) || 0, 9)) {
-          setIsLowLiquidity(true);
-        } else {
-          setIsLowLiquidity(false);
-        }
-      } else {
-        // TODO: write liquidity for compound
-      }
-    }
+  const handleQuoteValue = async () => {
+    await handleQuote(
+      selectedTokensRef,
+      address as string,
+      chain,
+      setb2rRatio,
+      setSelectedLTV,
+      setQuoteError,
+      selectedTokens,
+      isTokenLoading,
+      setIsTokenLoading
+    );
   };
+
+  // const handleLTVSlider = (value: number) => {
+  //   setSelectedLTV(value);
+  //   let borrowAmount = 0;
+  //   if (selectedTokens.borrow.source == "Unilend") {
+  //     borrowAmount = getBorrowAmount(
+  //       lendAmount,
+  //       value,
+  //       selectedTokens.lend,
+  //       selectedTokens.borrow
+  //     );
+  //   } else {
+  //     borrowAmount = getCompoundBorrowAmount(
+  //       lendAmount,
+  //       value,
+  //       selectedTokens.lend.collateralBalanceFixed,
+  //       selectedTokens.borrow.BorrowBalanceFixed,
+  //       selectedTokens.lend.price
+  //     );
+  //   }
+
+  //   setBorrowAmount(borrowAmount);
+
+  //   if (selectedTokens?.receive) {
+  //     let receiveVal = borrowAmount * b2rRatio;
+  //     if (isNaN(receiveVal) || receiveVal < 0) {
+  //       receiveVal = 0;
+  //     }
+  //     setReceiveAmount(receiveVal.toString());
+  //   }
+  // };
+
+  // const checkLiquidity = (lendAmount: string, source: string) => {
+  //   const lendAmountNumber = parseFloat(lendAmount);
+
+  //   if (!isNaN(lendAmountNumber) && lendAmountNumber > 0) {
+  //     if (source === "Unilend") {
+  //       let liquidity = { value: "", decimals: "" };
+  //       if (unilendPool?.token0?.address === selectedTokens?.borrow?.address) {
+  //         liquidity.value = unilendPool?.liquidity0;
+  //         liquidity.decimals = unilendPool?.token0?.decimals;
+  //       } else {
+  //         liquidity.value = unilendPool?.liquidity1;
+  //         liquidity.decimals = unilendPool?.token1?.decimals;
+  //       }
+  //       let fixedLiquidity = fixed2Decimals(
+  //         liquidity?.value,
+  //         +liquidity?.decimals
+  //       );
+  //       if (borrowAmount > truncateToDecimals(Number(fixedLiquidity) || 0, 9)) {
+  //         setIsLowLiquidity(true);
+  //       } else {
+  //         setIsLowLiquidity(false);
+  //       }
+  //     } else {
+  //       // TODO: write liquidity for compound
+  //     }
+  //   }
+  // };
 
   useEffect(() => {
     if (address) {
       //handleCompoundSwap(address)
     }
     if (selectedTokens.borrow !== null) {
-      checkLiquidity(lendAmount, selectedTokens.borrow.source);
+      // checkLiquidity(lendAmount, selectedTokens.borrow.source);
+      checkLiquidity(
+        lendAmount,
+        selectedTokens.borrow.source,
+        unilendPool,
+        selectedTokens,
+        borrowAmount,
+        setIsLowLiquidity
+      );
     }
   }, [lendAmount, selectedLTV]);
 
   useEffect(() => {
     if (selectedTokens?.lend?.priceRatio) {
-      handleLTVSlider(5);
+      // handleLTVSlider(5);
+      handleLTVSliderWithValue(5);
     }
   }, [lendAmount, selectedTokens?.receive]);
 
@@ -375,13 +413,11 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
         setModalMsg("Spend Aprroval for " + selectedTokens.lend.symbol);
         await handleApproval(selectedTokens?.lend.address, address, lendAmount);
-
         handleSwapTransaction();
       } else if (Number(10) > Number(borrowToken.allowanceFixed)) {
         setOperationProgress(1);
         setModalMsg("Spend Aprroval for " + selectedTokens.borrow.symbol);
         await handleApproval(selectedTokens?.borrow.address, address, 10);
-
         handleSwapTransaction();
       } else {
         setOperationProgress(2);
@@ -483,38 +519,40 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       });
       setIsTokenLoading({ ...isTokenLoading, rangeSlider: true });
       setReceiveAmount("");
-      handleQuote();
+      // handleQuote();
+      handleQuoteValue();
     }
   };
 
-  const handleQuote = async () => {
-    try {
-      const value = await getQuote(
-        decimal2Fixed(1, selectedTokensRef.current.borrow.decimals),
-        address,
-        selectedTokensRef.current.borrow.address,
-        selectedTokensRef.current.receive.address,
-        chain?.id == 16153 ? 137 : chain?.id
-      );
-      if (value?.quoteDecimals) {
-        setb2rRatio(value?.quoteDecimals);
-      }
-      setQuoteError(false);
-      setSelectedLTV(5);
-    } catch (error: any) {
-      setQuoteError(true);
-      NotificationMessage(
-        "error",
-        `Swap is not available for ${selectedTokens.receive.symbol}, please select different receive token.`
-      );
-    } finally {
-      setIsTokenLoading({ ...isTokenLoading, rangeSlider: false });
-    }
-  };
+  // const handleQuote = async () => {
+  //   try {
+  //     const value = await getQuote(
+  //       decimal2Fixed(1, selectedTokensRef.current.borrow.decimals),
+  //       address,
+  //       selectedTokensRef.current.borrow.address,
+  //       selectedTokensRef.current.receive.address,
+  //       chain?.id == 16153 ? 137 : chain?.id
+  //     );
+  //     if (value?.quoteDecimals) {
+  //       setb2rRatio(value?.quoteDecimals);
+  //     }
+  //     setQuoteError(false);
+  //     setSelectedLTV(5); // TODO check
+  //   } catch (error: any) {
+  //     setQuoteError(true);
+  //     NotificationMessage(
+  //       "error",
+  //       `Swap is not available for ${selectedTokens.receive.symbol}, please select different receive token.`
+  //     );
+  //   } finally {
+  //     setIsTokenLoading({ ...isTokenLoading, rangeSlider: false });
+  //   }
+  // };
 
   useEffect(() => {
     if (selectedTokens.receive !== null && !isTokenLoading.rangeSlider) {
-      handleLTVSlider(currentLTV ? +currentLTV : 5);
+      // handleLTVSlider(currentLTV ? +currentLTV : 5);
+      handleLTVSliderWithValue(currentLTV ? +currentLTV : 5);
       setSelectedLTV(currentLTV ? +currentLTV : 5);
     }
   }, [b2rRatio]);
@@ -595,7 +633,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           <Slider
             value={selectedLTV}
             defaultValue={50}
-            onChange={(value) => handleLTVSlider(value)}
+            onChange={(value) => handleLTVSliderWithValue(value)}
             min={5}
             max={unilendPool?.maxLTV || selectedTokens?.lend?.ltv || 75}
             className='range_slider'
