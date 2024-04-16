@@ -1,7 +1,21 @@
 import { getQuote } from "../../../api/axios/calls";
 import {
+  getAllowance,
+  getBorrowTokenData,
+  getCollateralTokenData,
+  getPoolBasicData,
+  handleApproval,
+  handleCompoundSwap,
+  handleSwap,
+} from "../../../api/contracts/actions";
+import { contractAddresses } from "../../../api/contracts/address";
+import {
   decimal2Fixed,
   fixed2Decimals,
+  getBorrowAmount,
+  getCompoundBorrowAmount,
+  getCompoundCurrentLTV,
+  getCurrentLTV,
   truncateToDecimals,
 } from "../../../helpers";
 import NotificationMessage from "../../Common/NotificationMessage";
@@ -46,11 +60,9 @@ export const handleLTVSlider = (
   lendAmount: string,
   selectedTokens: any,
   b2rRatio: number,
-  setSelectedLTV: (value: number) => void, // Add setSelectedLTV parameter
+  setSelectedLTV: (value: number) => void,
   setBorrowAmount: (amount: number) => void,
-  setReceiveAmount: (amount: string) => void,
-  getBorrowAmount: Function, // Import getBorrowAmount function from its source
-  getCompoundBorrowAmount: Function // Import getCompoundBorrowAmount function from its source
+  setReceiveAmount: (amount: string) => void
 ) => {
   setSelectedLTV(value);
   let borrowAmount = 0;
@@ -86,11 +98,11 @@ export const handleQuote = async (
   selectedTokensRef: any,
   address: string,
   chain: any,
+  selectedTokens: any,
+  isTokenLoading: any,
   setb2rRatio: (value: number) => void,
   setSelectedLTV: (value: number) => void,
   setQuoteError: (value: boolean) => void,
-  selectedTokens: any,
-  isTokenLoading: any,
   setIsTokenLoading: (value: any) => void
 ) => {
   try {
@@ -114,5 +126,284 @@ export const handleQuote = async (
     );
   } finally {
     setIsTokenLoading({ ...isTokenLoading, rangeSlider: false });
+  }
+};
+
+export const handleSwapTransaction = async (
+  selectedTokens: any,
+  address: any,
+  lendAmount: string,
+  unilendPool: any,
+  borrowAmount: number,
+  setIsBorrowProgressModal: (value: boolean) => void,
+  setModalMsg: (value: string) => void,
+  setOperationProgress: (value: number) => void,
+  handleClear: () => void
+) => {
+  try {
+    const lendToken = await getAllowance(selectedTokens?.lend, address);
+    const borrowToken = await getAllowance(selectedTokens?.borrow, address);
+    setIsBorrowProgressModal(true);
+    if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
+      setModalMsg("Spend Aprroval for " + selectedTokens.lend.symbol);
+      await handleApproval(selectedTokens?.lend.address, address, lendAmount);
+      handleSwapTransaction(
+        selectedTokens,
+        address,
+        lendAmount,
+        unilendPool,
+        borrowAmount,
+        setIsBorrowProgressModal,
+        setModalMsg,
+        setOperationProgress,
+        handleClear
+      );
+    } else if (Number(10) > Number(borrowToken.allowanceFixed)) {
+      setOperationProgress(1);
+      setModalMsg("Spend Aprroval for " + selectedTokens.borrow.symbol);
+      await handleApproval(selectedTokens?.borrow.address, address, 10);
+      handleSwapTransaction(
+        selectedTokens,
+        address,
+        lendAmount,
+        unilendPool,
+        borrowAmount,
+        setIsBorrowProgressModal,
+        setModalMsg,
+        setOperationProgress,
+        handleClear
+      );
+    } else {
+      setOperationProgress(2);
+      setModalMsg(
+        selectedTokens.lend.symbol +
+          "-" +
+          selectedTokens.borrow.symbol +
+          "-" +
+          selectedTokens?.receive?.symbol
+      );
+      let hash;
+      if (selectedTokens.borrow.source == "Unilend") {
+        hash = await handleSwap(
+          lendAmount,
+          unilendPool,
+          selectedTokens,
+          address,
+          borrowAmount
+        );
+      } else {
+        hash = await handleCompoundSwap(
+          selectedTokens.lend.address,
+          selectedTokens.borrow.address,
+          selectedTokens.receive.address,
+          decimal2Fixed(lendAmount, selectedTokens.lend.decimals),
+          decimal2Fixed(borrowAmount, selectedTokens.borrow.decimals),
+          address
+        );
+      }
+
+      console.log("hash", hash);
+
+      if (hash) {
+        setOperationProgress(3);
+        handleClear();
+        setTimeout(() => {
+          setIsBorrowProgressModal(false);
+        }, 1000);
+      }
+    }
+  } catch (error) {
+    console.log("handleSwap", { error });
+  }
+};
+
+export const handleTokenSelection = async (
+  token: any,
+  selectedTokens: any,
+  tokenListStatus: any,
+  address: any,
+  isTokenLoading: any,
+  setSelectedTokens: (value: any) => void,
+  setTokenListStatus: (value: any) => void,
+  setReceiveAmount: (value: any) => void,
+  setIsTokenLoading: (value: any) => void,
+  handleQuoteValue: () => void,
+  handleSelectLendToken: (value: any) => void,
+  handleSelectBorrowToken: (value: any) => void
+) => {
+  setSelectedTokens({
+    ...selectedTokens,
+    [tokenListStatus.operation]: { ...token, map: true },
+  });
+  setTokenListStatus({ isOpen: false, operation: "" });
+  const tokenBal = await getAllowance(token, address);
+  console.log("tokenBal", tokenBal);
+
+  if (tokenListStatus.operation == "lend") {
+    handleSelectLendToken(token);
+    setSelectedTokens({
+      [tokenListStatus.operation]: { ...token, ...tokenBal },
+      ["borrow"]: null,
+      ["receive"]: null,
+    });
+    setReceiveAmount("");
+  } else if (tokenListStatus.operation == "borrow") {
+    console.log(token.address);
+    handleSelectBorrowToken(token);
+    setSelectedTokens({
+      ...selectedTokens,
+      [tokenListStatus.operation]: { ...token, ...tokenBal },
+      ["receive"]: null,
+    });
+    setReceiveAmount("");
+  } else if (tokenListStatus.operation == "receive") {
+    setSelectedTokens({
+      ...selectedTokens,
+      [tokenListStatus.operation]: { ...token, ...tokenBal },
+    });
+    setIsTokenLoading({ ...isTokenLoading, rangeSlider: true });
+    setReceiveAmount("");
+    handleQuoteValue();
+  }
+};
+
+export const getOprationToken = (
+  tokenListStatus: any,
+  lendingTokens: any,
+  compoundCollateralTokens: any,
+  selectedTokens: any,
+  borrowingTokens: any,
+  baseTokens: any,
+  uniSwapTokens: any
+) => {
+  if (tokenListStatus.operation === "lend") {
+    const common: any = {};
+    const tokenArray = [...lendingTokens, ...compoundCollateralTokens];
+    for (const token of tokenArray) {
+      if (common[String(token.address).toLocaleUpperCase()]) {
+        common[String(token.address).toLocaleUpperCase()] = {
+          ...token,
+          ...common[token.address],
+          availableIn: ["unilend", "compound"],
+        };
+      } else if (token.source == "Unilend") {
+        common[String(token.address).toLocaleUpperCase()] = {
+          ...token,
+          availableIn: ["unilend"],
+        };
+      } else if (token.source == "Compound") {
+        common[String(token.address).toLocaleUpperCase()] = {
+          ...token,
+          availableIn: ["compound"],
+        };
+      }
+    }
+    console.log("tokenOperatrion", common, tokenArray);
+
+    return Object.values(common);
+  } else if (tokenListStatus.operation === "borrow") {
+    const tokensAvailableIn =
+      Array.isArray(selectedTokens.lend.availableIn) &&
+      selectedTokens.lend.availableIn;
+    console.log("selectedTokens", selectedTokens, tokensAvailableIn);
+    if (
+      tokensAvailableIn.includes("unilend") &&
+      tokensAvailableIn.includes("compound")
+    ) {
+      return [...borrowingTokens, ...baseTokens];
+    } else if (tokensAvailableIn.includes("unilend")) {
+      return [...borrowingTokens];
+    } else if (tokensAvailableIn.includes("compound")) {
+      return [...baseTokens];
+    }
+  } else if (tokenListStatus.operation === "receive") {
+    return uniSwapTokens;
+  } else {
+    return [];
+  }
+};
+
+export const handleSelectBorrowToken = async (
+  token: any,
+  isTokenLoading: any,
+  poolList: any,
+  selectedTokens: any,
+  chain: any,
+  address: any,
+  selectedTokensRef: any,
+  setIsTokenLoading: (value: any) => void,
+  setSelectedTokens: (value: any) => void,
+  setCurrentLTV: (value: string) => void,
+  setSelectedLTV: (value: number) => void,
+  setUnilendPool: (value: any) => void
+) => {
+  if (token.source == "Unilend") {
+    setIsTokenLoading({ ...isTokenLoading, pools: true });
+    const tokenPool: any = Object.values(poolList).find((pool: any) => {
+      if (
+        (pool.token1.address == token.address &&
+          pool.token0.address == selectedTokens.lend?.address) ||
+        (pool.token0.address == token.address &&
+          pool.token1.address == selectedTokens.lend?.address)
+      ) {
+        return true;
+      }
+    });
+
+    const contracts =
+      contractAddresses[chain?.id as keyof typeof contractAddresses];
+    const data = await getPoolBasicData(
+      contracts,
+      tokenPool.pool,
+      tokenPool,
+      address
+    );
+
+    if (data.token0.address == selectedTokens.lend.address) {
+      setSelectedTokens({
+        ...selectedTokens,
+        ["lend"]: { ...selectedTokens.lend, ...data.token0 },
+        ["borrow"]: data.token1,
+      });
+      const currentLtv = getCurrentLTV(data.token1, data.token0);
+
+      setCurrentLTV(currentLtv);
+
+      if (+currentLtv != 0) {
+        setSelectedLTV(+currentLtv);
+      }
+    } else {
+      setSelectedTokens({
+        ...selectedTokens,
+        ["lend"]: { ...selectedTokens.lend, ...data.token1 },
+        ["borrow"]: data.token0,
+      });
+      const currentLtv = getCurrentLTV(data.token0, data.token1);
+      setCurrentLTV(currentLtv);
+      if (+currentLtv != 0) {
+        setSelectedLTV(+currentLtv);
+      }
+    }
+    setUnilendPool(data);
+    setIsTokenLoading({ ...isTokenLoading, pools: false });
+  } else {
+    setIsTokenLoading({ ...isTokenLoading, pools: true });
+    const collateralToken = await getCollateralTokenData(
+      selectedTokensRef?.current?.lend,
+      address
+    );
+    const borrowedToken = await getBorrowTokenData(token, address);
+    setIsTokenLoading({ ...isTokenLoading, pools: false });
+    const ltv = getCompoundCurrentLTV(
+      borrowedToken?.BorrowBalanceFixed,
+      collateralToken?.collateralBalanceFixed,
+      collateralToken?.price
+    );
+    setCurrentLTV(ltv);
+    setSelectedTokens({
+      ...selectedTokens,
+      ["lend"]: { ...selectedTokensRef?.current?.lend, ...collateralToken },
+      ["borrow"]: { ...selectedTokens.borrow, ...borrowedToken },
+    });
   }
 };

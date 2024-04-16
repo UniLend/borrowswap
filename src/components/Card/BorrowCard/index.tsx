@@ -1,41 +1,28 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button, Slider, Modal } from "antd";
+import { getUserProxy } from "../../../api/contracts/actions";
 import {
-  getAllowance,
-  getBorrowTokenData,
-  getCollateralTokenData,
-  getPoolBasicData,
-  getUserProxy,
-  handleApproval,
-  handleCompoundSwap,
-  handleSwap,
-} from "../../../api/contracts/actions";
-import {
-  debounce,
-  decimal2Fixed,
   findBorrowToken,
-  fixed2Decimals,
-  getBorrowAmount,
   getButtonAction,
-  getCompoundBorrowAmount,
-  getCompoundCurrentLTV,
-  getCurrentLTV,
   truncateToDecimals,
 } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
-import { wagmiConfig } from "../../../main";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import "./index.scss";
 import useWalletHook from "../../../api/hooks/useWallet";
 import TokenListModal from "../../Common/TokenListModal";
 import AmountContainer from "../../Common/AmountContainer";
 import ButtonWithDropdown from "../../Common/ButtonWithDropdown";
-import { contractAddresses } from "../../../api/contracts/address";
 import BorrowLoader from "../../Loader/BorrowLoader";
-import { quote } from "../../../api/uniswap/quotes";
-import { getQuote } from "../../../api/axios/calls";
-import NotificationMessage from "../../Common/NotificationMessage";
-import { checkLiquidity, handleLTVSlider, handleQuote } from "./utils";
+import {
+  checkLiquidity,
+  getOprationToken,
+  handleLTVSlider,
+  handleQuote,
+  handleSelectBorrowToken,
+  handleSwapTransaction,
+  handleTokenSelection,
+} from "./utils";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -74,10 +61,6 @@ const baseTokens = [
 export default function BorrowCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList } = unilendV2Data;
-  const [tokenAllowance, setTokenAllowance] = useState({
-    token1: "0",
-    token2: "0",
-  });
   const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState("");
   const [modalMsg, setModalMsg] = useState("");
@@ -100,14 +83,11 @@ export default function BorrowCard({ uniSwapTokens }: any) {
   selectedTokensRef.current = selectedTokens;
   const [selectedLTV, setSelectedLTV] = useState<number>(5);
   const [unilendPool, setUnilendPool] = useState(null as any | null);
-
   const [currentLTV, setCurrentLTV] = useState("0");
   const [b2rRatio, setb2rRatio] = useState(1);
   const [userProxy, setUserProxy] = useState(address);
   const [quoteError, setQuoteError] = useState<boolean>(false);
   const [isLowLiquidity, setIsLowLiquidity] = useState(false);
-  // TODO: add enum for below state;
-  // const [borrowBtn, setBorrowBtn] = useState("Select you pay token");
   const [isTokenLoading, setIsTokenLoading] = useState({
     lend: true,
     borrow: false,
@@ -152,18 +132,16 @@ export default function BorrowCard({ uniSwapTokens }: any) {
   };
 
   const handleSelectLendToken = async (token: any) => {
-    console.log("mylendToken", token);
     if (token.source == "Unilend") {
       setIsTokenLoading((prevLoading) => ({ ...prevLoading, borrow: true }));
-
       const borrowTokens = findBorrowToken(poolList, token?.address);
-
       setBorrowingTokens(borrowTokens);
       setIsTokenLoading((prevLoading) => ({ ...prevLoading, borrow: false }));
     } else {
     }
   };
 
+  // TODO: check and remove
   const getProxy = async () => {
     const proxy = await getUserProxy(address);
     console.log("userProxyContract", proxy);
@@ -178,9 +156,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       b2rRatio,
       setSelectedLTV,
       setBorrowAmount,
-      setReceiveAmount,
-      getBorrowAmount,
-      getCompoundBorrowAmount
+      setReceiveAmount
     );
   };
 
@@ -189,278 +165,73 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       selectedTokensRef,
       address as string,
       chain,
+      selectedTokens,
+      isTokenLoading,
       setb2rRatio,
       setSelectedLTV,
       setQuoteError,
-      selectedTokens,
-      isTokenLoading,
       setIsTokenLoading
     );
   };
 
-  // const handleLTVSlider = (value: number) => {
-  //   setSelectedLTV(value);
-  //   let borrowAmount = 0;
-  //   if (selectedTokens.borrow.source == "Unilend") {
-  //     borrowAmount = getBorrowAmount(
-  //       lendAmount,
-  //       value,
-  //       selectedTokens.lend,
-  //       selectedTokens.borrow
-  //     );
-  //   } else {
-  //     borrowAmount = getCompoundBorrowAmount(
-  //       lendAmount,
-  //       value,
-  //       selectedTokens.lend.collateralBalanceFixed,
-  //       selectedTokens.borrow.BorrowBalanceFixed,
-  //       selectedTokens.lend.price
-  //     );
-  //   }
-
-  //   setBorrowAmount(borrowAmount);
-
-  //   if (selectedTokens?.receive) {
-  //     let receiveVal = borrowAmount * b2rRatio;
-  //     if (isNaN(receiveVal) || receiveVal < 0) {
-  //       receiveVal = 0;
-  //     }
-  //     setReceiveAmount(receiveVal.toString());
-  //   }
-  // };
-
-  // const checkLiquidity = (lendAmount: string, source: string) => {
-  //   const lendAmountNumber = parseFloat(lendAmount);
-
-  //   if (!isNaN(lendAmountNumber) && lendAmountNumber > 0) {
-  //     if (source === "Unilend") {
-  //       let liquidity = { value: "", decimals: "" };
-  //       if (unilendPool?.token0?.address === selectedTokens?.borrow?.address) {
-  //         liquidity.value = unilendPool?.liquidity0;
-  //         liquidity.decimals = unilendPool?.token0?.decimals;
-  //       } else {
-  //         liquidity.value = unilendPool?.liquidity1;
-  //         liquidity.decimals = unilendPool?.token1?.decimals;
-  //       }
-  //       let fixedLiquidity = fixed2Decimals(
-  //         liquidity?.value,
-  //         +liquidity?.decimals
-  //       );
-  //       if (borrowAmount > truncateToDecimals(Number(fixedLiquidity) || 0, 9)) {
-  //         setIsLowLiquidity(true);
-  //       } else {
-  //         setIsLowLiquidity(false);
-  //       }
-  //     } else {
-  //       // TODO: write liquidity for compound
-  //     }
-  //   }
-  // };
-
-  useEffect(() => {
-    if (address) {
-      //handleCompoundSwap(address)
-    }
-    if (selectedTokens.borrow !== null) {
-      // checkLiquidity(lendAmount, selectedTokens.borrow.source);
-      checkLiquidity(
-        lendAmount,
-        selectedTokens.borrow.source,
-        unilendPool,
-        selectedTokens,
-        borrowAmount,
-        setIsLowLiquidity
-      );
-    }
-  }, [lendAmount, selectedLTV]);
-
-  useEffect(() => {
-    if (selectedTokens?.lend?.priceRatio) {
-      // handleLTVSlider(5);
-      handleLTVSliderWithValue(5);
-    }
-  }, [lendAmount, selectedTokens?.receive]);
-
-  const handleSelectBorrowToken = async (token: any) => {
-    console.log("source", token);
-
-    if (token.source == "Unilend") {
-      setIsTokenLoading({ ...isTokenLoading, pools: true });
-      const tokenPool = Object.values(poolList).find((pool) => {
-        if (
-          (pool.token1.address == token.address &&
-            pool.token0.address == selectedTokens.lend?.address) ||
-          (pool.token0.address == token.address &&
-            pool.token1.address == selectedTokens.lend?.address)
-        ) {
-          return true;
-        }
-      });
-
-      const contracts =
-        contractAddresses[chain?.id as keyof typeof contractAddresses];
-      const data = await getPoolBasicData(
-        contracts,
-        tokenPool.pool,
-        tokenPool,
-        address
-      );
-
-      if (data.token0.address == selectedTokens.lend.address) {
-        setSelectedTokens({
-          ...selectedTokens,
-          ["lend"]: { ...selectedTokens.lend, ...data.token0 },
-          ["borrow"]: data.token1,
-        });
-        const currentLtv = getCurrentLTV(data.token1, data.token0);
-
-        setCurrentLTV(currentLtv);
-
-        if (+currentLtv != 0) {
-          setSelectedLTV(+currentLtv);
-        }
-      } else {
-        setSelectedTokens({
-          ...selectedTokens,
-          ["lend"]: { ...selectedTokens.lend, ...data.token1 },
-          ["borrow"]: data.token0,
-        });
-        const currentLtv = getCurrentLTV(data.token0, data.token1);
-        setCurrentLTV(currentLtv);
-        if (+currentLtv != 0) {
-          setSelectedLTV(+currentLtv);
-        }
-      }
-      setUnilendPool(data);
-      setIsTokenLoading({ ...isTokenLoading, pools: false });
-    } else {
-      setIsTokenLoading({ ...isTokenLoading, pools: true });
-      const collateralToken = await getCollateralTokenData(
-        selectedTokensRef?.current?.lend,
-        address
-      );
-      const borrowedToken = await getBorrowTokenData(token, address);
-      setIsTokenLoading({ ...isTokenLoading, pools: false });
-      const ltv = getCompoundCurrentLTV(
-        borrowedToken?.BorrowBalanceFixed,
-        collateralToken?.collateralBalanceFixed,
-        collateralToken?.price
-      );
-      setCurrentLTV(ltv);
-      setSelectedTokens({
-        ...selectedTokens,
-        ["lend"]: { ...selectedTokensRef?.current?.lend, ...collateralToken },
-        ["borrow"]: { ...selectedTokens.borrow, ...borrowedToken },
-      });
-    }
+  const handleBorrowSwapTransaction = async () => {
+    await handleSwapTransaction(
+      selectedTokens,
+      address,
+      lendAmount,
+      unilendPool,
+      borrowAmount,
+      setIsBorrowProgressModal,
+      setModalMsg,
+      setOperationProgress,
+      handleClear
+    );
   };
 
-  const getOprationToken = () => {
-    if (tokenListStatus.operation === "lend") {
-      const common: any = {};
-      const tokenArray = [...lendingTokens, ...compoundCollateralTokens];
-      for (const token of tokenArray) {
-        if (common[String(token.address).toLocaleUpperCase()]) {
-          common[String(token.address).toLocaleUpperCase()] = {
-            ...token,
-            ...common[token.address],
-            availableIn: ["unilend", "compound"],
-          };
-        } else if (token.source == "Unilend") {
-          common[String(token.address).toLocaleUpperCase()] = {
-            ...token,
-            availableIn: ["unilend"],
-          };
-        } else if (token.source == "Compound") {
-          common[String(token.address).toLocaleUpperCase()] = {
-            ...token,
-            availableIn: ["compound"],
-          };
-        }
-      }
-      console.log("tokenOperatrion", common, tokenArray);
-
-      return Object.values(common);
-    } else if (tokenListStatus.operation === "borrow") {
-      const tokensAvailableIn =
-        Array.isArray(selectedTokens.lend.availableIn) &&
-        selectedTokens.lend.availableIn;
-      console.log("selectedTokens", selectedTokens, tokensAvailableIn);
-      if (
-        tokensAvailableIn.includes("unilend") &&
-        tokensAvailableIn.includes("compound")
-      ) {
-        return [...borrowingTokens, ...baseTokens];
-      } else if (tokensAvailableIn.includes("unilend")) {
-        return [...borrowingTokens];
-      } else if (tokensAvailableIn.includes("compound")) {
-        return [...baseTokens];
-      }
-    } else if (tokenListStatus.operation === "receive") {
-      return uniSwapTokens;
-    } else {
-      return [];
-    }
+  const handleBorrowToken = async (token: any) => {
+    await handleSelectBorrowToken(
+      token,
+      isTokenLoading,
+      poolList,
+      selectedTokens,
+      chain,
+      address,
+      selectedTokensRef,
+      setIsTokenLoading,
+      setSelectedTokens,
+      setCurrentLTV,
+      setSelectedLTV,
+      setUnilendPool
+    );
   };
 
-  const handleSwapTransaction = async () => {
-    try {
-      const lendToken = await getAllowance(selectedTokens?.lend, address);
-      const borrowToken = await getAllowance(selectedTokens?.borrow, address);
-      console.log("allowance", lendToken, borrowToken);
+  const handleTokensSelection = async (token: any) => {
+    await handleTokenSelection(
+      token,
+      selectedTokens,
+      tokenListStatus,
+      address,
+      isTokenLoading,
+      setSelectedTokens,
+      setTokenListStatus,
+      setReceiveAmount,
+      setIsTokenLoading,
+      handleQuoteValue,
+      handleSelectLendToken,
+      handleBorrowToken
+    );
+  };
 
-      setIsBorrowProgressModal(true);
-      if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
-        setModalMsg("Spend Aprroval for " + selectedTokens.lend.symbol);
-        await handleApproval(selectedTokens?.lend.address, address, lendAmount);
-        handleSwapTransaction();
-      } else if (Number(10) > Number(borrowToken.allowanceFixed)) {
-        setOperationProgress(1);
-        setModalMsg("Spend Aprroval for " + selectedTokens.borrow.symbol);
-        await handleApproval(selectedTokens?.borrow.address, address, 10);
-        handleSwapTransaction();
-      } else {
-        setOperationProgress(2);
-        setModalMsg(
-          selectedTokens.lend.symbol +
-            "-" +
-            selectedTokens.borrow.symbol +
-            "-" +
-            selectedTokens?.receive?.symbol
-        );
-        let hash;
-        if (selectedTokens.borrow.source == "Unilend") {
-          hash = await handleSwap(
-            lendAmount,
-            unilendPool,
-            selectedTokens,
-            address,
-            borrowAmount
-          );
-        } else {
-          hash = await handleCompoundSwap(
-            selectedTokens.lend.address,
-            selectedTokens.borrow.address,
-            selectedTokens.receive.address,
-            decimal2Fixed(lendAmount, selectedTokens.lend.decimals),
-            decimal2Fixed(borrowAmount, selectedTokens.borrow.decimals),
-            address
-          );
-        }
-
-        console.log("hash", hash);
-
-        if (hash) {
-          setOperationProgress(3);
-          handleClear();
-          setTimeout(() => {
-            setIsBorrowProgressModal(false);
-          }, 1000);
-        }
-      }
-    } catch (error) {
-      console.log("handleSwap", { error });
-    }
+  const getCurrentOperationToken = (): any => {
+    return getOprationToken(
+      tokenListStatus,
+      lendingTokens,
+      compoundCollateralTokens,
+      selectedTokens,
+      borrowingTokens,
+      baseTokens,
+      uniSwapTokens
+    );
   };
 
   const handleClear = () => {
@@ -476,7 +247,27 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     setOperationProgress(0);
     setCurrentLTV("0");
     setb2rRatio(0);
+    setSelectedLTV(5);
   };
+
+  useEffect(() => {
+    if (selectedTokens.borrow !== null) {
+      checkLiquidity(
+        lendAmount,
+        selectedTokens.borrow.source,
+        unilendPool,
+        selectedTokens,
+        borrowAmount,
+        setIsLowLiquidity
+      );
+    }
+  }, [lendAmount, selectedLTV]);
+
+  useEffect(() => {
+    if (selectedTokens?.lend?.priceRatio) {
+      handleLTVSliderWithValue(5);
+    }
+  }, [lendAmount, selectedTokens?.receive]);
 
   useEffect(() => {
     const tokensArray = Object.values(tokenList);
@@ -486,72 +277,8 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     }
   }, [unilendV2Data]);
 
-  const handleTokenSelection = async (token: any) => {
-    setSelectedTokens({
-      ...selectedTokens,
-      [tokenListStatus.operation]: { ...token, map: true },
-    });
-    setTokenListStatus({ isOpen: false, operation: "" });
-    const tokenBal = await getAllowance(token, address);
-    console.log("tokenBal", tokenBal);
-
-    if (tokenListStatus.operation == "lend") {
-      handleSelectLendToken(token);
-      setSelectedTokens({
-        [tokenListStatus.operation]: { ...token, ...tokenBal },
-        ["borrow"]: null,
-        ["receive"]: null,
-      });
-      setReceiveAmount("");
-    } else if (tokenListStatus.operation == "borrow") {
-      console.log(token.address);
-      handleSelectBorrowToken(token);
-      setSelectedTokens({
-        ...selectedTokens,
-        [tokenListStatus.operation]: { ...token, ...tokenBal },
-        ["receive"]: null,
-      });
-      setReceiveAmount("");
-    } else if (tokenListStatus.operation == "receive") {
-      setSelectedTokens({
-        ...selectedTokens,
-        [tokenListStatus.operation]: { ...token, ...tokenBal },
-      });
-      setIsTokenLoading({ ...isTokenLoading, rangeSlider: true });
-      setReceiveAmount("");
-      // handleQuote();
-      handleQuoteValue();
-    }
-  };
-
-  // const handleQuote = async () => {
-  //   try {
-  //     const value = await getQuote(
-  //       decimal2Fixed(1, selectedTokensRef.current.borrow.decimals),
-  //       address,
-  //       selectedTokensRef.current.borrow.address,
-  //       selectedTokensRef.current.receive.address,
-  //       chain?.id == 16153 ? 137 : chain?.id
-  //     );
-  //     if (value?.quoteDecimals) {
-  //       setb2rRatio(value?.quoteDecimals);
-  //     }
-  //     setQuoteError(false);
-  //     setSelectedLTV(5); // TODO check
-  //   } catch (error: any) {
-  //     setQuoteError(true);
-  //     NotificationMessage(
-  //       "error",
-  //       `Swap is not available for ${selectedTokens.receive.symbol}, please select different receive token.`
-  //     );
-  //   } finally {
-  //     setIsTokenLoading({ ...isTokenLoading, rangeSlider: false });
-  //   }
-  // };
-
   useEffect(() => {
     if (selectedTokens.receive !== null && !isTokenLoading.rangeSlider) {
-      // handleLTVSlider(currentLTV ? +currentLTV : 5);
       handleLTVSliderWithValue(currentLTV ? +currentLTV : 5);
       setSelectedLTV(currentLTV ? +currentLTV : 5);
     }
@@ -580,7 +307,6 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           buttonText={selectedTokens?.lend?.symbol}
           onClick={() => handleOpenTokenList("lend")}
           isShowMaxBtn
-          //   isTokensLoading={isLoading}
         />
         <div className='swap_route'>
           <p className='paragraph06 '>You borrow</p>
@@ -645,7 +371,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
         <Button
           disabled={borrowBtn.disable}
           className='primary_btn'
-          onClick={handleSwapTransaction}
+          onClick={handleBorrowSwapTransaction}
           title='please slect you pay token'
           loading={isTokenLoading.pools || isTokenLoading.rangeSlider}
         >
@@ -661,13 +387,12 @@ export default function BorrowCard({ uniSwapTokens }: any) {
         closable={false}
       >
         <TokenListModal
-          tokenList={getOprationToken()}
-          onSelectToken={(token: any) => handleTokenSelection(token)}
+          tokenList={getCurrentOperationToken()}
+          onSelectToken={(token: any) => handleTokensSelection(token)}
           operation={ActiveOperation.BRROW}
           isTokenListLoading={isTokenLoading.lend}
           showPoolData={tokenListStatus.operation === "borrow" ? true : false}
           lendTokenSymbol={selectedTokens?.lend?.symbol}
-          //   poolData={tokenListStatus.operation === "receive" ? poolList : []}
         />
       </Modal>
       <Modal
@@ -678,7 +403,6 @@ export default function BorrowCard({ uniSwapTokens }: any) {
         footer={null}
         closable={false}
       >
-        {/* TODO: updaet spend ans swap tokens here */}
         <BorrowLoader msg={modalMsg} progress={operationProgress} />
       </Modal>
     </>
