@@ -269,7 +269,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
       setIsTokenLoading({ ...isTokenLoading, quotation: true });
       setReceiveAmount("");
       setLendAmount("");
-      // handleQuote();
       handleQuoteValue();
     }
   }, [selectedData?.lend]);
@@ -309,7 +308,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
               ? () => handleOpenTokenList("lend")
               : () => {}
           }
-          // onClick={ () => handleOpenTokenList("lend")
           // readonly
         />
         <p className='paragraph06 label'>You Receive</p>
