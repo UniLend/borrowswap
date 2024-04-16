@@ -26,6 +26,11 @@ import { contractAddresses } from "../../../api/contracts/address";
 import BorrowLoader from "../../Loader/BorrowLoader";
 import { getQuote } from "../../../api/axios/calls";
 import NotificationMessage from "../../Common/NotificationMessage";
+import {
+  handleQuote,
+  handleRepayTransaction,
+  handleSelectRepayToken,
+} from "./utils";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -169,76 +174,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
     setTokenListStatus({ isOpen: false, operation: "" });
   };
 
-  //handle Repay transaction function
-  const handleRepayTransaction = async () => {
-    setOperationProgress(0);
-    try {
-      const lendToken = await getAllowance(selectedData?.lend, address);
-      const borrowToken = await getAllowance(selectedData?.borrow, address);
-      setIsBorrowProgressModal(true);
-      console.log("handleRepayTransaction", lendToken, borrowToken);
-
-      if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
-        setModalMsg("Spend Aprroval for " + selectedData.lend.symbol);
-        await handleApproval(selectedData?.lend.address, address, lendAmount);
-        setOperationProgress(1);
-        // console.log("setOperationProgress(1)", operationProgress);
-
-        handleRepayTransaction();
-      } else if (Number(borrowAmount) > Number(borrowToken.allowanceFixed)) {
-        setModalMsg("Spend Aprroval for " + selectedData.borrow.symbol);
-        setOperationProgress(1);
-        // console.log("setOperationProgress(11)", operationProgress);
-        await handleApproval(
-          selectedData?.borrow.address,
-          address,
-          borrowAmount
-        );
-        setOperationProgress(2);
-        // console.log("setOperationProgress(2)", operationProgress);
-        handleRepayTransaction();
-      } else {
-        setModalMsg(
-          selectedData.lend.symbol +
-            "-" +
-            selectedData.borrow.symbol +
-            "-" +
-            selectedData.receive.symbol
-        );
-        setOperationProgress(2);
-        console.log("borrowAmount", borrowAmount);
-        console.log("setOperationProgress(22)", operationProgress);
-        let hash;
-        if (selectedData.borrow.source == "Unilend") {
-          hash = await handleRepay(
-            lendAmount,
-            unilendPool,
-            selectedData,
-            address,
-            borrowAmount,
-            receiveAmount
-          );
-        } else {
-          hash = await handleCompoundRepay(
-            lendAmount,
-            address,
-            selectedData,
-            borrowAmount
-          );
-        }
-        if (hash) {
-          setOperationProgress(3);
-          handleClear();
-          setTimeout(() => {
-            setIsBorrowProgressModal(false);
-          }, 1000);
-        }
-      }
-    } catch (error) {
-      console.log("Error1", { error });
-    }
-  };
-
   const handleClear = () => {
     setLendAmount("");
     setBorrowAmount("");
@@ -255,124 +190,47 @@ export default function RepayCard({ uniSwapTokens }: any) {
   };
 
   //handle quote for Uniswap
-  const handleQuote = async () => {
-    try {
-      const borrowDecimals = selectedData?.borrow?.decimals;
-      const lendAddress = selectedData?.lend?.address;
-      const borrowAddress = selectedData?.borrow?.address;
-      const chainId = 16153 ? 137 : chain?.id;
-
-      const value = await getQuote(
-        decimal2Fixed(1, borrowDecimals),
-        address,
-        borrowAddress,
-        lendAddress,
-        chainId
-      );
-
-      if (value?.quoteDecimals) {
-        setb2rRatio(value.quoteDecimals);
-        const payLendAmount =
-          value.quoteDecimals * (selectedData?.borrow?.borrowBalanceFixed || 0);
-        console.log("pay amount", payLendAmount);
-        setLendAmount(payLendAmount.toString());
-      }
-
-      setBorrowAmount(selectedData?.borrow?.borrowBalanceFixed || 0);
-      setReceiveAmount(
-        (selectedData?.receive?.collateralBalanceFixed || 0) +
-          (selectedData?.receive?.redeemBalanceFixed || 0)
-      );
-      setQuoteError(false);
-    } catch (error: any) {
-      console.error("Error in handleQuote:", error);
-      NotificationMessage(
-        "error",
-        error?.message || "Error occurred in handleQuote"
-      );
-      setQuoteError(true);
-    } finally {
-      setIsTokenLoading({ ...isTokenLoading, quotation: false });
-    }
+  const handleQuoteValue = async () => {
+    await handleQuote(
+      selectedData,
+      chain,
+      address,
+      isTokenLoading,
+      setb2rRatio,
+      setLendAmount,
+      setBorrowAmount,
+      setReceiveAmount,
+      setQuoteError,
+      setIsTokenLoading
+    );
   };
 
-  // Loading Quote Data based on lend State
-  useEffect(() => {
-    if (selectedData?.pool && selectedData?.lend && !tokenListStatus.isOpen) {
-      setIsTokenLoading({ ...isTokenLoading, quotation: true });
-      setReceiveAmount("");
-      setLendAmount("");
-      handleQuote();
-    }
-  }, [selectedData?.lend]);
-
   const handleRepayToken = async (poolData: any) => {
-    if (poolData.source === "Unilend") {
-      setIsTokenLoading({ ...isTokenLoading, pool: true });
-      const tokenPool = Object.values(poolList).find((pool) => {
-        if (pool.pool == poolData.pool) {
-          return true;
-        }
-      });
+    await handleSelectRepayToken(
+      poolData,
+      isTokenLoading,
+      poolList,
+      chain,
+      address,
+      selectedData,
+      setIsTokenLoading,
+      setSelectedData
+    );
+  };
 
-      const contracts =
-        contractAddresses[chain?.id as keyof typeof contractAddresses];
-      const data = await getPoolBasicData(
-        contracts,
-        tokenPool.pool,
-        tokenPool,
-        address
-      );
-
-      if (
-        parseFloat(data.token0.borrowBalanceFixed) > 0 &&
-        data.token0.address === poolData.borrowToken.id
-      ) {
-        setSelectedData({
-          ...selectedData,
-          ["pool"]: poolData,
-          ["lend"]: null,
-          ["receive"]: data.token1,
-          ["borrow"]: data.token0,
-        });
-      }
-
-      if (
-        parseFloat(data.token1.borrowBalanceFixed) > 0 &&
-        data.token1.address === poolData.borrowToken.id
-      ) {
-        setSelectedData({
-          ...selectedData,
-          ["pool"]: poolData,
-          ["lend"]: null,
-          ["receive"]: data.token0,
-          ["borrow"]: data.token1,
-        });
-      }
-      setIsTokenLoading({ ...isTokenLoading, pool: false });
-    } else {
-      const tokenBal = await getAllowance(poolData.otherToken, address);
-
-      const collateralToken = await getCollateralTokenData(
-        poolData.otherToken,
-        address
-      );
-      const borrowedToken = await getBorrowTokenData(
-        poolData.borrowToken,
-        address
-      );
-      setSelectedData({
-        ...selectedData,
-        ["pool"]: poolData,
-        ["lend"]: null,
-        ["receive"]: {
-          ...poolData.otherToken,
-          ...collateralToken,
-          ...tokenBal,
-        },
-        ["borrow"]: { ...poolData.borrowToken, ...borrowedToken },
-      });
-    }
+  const handleSwapRepayTransaction = async () => {
+    handleRepayTransaction(
+      selectedData,
+      address,
+      lendAmount,
+      borrowAmount,
+      receiveAmount,
+      unilendPool,
+      setOperationProgress,
+      setIsBorrowProgressModal,
+      setModalMsg,
+      handleClear
+    );
   };
 
   const handleTokenSelection = async (data: any) => {
@@ -404,6 +262,17 @@ export default function RepayCard({ uniSwapTokens }: any) {
   const checkLoading = (isTokenLoading: object) => {
     return Object.values(isTokenLoading).some((value) => value === true);
   };
+
+  // Loading Quote Data based on lend State
+  useEffect(() => {
+    if (selectedData?.pool && selectedData?.lend && !tokenListStatus.isOpen) {
+      setIsTokenLoading({ ...isTokenLoading, quotation: true });
+      setReceiveAmount("");
+      setLendAmount("");
+      // handleQuote();
+      handleQuoteValue();
+    }
+  }, [selectedData?.lend]);
 
   // loading state
   useEffect(() => {
@@ -466,7 +335,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
         <Button
           disabled={repayButton.disable}
           className='primary_btn'
-          onClick={handleRepayTransaction}
+          onClick={handleSwapRepayTransaction}
           title='please slect you pay token'
           loading={isTokenLoading.pool || isTokenLoading.quotation}
         >

@@ -207,6 +207,8 @@ export const handleSwapTransaction = async (
       if (hash) {
         setOperationProgress(3);
         handleClear();
+        //TODO: check message
+        NotificationMessage("success", `Swap and Borrow is successful`);
         setTimeout(() => {
           setIsBorrowProgressModal(false);
         }, 1000);
