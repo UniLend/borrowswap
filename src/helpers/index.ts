@@ -402,7 +402,8 @@ export const getButtonAction = (
 export const getRepayBtnActions = (
   selectedData: any,
   isTokenLoading: any,
-  quoteError: boolean
+  quoteError: boolean,
+  isLowBal: boolean
 ) => {
   let btn = {
     text: "Repay",
@@ -414,7 +415,10 @@ export const getRepayBtnActions = (
     btn.text = "Select Position";
   } else if (isTokenLoading.pool || borrow === null) {
     btn.text = "Pools data loading";
-  } else if (lend === null) {
+  } else if (isLowBal) {
+    btn.text = "Low balance";
+  }
+   else if (lend === null) {
     btn.text = "Select lend token";
   } else if (quotation) {
     btn.text = "Quote data loading";
