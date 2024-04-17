@@ -644,7 +644,7 @@ export const getCollateralTokenData = async (token: any, address: any) => {
       fromBigNumber(collateralBal.balance),
       token?.decimals || 18
     ),
-   // baseToken: fromBigNumber(baseToken),
+    // baseToken: fromBigNumber(baseToken),
     price: Number(fromBigNumber(price)) / 10 ** 8,
     //quote: fixed2Decimals(fromBigNumber(quote))
   };
@@ -677,7 +677,7 @@ export const getBorrowTokenData = async (token: any, address: any) => {
       BorrowBalanceFixed: fixed2Decimals(
         fromBigNumber(BorrowBal),
         token?.decimals || 18
-      ),    
+      ),
       borrowMin: fromBigNumber(borrowMin),
       borrowMinFixed: fixed2Decimals(
         fromBigNumber(borrowMin),
