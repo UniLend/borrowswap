@@ -472,7 +472,7 @@ export const getPoolBasicData = async (
           ...poolData?.token1,
           priceRatio: token1Price,
           balance: fromBigNumber(token1.balance),
-          balanceFixed: fixed2Decimals(token1.balance, pool.token0.decimals),
+          balanceFixed: fixed2Decimals(token1.balance, pool.token1.decimals),
           allowance: fromBigNumber(token1.allowance),
           allowanceFixed: fixed2Decimals(
             token1.allowance,
@@ -592,7 +592,7 @@ export const getCollateralTokenData = async (token: any, address: any) => {
       fromBigNumber(collateralBal.balance),
       token?.decimals || 18
     ),
-   // baseToken: fromBigNumber(baseToken),
+    // baseToken: fromBigNumber(baseToken),
     price: Number(fromBigNumber(price)) / 10 ** 8,
     //quote: fixed2Decimals(fromBigNumber(quote))
   };
@@ -625,7 +625,7 @@ export const getBorrowTokenData = async (token: any, address: any) => {
       BorrowBalanceFixed: fixed2Decimals(
         fromBigNumber(BorrowBal),
         token?.decimals || 18
-      ),    
+      ),
       borrowMin: fromBigNumber(borrowMin),
       borrowMinFixed: fixed2Decimals(
         fromBigNumber(borrowMin),
