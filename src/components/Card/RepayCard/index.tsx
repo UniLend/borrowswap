@@ -37,8 +37,8 @@ const compoundTempPosition = [
     pool: {
       token0: {
         address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-        symbol: "USDC",
-        name: "USDC",
+        symbol: "USDC (PoS)",
+        name: "USDC (PoS)",
         decimals: 6,
         source: "Compound",
       },
@@ -52,6 +52,42 @@ const compoundTempPosition = [
     },
   },
 ];
+
+
+const compoundCollateralTokens  = [
+    {
+    address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+    symbol: "WETH",
+    name: "Wrapped ETH",
+    decimals: 18,
+    source: "Compound",
+    logo: "https://assets.coingecko.com/coins/images/17238/small/aWETH_2x.png?1626940782"
+  },
+  {
+    address: "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
+    symbol: "WBTC",
+    name: "Wrapped BTC",
+    decimals: 8,
+    source: "Compound",
+    logo: "https://assets.coingecko.com/coins/images/7598/small/wrapped_bitcoin_wbtc.png?1548822744"
+  },
+    {
+    address: "0x3A58a54C066FdC0f2D55FC9C89F0415C92eBf3C4",
+    symbol: "stMATIC",
+    name: "Staked Matic",
+    decimals: 18,
+    source: "Compound",
+    logo: "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912"
+  },
+    {
+    address: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+    symbol: "WMATIC",
+    name: "Wrapped Matic",
+    decimals: 18,
+    source: "Compound",
+    logo: "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912"
+  },
+]
 
 export default function RepayCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
@@ -75,6 +111,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
     receive: null,
     borrow: null,
   });
+console.log("selectedData", selectedData)
   //open  diffrent modal dynamically
   const [tokenListStatus, setTokenListStatus] = useState({
     isOpen: false,
@@ -137,10 +174,17 @@ export default function RepayCard({ uniSwapTokens }: any) {
     }
   }, [unilendV2Data]);
 
+
+  const isLowBal: boolean =
+    +lendAmount >
+    truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
+
+
   const repayButton = getRepayBtnActions(
     selectedData,
     isTokenLoading,
-    quoteError
+    quoteError,
+    isLowBal
   );
 
   const getOprationToken = () => {
@@ -149,6 +193,9 @@ export default function RepayCard({ uniSwapTokens }: any) {
     } else if (tokenListStatus.operation === "lend") {
       return tokens;
     } else if (tokenListStatus.operation === "receive") {
+      if (selectedData.pool.source === "Compound") {
+        return compoundCollateralTokens;
+      }
       return;
     } else {
       return [];
@@ -230,6 +277,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
       setReceiveAmount("");
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
+      setTokenListStatus({ isOpen: false, operation: "" });
       const tokenBal = await getAllowance(data, address);
       setSelectedData({
         ...selectedData,
@@ -252,11 +300,26 @@ export default function RepayCard({ uniSwapTokens }: any) {
   useEffect(() => {
     if (selectedData?.pool && selectedData?.lend && !tokenListStatus.isOpen) {
       setIsTokenLoading({ ...isTokenLoading, quotation: true });
-      setReceiveAmount("");
       setLendAmount("");
       handleQuoteValue();
     }
   }, [selectedData?.lend]);
+
+
+  useEffect(() => {
+      if(selectedData?.pool?.source === 'compound'){
+          setReceiveAmount(
+          (selectedData?.receive?.collateralBalanceFixed || 0)
+      )
+      }else{
+        console.log("works")
+          setReceiveAmount(
+          (selectedData?.receive?.collateralBalanceFixed || 0) +
+          (selectedData?.receive?.redeemBalanceFixed || 0)
+        )
+      }
+  }, [selectedData?.receive]);
+  
 
   // loading state
   useEffect(() => {
@@ -304,15 +367,20 @@ export default function RepayCard({ uniSwapTokens }: any) {
             (selectedData?.receive?.collateralBalanceFixed || 0) +
             (selectedData?.receive?.redeemBalanceFixed || 0)
           }
-          buttonText={selectedData?.pool?.otherToken?.symbol}
+          // buttonText={selectedData?.pool?.otherToken?.symbol}
+          buttonText={
+            selectedData?.pool?.source === "Compound" ? selectedData?.receive?.symbol : selectedData?.pool?.otherToken?.symbol
+          }
           isShowMaxBtn
           onClick={
-            selectedData?.pool !== null
-              ? () => handleOpenTokenList("pool")
+            selectedData?.pool !== null && selectedData.pool.source ==="Compound"
+              ? () => handleOpenTokenList("receive")
               : () => {}
           }
           readonly
-          btnClass='disable_btn'
+          btnClass={
+            selectedData?.pool?.source === "Compound" ? "" : "disable_btn"
+          }
         />
 
         <Button

@@ -97,7 +97,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
   if (true) {
     const proxy = await getUserProxy(address);
     console.log("PROXY", proxy);
-    const query = getPoolCreatedGraphQuery(proxy);
+    const query = getPoolCreatedGraphQuery(address);
     const data = await fetchGraphQlData(chain?.id, query);
     // const allPositions = data?.positions;
     const allPositions = data?.positions?.map((item: any) => ({
@@ -110,7 +110,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
 
     const poolsData = Array.isArray(data.pools) && data.pools;
     const tokenPrice = await getTokenPrice(data, chain);
-
+    console.log("tokenPrice", tokenPrice )
     console.log("poolGraph", data, allPositions, poolsData);
 
     for (const pool of poolsData) {
@@ -402,20 +402,24 @@ export const getButtonAction = (
 export const getRepayBtnActions = (
   selectedData: any,
   isTokenLoading: any,
-  quoteError: boolean
+  quoteError: boolean,
+  isLowBal: boolean
 ) => {
   let btn = {
     text: "Repay",
     disable: false,
   };
-  const { pool, lend } = selectedData;
+  const { pool, lend, borrow } = selectedData;
   const { quotation } = isTokenLoading;
   if (pool == null) {
-    btn.text = "Select your Position";
-  } else if (isTokenLoading.pool) {
-    btn.text = "Pools are loading";
-  } else if (lend === null) {
-    btn.text = "Select your lend token";
+    btn.text = "Select Position";
+  } else if (isTokenLoading.pool || borrow === null) {
+    btn.text = "Pools data loading";
+  } else if (isLowBal) {
+    btn.text = "Low balance";
+  }
+   else if (lend === null) {
+    btn.text = "Select lend token";
   } else if (quotation) {
     btn.text = "Quote data loading";
   } else if (quoteError) {
