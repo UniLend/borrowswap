@@ -277,6 +277,7 @@ console.log("selectedData", selectedData)
       setReceiveAmount("");
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
+      setTokenListStatus({ isOpen: false, operation: "" });
       const tokenBal = await getAllowance(data, address);
       setSelectedData({
         ...selectedData,
