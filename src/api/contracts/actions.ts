@@ -166,13 +166,10 @@ export const handleRepay = async (
       contractAddresses[chainId as keyof typeof contractAddresses]?.positionAddress;
     const positionInstance = await getEtherContract(positionAddress, positionAbi);
         const getNftID = await positionInstance?.getNftId(
-      // selectedData.pool.pool,
-      // user
-      "0x784c4a12f82204e5fb713b055de5e8008d5916b6",
-      "0xB32794a7B538adF268dB7f1e4F59E6db84f0a988"
+      selectedData.pool.pool,
+      user
     )
-   console.log("nftId", parseInt(getNftID, 10)); 
-
+    const nftId = parseInt(getNftID, 10)
     console.log(
       "repay",
       // address _pool,
@@ -186,7 +183,7 @@ export const handleRepay = async (
       // selectedData.lend.address,
       // selectedData.borrow.address,
       // user,
-      // selectedData.pool.positionId,
+      // nftId
       // decimal2Fixed(receiveAmount),
 
       // "50000000002472170",
@@ -208,7 +205,7 @@ decimal2Fixed(1),
       // selectedData.lend.address,
       // selectedData.borrow.address,
       // user,
-      // selectedData.pool.positionId,
+      // nftId,
       // decimal2Fixed(receiveAmount),
       // // "50000000002472170",
       // "272235"

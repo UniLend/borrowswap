@@ -334,7 +334,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           onMaxClick={() => console.log("Max Clicked")}
           buttonText={selectedTokens?.receive?.symbol}
           onClick={
-            selectedTokens?.borrow !== null
+            selectedTokens?.borrow !== null && !isTokenLoading.pools 
               ? () => handleOpenTokenList("receive")
               : () => {}
           }

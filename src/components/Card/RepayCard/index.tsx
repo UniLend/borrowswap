@@ -15,6 +15,7 @@ import {
   handleQuote,
   handleRepayTransaction,
   handleSelectRepayToken,
+  handleSelectReceiveToken,
 } from "./utils";
 
 enum ActiveOperation {
@@ -101,7 +102,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
   const [isBorrowProgressModal, setIsBorrowProgressModal] =
     useState<boolean>(false);
   const [pools, setPools] = useState<Array<any>>([]);
-  const [repayToken, setRepayToken] = useState<Array<any>>([]);
   const [modalMsg, setModalMsg] = useState("");
   const [quoteError, setQuoteError] = useState<boolean>(false);
   //select data state
@@ -123,6 +123,7 @@ console.log("selectedData", selectedData)
     lend: false,
     receive: false,
     quotation: false,
+    
   });
   const [unilendPool, setUnilendPool] = useState(null as any | null);
   const [operationProgress, setOperationProgress] = useState(0);
@@ -179,12 +180,14 @@ console.log("selectedData", selectedData)
     +lendAmount >
     truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
 
+  const isLowBalReceive: boolean = selectedData?.receive?.collateralBalanceFixed == 0
 
   const repayButton = getRepayBtnActions(
     selectedData,
     isTokenLoading,
     quoteError,
-    isLowBal
+    isLowBal,
+    isLowBalReceive
   );
 
   const getOprationToken = () => {
@@ -249,6 +252,17 @@ console.log("selectedData", selectedData)
       setSelectedData
     );
   };
+  const handleReceiveToken =async (data:any) =>{
+    await handleSelectReceiveToken(
+      data,
+       address,
+      isTokenLoading,
+      selectedData,
+      setIsTokenLoading,
+      setSelectedData,
+    )
+  }
+  
 
   const handleSwapRepayTransaction = async () => {
     handleRepayTransaction(
@@ -267,29 +281,36 @@ console.log("selectedData", selectedData)
 
   const handleTokenSelection = async (data: any) => {
     console.log("handletokendata", data);
+     setTokenListStatus({ isOpen: false, operation: "" });
     setSelectedData({
       ...selectedData,
       [tokenListStatus.operation]: { ...data, map: true },
     });
-
     if (tokenListStatus.operation == "pool") {
       handleRepayToken(data);
       setReceiveAmount("");
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
       setTokenListStatus({ isOpen: false, operation: "" });
+      console.log("tokenListStatus", tokenListStatus);
+      console.log("quotation", isTokenLoading);
       const tokenBal = await getAllowance(data, address);
       setSelectedData({
         ...selectedData,
         [tokenListStatus.operation]: { ...data, ...tokenBal },
       });
     } else if (tokenListStatus.operation == "receive") {
-      setSelectedData({
-        ...selectedData,
-        ["receive"]: data,
-      });
+      handleReceiveToken(data)
+    //    setSelectedData({
+    //   ...selectedData,
+    //   ["lend"]: null,
+    //   ["receive"]: {
+    //     ...data.otherToken, ...borrowedToken 
+    //   },
+    //   ["borrow"]: { ...data.otherToken, ...borrowedToken },
+    // });
     }
-    setTokenListStatus({ isOpen: false, operation: "" });
+   
   };
 
   const checkLoading = (isTokenLoading: object) => {
@@ -299,11 +320,13 @@ console.log("selectedData", selectedData)
   // Loading Quote Data based on lend State
   useEffect(() => {
     if (selectedData?.pool && selectedData?.lend && !tokenListStatus.isOpen) {
+      console.log("lendChnage")
       setIsTokenLoading({ ...isTokenLoading, quotation: true });
       setLendAmount("");
       handleQuoteValue();
     }
   }, [selectedData?.lend]);
+
 
 
   useEffect(() => {
@@ -312,7 +335,6 @@ console.log("selectedData", selectedData)
           (selectedData?.receive?.collateralBalanceFixed || 0)
       )
       }else{
-        console.log("works")
           setReceiveAmount(
           (selectedData?.receive?.collateralBalanceFixed || 0) +
           (selectedData?.receive?.redeemBalanceFixed || 0)
@@ -352,7 +374,7 @@ console.log("selectedData", selectedData)
           onMaxClick={() => console.log("Max Clicked")}
           buttonText={selectedData?.lend?.symbol}
           onClick={
-            selectedData?.borrow !== null
+            selectedData?.borrow !== null && receiveAmount > "0"
               ? () => handleOpenTokenList("lend")
               : () => {}
           }
