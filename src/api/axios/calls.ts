@@ -14,6 +14,8 @@ export const fetchGraphQlData = async (chainId: number, FILMS_QUERY: any) => {
       "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-arbritrum",
     16153:
       "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-polygon",
+    16702:
+      "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-arbritrum",
   };
 
   if (Object.keys(graphURL).includes(String(chainId))) {
@@ -183,6 +185,8 @@ export const uniswapTokensData = async (chainId: number = 1) => {
     56: "https://tokens.coingecko.com/binance-smart-chain/all.json",
     1285: "https://tokens.coingecko.com/moonriver/all.json",
     16153: "https://tokens.coingecko.com/polygon-pos/all.json",
+    16702: "https://tokens.coingecko.com/arbitrum-one/all.json",
+    42161: "https://tokens.coingecko.com/arbitrum-one/all.json",
   };
 
   const url = graphURL[chainId]; // Default to chainId 1 if not found

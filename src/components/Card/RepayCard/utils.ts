@@ -29,7 +29,7 @@ export const handleQuote = async (
     const borrowDecimals = selectedData?.borrow?.decimals;
     const lendAddress = selectedData?.lend?.address;
     const borrowAddress = selectedData?.borrow?.address;
-    const chainId = 16153 ? 137 : chain?.id;
+    const chainId = 16153 || 16702 ? 137 : chain?.id;
 
     const value = await getQuote(
       decimal2Fixed(1, borrowDecimals),

@@ -106,12 +106,13 @@ export const handleQuote = async (
   setIsTokenLoading: (value: any) => void
 ) => {
   try {
+    console.log("CHAIN", chain);
     const value = await getQuote(
       decimal2Fixed(1, selectedTokensRef.current.borrow.decimals),
       address,
       selectedTokensRef.current.borrow.address,
       selectedTokensRef.current.receive.address,
-      chain?.id == 16153 ? 137 : chain?.id
+      chain?.id == 16153 || 16702 ? 137 : chain?.id
     );
     if (value?.quoteDecimals) {
       setb2rRatio(value?.quoteDecimals);

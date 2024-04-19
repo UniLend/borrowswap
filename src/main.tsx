@@ -1,25 +1,29 @@
-import './polyfills';
-import './global.css';
-import '@rainbow-me/rainbowkit/styles.css';
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import { injected} from 'wagmi/connectors'
-import infinityLogo from "./assets/infinity-logo.svg"
+import "./polyfills";
+import "./global.css";
+import "@rainbow-me/rainbowkit/styles.css";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import { injected } from "wagmi/connectors";
+import infinityLogo from "./assets/infinity-logo.svg";
 // import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import {
   RainbowKitProvider,
   getDefaultWallets,
   getDefaultConfig,
 } from "@rainbow-me/rainbowkit";
-import { WagmiProvider, http } from 'wagmi';
-import {  mainnet, polygon } from 'wagmi/chains';
-import { mumbaiTestnet, arbitrum, unilendTestnet } from './api/networks/Chains';
+import { WagmiProvider, http } from "wagmi";
+import { mainnet, polygon } from "wagmi/chains";
+import {
+  mumbaiTestnet,
+  arbitrum,
+  unilendTestnet,
+  arbitrumTestnet,
+} from "./api/networks/Chains";
 
-
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { store } from './states/store'
-import { Provider } from 'react-redux'
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { store } from "./states/store";
+import { Provider } from "react-redux";
 import { myCustomTheme } from "./theme/customWalletTheme";
 // import {wagmiConfig} from "./config.ts"
 import {
@@ -51,13 +55,17 @@ const { wallets } = getDefaultWallets();
 //   },
 // });
 
-
-
-
 export const wagmiConfig = getDefaultConfig({
-  appName: 'BorrowSwap',
-  projectId: 'YOUR_PROJECT_ID',
-  chains: [mainnet, polygon, arbitrum, mumbaiTestnet, unilendTestnet],
+  appName: "BorrowSwap",
+  projectId: "YOUR_PROJECT_ID",
+  chains: [
+    mainnet,
+    polygon,
+    arbitrum,
+    mumbaiTestnet,
+    unilendTestnet,
+    arbitrumTestnet,
+  ],
   wallets: [
     ...wallets,
     {
@@ -68,24 +76,27 @@ export const wagmiConfig = getDefaultConfig({
   transports: {
     [mainnet.id]: http(),
     [unilendTestnet.id]: http(),
-    [polygon.id]: http('https://polygon-mainnet.infura.io/v3/66e3a238dbe74ec3b1921da35f98b8e9'),
-  }
+    [polygon.id]: http(
+      "https://polygon-mainnet.infura.io/v3/66e3a238dbe74ec3b1921da35f98b8e9"
+    ),
+    [arbitrumTestnet.id]: http(),
+  },
 });
 
-console.log("wagmiConfig",wagmiConfig );
+console.log("wagmiConfig", wagmiConfig);
 
 const queryClient = new QueryClient();
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Provider store={store}>
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider modalSize="compact" theme={myCustomTheme}>
-          <App />
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+      <WagmiProvider config={wagmiConfig}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider modalSize='compact' theme={myCustomTheme}>
+            <App />
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
     </Provider>
-  </React.StrictMode>,
+  </React.StrictMode>
 );

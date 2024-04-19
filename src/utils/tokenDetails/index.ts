@@ -1,7 +1,7 @@
 import tokensbysymbol from "./tokensbysymbol.json";
-import ETH from "../../assets/eth-new.svg"
-import ARB from "../../assets/arbitrum-logo.svg"
-import MATIC from "../../assets/matic.svg"
+import ETH from "../../assets/eth-new.svg";
+import ARB from "../../assets/arbitrum-logo.svg";
+import MATIC from "../../assets/matic.svg";
 interface Token {
   address?: string;
   chainId?: number;
@@ -174,31 +174,35 @@ export const tokensBYSymbol: { [key: string]: Token } = {
   },
 };
 
-
 export const chainsBySymbol: { [key: number]: Token } = {
   1: {
     address: "",
     symbol: "ETH",
     logo: ETH,
   },
-    42161: {
+  42161: {
     address: "",
     symbol: "ARB",
     logo: ARB,
   },
-    80001: {
+  80001: {
     address: "",
     symbol: "MATIC",
     logo: MATIC,
   },
-    137: {
+  137: {
     address: "",
     symbol: "MATIC",
     logo: MATIC,
   },
-    16153: {
+  16153: {
     address: "",
     symbol: "MATIC",
     logo: MATIC,
   },
-}
+  16702: {
+    address: "",
+    symbol: "ARB",
+    logo: ARB,
+  },
+};
