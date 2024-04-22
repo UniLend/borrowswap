@@ -16,8 +16,8 @@ import {
   handleRepayTransaction,
   handleSelectRepayToken,
 } from "./utils";
-import { getEtherContract } from "../../../api/contracts/ethers";
-import { positionAbi } from "../../../api/contracts/abi";
+// import { getEtherContract } from "../../../api/contracts/ethers";
+// import { positionAbi } from "../../../api/contracts/abi";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -294,22 +294,22 @@ export default function RepayCard({ uniSwapTokens }: any) {
     return Object.values(isTokenLoading).some((value) => value === true);
   };
 
-  const callPosition = async () => {
-    const instance = await getEtherContract(
-      "0x55da4F6C98B1217095004F69e304F853663D1C11",
-      positionAbi
-    );
+  // const callPosition = async () => {
+  //   const instance = await getEtherContract(
+  //     "0x55da4F6C98B1217095004F69e304F853663D1C11",
+  //     positionAbi
+  //   );
 
-    const res = await instance?.getNftId(
-      "0x3a1f9b5d99917ca02be377b9670b61935a78cfc2",
-      "0x99A221a87b3C2238C90650fa9BE0F11e4c499D06"
-    );
-    console.log("INSTANCE", res);
-  };
+  //   const res = await instance?.getNftId(
+  //     "0x3a1f9b5d99917ca02be377b9670b61935a78cfc2",
+  //     "0x99A221a87b3C2238C90650fa9BE0F11e4c499D06"
+  //   );
+  //   console.log("INSTANCE", res);
+  // };
 
-  useEffect(() => {
-    callPosition();
-  }, []);
+  // useEffect(() => {
+  //   callPosition();
+  // }, []);
 
   // Loading Quote Data based on lend State
   useEffect(() => {

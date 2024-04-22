@@ -29,48 +29,17 @@ enum ActiveOperation {
   REPAY = "Swap_Repay",
 }
 
-// const compoundCollateralTokens = [
-//   {
-//     address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
-//     symbol: "WETH",
-//     name: "wrap eth",
-//     decimals: 18,
-//     source: "Compound",
-//     // logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
-//   },
-//   {
-//     address: "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
-//     symbol: "WBTC",
-//     name: "Wrapped BTC",
-//     decimals: 8,
-//     source: "Compound",
-//     // logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
-//   },
-// ];
-
-// const baseTokens = [
-//   {
-//     address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-//     symbol: "USDC (PoS)",
-//     name: "USD Coin (PoS) ",
-//     decimals: 6,
-//     source: "Compound",
-//   },
-// ];
-
-// 5002.4308 + 3114.6908 =  8117.1216/
-
 const compoundCollateralTokens = [
   {
-    address: "0x912CE59144191C1204E64559FE8253a0e49E6548",
-    symbol: "ARB",
-    name: "Arbitrum",
+    address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+    symbol: "WETH",
+    name: "wrap eth",
     decimals: 18,
     source: "Compound",
     // logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
   },
   {
-    address: "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
+    address: "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
     symbol: "WBTC",
     name: "Wrapped BTC",
     decimals: 8,
@@ -81,13 +50,44 @@ const compoundCollateralTokens = [
 
 const baseTokens = [
   {
-    address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-    symbol: "USDC",
-    name: "USD Coin",
+    address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    symbol: "USDC (PoS)",
+    name: "USD Coin (PoS) ",
     decimals: 6,
     source: "Compound",
   },
 ];
+
+// 5002.4308 + 3114.6908 =  8117.1216/
+
+// const compoundCollateralTokens = [
+//   {
+//     address: "0x912CE59144191C1204E64559FE8253a0e49E6548",
+//     symbol: "ARB",
+//     name: "Arbitrum",
+//     decimals: 18,
+//     source: "Compound",
+//     // logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
+//   },
+//   {
+//     address: "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
+//     symbol: "WBTC",
+//     name: "Wrapped BTC",
+//     decimals: 8,
+//     source: "Compound",
+//     // logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
+//   },
+// ];
+
+// const baseTokens = [
+//   {
+//     address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+//     symbol: "USDC",
+//     name: "USD Coin",
+//     decimals: 6,
+//     source: "Compound",
+//   },
+// ];
 
 export default function BorrowCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
