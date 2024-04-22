@@ -16,6 +16,8 @@ import {
   handleRepayTransaction,
   handleSelectRepayToken,
 } from "./utils";
+import { getEtherContract } from "../../../api/contracts/ethers";
+import { positionAbi } from "../../../api/contracts/abi";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -53,15 +55,14 @@ const compoundTempPosition = [
   },
 ];
 
-
-const compoundCollateralTokens  = [
-    {
+const compoundCollateralTokens = [
+  {
     address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
     symbol: "WETH",
     name: "Wrapped ETH",
     decimals: 18,
     source: "Compound",
-    logo: "https://assets.coingecko.com/coins/images/17238/small/aWETH_2x.png?1626940782"
+    logo: "https://assets.coingecko.com/coins/images/17238/small/aWETH_2x.png?1626940782",
   },
   {
     address: "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
@@ -69,25 +70,25 @@ const compoundCollateralTokens  = [
     name: "Wrapped BTC",
     decimals: 8,
     source: "Compound",
-    logo: "https://assets.coingecko.com/coins/images/7598/small/wrapped_bitcoin_wbtc.png?1548822744"
+    logo: "https://assets.coingecko.com/coins/images/7598/small/wrapped_bitcoin_wbtc.png?1548822744",
   },
-    {
+  {
     address: "0x3A58a54C066FdC0f2D55FC9C89F0415C92eBf3C4",
     symbol: "stMATIC",
     name: "Staked Matic",
     decimals: 18,
     source: "Compound",
-    logo: "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912"
+    logo: "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912",
   },
-    {
+  {
     address: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
     symbol: "WMATIC",
     name: "Wrapped Matic",
     decimals: 18,
     source: "Compound",
-    logo: "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912"
+    logo: "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912",
   },
-]
+];
 
 export default function RepayCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
@@ -111,7 +112,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
     receive: null,
     borrow: null,
   });
-console.log("selectedData", selectedData)
+  console.log("selectedData", selectedData);
   //open  diffrent modal dynamically
   const [tokenListStatus, setTokenListStatus] = useState({
     isOpen: false,
@@ -174,11 +175,8 @@ console.log("selectedData", selectedData)
     }
   }, [unilendV2Data]);
 
-
   const isLowBal: boolean =
-    +lendAmount >
-    truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
-
+    +lendAmount > truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
 
   const repayButton = getRepayBtnActions(
     selectedData,
@@ -296,6 +294,23 @@ console.log("selectedData", selectedData)
     return Object.values(isTokenLoading).some((value) => value === true);
   };
 
+  const callPosition = async () => {
+    const instance = await getEtherContract(
+      "0x55da4F6C98B1217095004F69e304F853663D1C11",
+      positionAbi
+    );
+
+    const res = await instance?.getNftId(
+      "0x3a1f9b5d99917ca02be377b9670b61935a78cfc2",
+      "0x99A221a87b3C2238C90650fa9BE0F11e4c499D06"
+    );
+    console.log("INSTANCE", res);
+  };
+
+  useEffect(() => {
+    callPosition();
+  }, []);
+
   // Loading Quote Data based on lend State
   useEffect(() => {
     if (selectedData?.pool && selectedData?.lend && !tokenListStatus.isOpen) {
@@ -305,21 +320,17 @@ console.log("selectedData", selectedData)
     }
   }, [selectedData?.lend]);
 
-
   useEffect(() => {
-      if(selectedData?.pool?.source === 'compound'){
-          setReceiveAmount(
-          (selectedData?.receive?.collateralBalanceFixed || 0)
-      )
-      }else{
-        console.log("works")
-          setReceiveAmount(
-          (selectedData?.receive?.collateralBalanceFixed || 0) +
+    if (selectedData?.pool?.source === "compound") {
+      setReceiveAmount(selectedData?.receive?.collateralBalanceFixed || 0);
+    } else {
+      console.log("works");
+      setReceiveAmount(
+        (selectedData?.receive?.collateralBalanceFixed || 0) +
           (selectedData?.receive?.redeemBalanceFixed || 0)
-        )
-      }
+      );
+    }
   }, [selectedData?.receive]);
-  
 
   // loading state
   useEffect(() => {
@@ -369,11 +380,14 @@ console.log("selectedData", selectedData)
           }
           // buttonText={selectedData?.pool?.otherToken?.symbol}
           buttonText={
-            selectedData?.pool?.source === "Compound" ? selectedData?.receive?.symbol : selectedData?.pool?.otherToken?.symbol
+            selectedData?.pool?.source === "Compound"
+              ? selectedData?.receive?.symbol
+              : selectedData?.pool?.otherToken?.symbol
           }
           isShowMaxBtn
           onClick={
-            selectedData?.pool !== null && selectedData.pool.source ==="Compound"
+            selectedData?.pool !== null &&
+            selectedData.pool.source === "Compound"
               ? () => handleOpenTokenList("receive")
               : () => {}
           }
