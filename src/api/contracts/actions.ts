@@ -130,7 +130,7 @@ export const handleSwap = async (
       selectedTokens.lend.address,
       selectedTokens.receive.address,
       // selectedTokens.borrow.address,
-      amount,
+      decimal2Fixed(amount, selectedTokens.lend.decimals),
       borrowAmount,
       user, instance);
 
@@ -139,7 +139,7 @@ export const handleSwap = async (
       selectedTokens.lend.address,
       selectedTokens.receive.address,
       // selectedTokens.borrow.address,
-      amount,
+      decimal2Fixed(amount, selectedTokens.lend.decimals),
       borrowAmount,
       user
     );

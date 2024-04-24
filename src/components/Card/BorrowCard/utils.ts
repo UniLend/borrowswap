@@ -186,7 +186,7 @@ export const handleSwapTransaction = async (
       let hash;
       if (selectedTokens.borrow.source == "Unilend") {
         hash = await handleSwap(
-          decimal2Fixed(lendAmount, selectedTokens.lend.decimals),
+          lendAmount,
           unilendPool,
           selectedTokens,
           address,
