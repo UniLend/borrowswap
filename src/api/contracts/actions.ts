@@ -5,6 +5,7 @@ import {
   coreAbi,
   erc20Abi,
   helperAbi,
+  positionAbi
 } from "./abi";
 import { readContracts, writeContract } from "wagmi/actions";
 import { getEtherContract } from "./ethers";
@@ -125,15 +126,20 @@ export const handleSwap = async (
     // '10000000000000000000',
     // '200000000000000',
     // owner.address
-
-    console.log("handleswap", selectedTokens, borrowAmount);
+    console.log("handleswap",    pool.pool,
+      selectedTokens.lend.address,
+      selectedTokens.receive.address,
+      // selectedTokens.borrow.address,
+      decimal2Fixed(amount, selectedTokens.lend.decimals),
+      borrowAmount,
+      user, instance);
 
     const { hash } = await instance?.uniBorrow(
       pool.pool,
       selectedTokens.lend.address,
       selectedTokens.receive.address,
-      selectedTokens.borrow.address,
-      decimal2Fixed(amount),
+      // selectedTokens.borrow.address,
+      decimal2Fixed(amount, selectedTokens.lend.decimals),
       borrowAmount,
       user
     );
@@ -149,11 +155,11 @@ export const handleSwap = async (
 };
 //handle repay borrow
 export const handleRepay = async (
-  lend: any,
+  payAmount: any,
   pool: any,
   selectedData: any,
   user: any,
-  borrowAmount: any,
+  borrow: any,
   receiveAmount: any
 ) => {
   try {
@@ -161,8 +167,20 @@ export const handleRepay = async (
     const controllerAddress =
       contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
     const instance = await getEtherContract(controllerAddress, controllerABI);
-    //borrowBalanceFixed: 0.024147835188104056
+    const positionAddress =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.positionAddress;
+    const positionInstance = await getEtherContract(positionAddress, positionAbi);
+    const getNftID = await positionInstance?.getNftId(
+      selectedData.pool.pool,
+      "0x75264A54CB62F488f7C4B44a63BC021455B000E9"
+    )
+  const borrowAmount =
+      selectedData.borrow.token == 1
+        ? String(decimal2Fixed(borrow, selectedData.borrow.decimals))
+        : String(decimal2Fixed(-borrow, selectedData.borrow.decimals));
 
+    const nftId = parseInt(getNftID, 10);
+    console.log("nftId", nftId)
     console.log(
       "repay",
       // address _pool,
@@ -170,26 +188,44 @@ export const handleRepay = async (
       // address _borrowedToken, // borrowed token address
       // address _user,  // user address
       // uint256 _nftID, // position Id
-      // int256 _amountOut,  // erc20 pay token
+      // int256 _amountOut,  // redeem 
       // int256 _repayAmount,  // borrowed amount amount
-      selectedData.pool.pool,
-      selectedData.lend.address,
-      selectedData.borrow.address,
-      user,
-      selectedData.pool.positionId,
-      decimal2Fixed(lend),
-      decimal2Fixed(receiveAmount),
-      instance
+
+      // "0x2e3204ee5ef49543671e7062aea4f42f389faea3",
+      // "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
+      // "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
+      // "0xe1cF3edCe24D67E049075304850914fD9AAA6883",
+      // "22",
+      // decimal2Fixed(receiveAmount),
+      // decimal2Fixed(borrowAmount),
+      "0x2e3204ee5ef49543671e7062aea4f42f389faea3",
+      "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
+      "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
+      "0xe1cF3edCe24D67E049075304850914fD9AAA6883",
+      "27",
+    decimal2Fixed(0.01),
+     "-3988348792588741",
+      instance,
+      positionInstance
     );
 
     const { hash } = await instance?.uniRepay(
-      selectedData.pool.pool,
-      selectedData.lend.address,
-      selectedData.borrow.address,
-      user,
-      selectedData.pool.positionId,
-      decimal2Fixed(lend),
-      decimal2Fixed(receiveAmount)
+      // selectedData.pool.pool,
+      // selectedData.lend.address,
+      // selectedData.borrow.address,
+      // user,
+      // nftId,
+      // decimal2Fixed(receiveAmount),
+      // decimal2Fixed(borrowAmount),
+
+      "0x2e3204ee5ef49543671e7062aea4f42f389faea3",
+      "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
+      "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
+      "0xe1cF3edCe24D67E049075304850914fD9AAA6883",
+      "27",
+      decimal2Fixed(0.01),
+      "-3988348792588741",
+
     );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
@@ -208,29 +244,15 @@ export const handleCompoundRepay = async (
   selectedData: any,
   borrowAmount: any
 ) => {
-  console.log(
-    "repay",
-    lend == ''? selectedData?.borrow.address: selectedData?.lend.address,
-    selectedData?.borrow.address,
-    user,
-    selectedData?.receive.address,
-    selectedData.receive.collateralBalance,
-    decimal2Fixed(lend, selectedData?.lend.decimals)
-  );
+
   try {
     const chainId = getChainId(wagmiConfig);
     const controllerAddress =
       contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
     const instance = await getEtherContract(controllerAddress, controllerABI);
 
+    console.log("instance", instance)
     const { hash } = await instance?.reapay(
-      // '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174', // borrowed token
-      // '0x0b3F868E0BE5597D5DB7fEB59E1CADBb0fdDa50a',// tokenIn
-      // user, //user
-      // '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619', // tokenOut
-      // '1000000000000000000',//receive amount
-      // '709050000000000000000' // repayAmount
-  
       lend == ''? selectedData?.borrow.address: selectedData?.lend.address,
       selectedData?.borrow.address,
       user,
@@ -283,6 +305,8 @@ export const getAllowance = async (
 
 export const getPoolData = (poolAddress: string) => {};
 
+
+
 export const getPoolBasicData = async (
   contracts: any,
   poolAddress: string,
@@ -290,7 +314,7 @@ export const getPoolBasicData = async (
   userAddress: any
 ) => {
   let pool = { ...poolData };
-
+  console.log("PoolData", poolData);
   if (true) {
     try {
       const proxy = await getUserProxy(userAddress);
@@ -313,7 +337,7 @@ export const getPoolBasicData = async (
         ),
       ]);
       // const token0 = await getAllowance(pool.token0.address, userAddress)
-
+      console.log("data", data)
       let token0Price = 0;
       let token1Price = 0;
 

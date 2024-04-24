@@ -15,6 +15,7 @@ import {
   handleQuote,
   handleRepayTransaction,
   handleSelectRepayToken,
+  handleSelectReceiveToken,
 } from "./utils";
 
 enum ActiveOperation {
@@ -37,8 +38,8 @@ const compoundTempPosition = [
     pool: {
       token0: {
         address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-        symbol: "USDC",
-        name: "USDC",
+        symbol: "USDC (PoS)",
+        name: "USDC (PoS)",
         decimals: 6,
         source: "Compound",
       },
@@ -53,14 +54,15 @@ const compoundTempPosition = [
   },
 ];
 
-const compoundColleteralTokens = [
-  {
+
+const compoundCollateralTokens  = [
+    {
     address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
     symbol: "WETH",
-    name: "wrap eth",
+    name: "Wrapped ETH",
     decimals: 18,
     source: "Compound",
-    // logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
+    logo: "https://assets.coingecko.com/coins/images/17238/small/aWETH_2x.png?1626940782"
   },
   {
     address: "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
@@ -68,19 +70,25 @@ const compoundColleteralTokens = [
     name: "Wrapped BTC",
     decimals: 8,
     source: "Compound",
-    // logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
-  }
-];
-
-const baseTokens = [
-  {
-    address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-    symbol: "USDC",
-    name: "USDC",
-    decimals: 6,
-    source: "Compound",
+    logo: "https://assets.coingecko.com/coins/images/7598/small/wrapped_bitcoin_wbtc.png?1548822744"
   },
-];
+    {
+    address: "0x3A58a54C066FdC0f2D55FC9C89F0415C92eBf3C4",
+    symbol: "stMATIC",
+    name: "Staked Matic",
+    decimals: 18,
+    source: "Compound",
+    logo: "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912"
+  },
+    {
+    address: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+    symbol: "WMATIC",
+    name: "Wrapped Matic",
+    decimals: 18,
+    source: "Compound",
+    logo: "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912"
+  },
+]
 
 export default function RepayCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
@@ -94,7 +102,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
   const [isBorrowProgressModal, setIsBorrowProgressModal] =
     useState<boolean>(false);
   const [pools, setPools] = useState<Array<any>>([]);
-  const [repayToken, setRepayToken] = useState<Array<any>>([]);
   const [modalMsg, setModalMsg] = useState("");
   const [quoteError, setQuoteError] = useState<boolean>(false);
   //select data state
@@ -104,6 +111,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
     receive: null,
     borrow: null,
   });
+console.log("selectedData", selectedData)
   //open  diffrent modal dynamically
   const [tokenListStatus, setTokenListStatus] = useState({
     isOpen: false,
@@ -115,6 +123,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
     lend: false,
     receive: false,
     quotation: false,
+    
   });
   const [unilendPool, setUnilendPool] = useState(null as any | null);
   const [operationProgress, setOperationProgress] = useState(0);
@@ -166,10 +175,19 @@ export default function RepayCard({ uniSwapTokens }: any) {
     }
   }, [unilendV2Data]);
 
+
+  const isLowBal: boolean =
+    +lendAmount >
+    truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
+
+  const isLowBalReceive: boolean = selectedData?.receive?.collateralBalanceFixed == 0
+
   const repayButton = getRepayBtnActions(
     selectedData,
     isTokenLoading,
-    quoteError
+    quoteError,
+    isLowBal,
+    isLowBalReceive
   );
 
   const getOprationToken = () => {
@@ -178,6 +196,9 @@ export default function RepayCard({ uniSwapTokens }: any) {
     } else if (tokenListStatus.operation === "lend") {
       return tokens;
     } else if (tokenListStatus.operation === "receive") {
+      if (selectedData.pool.source === "Compound") {
+        return compoundCollateralTokens;
+      }
       return;
     } else {
       return [];
@@ -231,6 +252,17 @@ export default function RepayCard({ uniSwapTokens }: any) {
       setSelectedData
     );
   };
+  const handleReceiveToken =async (data:any) =>{
+    await handleSelectReceiveToken(
+      data,
+       address,
+      isTokenLoading,
+      selectedData,
+      setIsTokenLoading,
+      setSelectedData,
+    )
+  }
+  
 
   const handleSwapRepayTransaction = async () => {
     handleRepayTransaction(
@@ -249,28 +281,36 @@ export default function RepayCard({ uniSwapTokens }: any) {
 
   const handleTokenSelection = async (data: any) => {
     console.log("handletokendata", data);
+     setTokenListStatus({ isOpen: false, operation: "" });
     setSelectedData({
       ...selectedData,
       [tokenListStatus.operation]: { ...data, map: true },
     });
-
     if (tokenListStatus.operation == "pool") {
       handleRepayToken(data);
       setReceiveAmount("");
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
+      setTokenListStatus({ isOpen: false, operation: "" });
+      console.log("tokenListStatus", tokenListStatus);
+      console.log("quotation", isTokenLoading);
       const tokenBal = await getAllowance(data, address);
       setSelectedData({
         ...selectedData,
         [tokenListStatus.operation]: { ...data, ...tokenBal },
       });
     } else if (tokenListStatus.operation == "receive") {
-      setSelectedData({
-        ...selectedData,
-        ["receive"]: data,
-      });
+      handleReceiveToken(data)
+    //    setSelectedData({
+    //   ...selectedData,
+    //   ["lend"]: null,
+    //   ["receive"]: {
+    //     ...data.otherToken, ...borrowedToken 
+    //   },
+    //   ["borrow"]: { ...data.otherToken, ...borrowedToken },
+    // });
     }
-    setTokenListStatus({ isOpen: false, operation: "" });
+   
   };
 
   const checkLoading = (isTokenLoading: object) => {
@@ -280,12 +320,28 @@ export default function RepayCard({ uniSwapTokens }: any) {
   // Loading Quote Data based on lend State
   useEffect(() => {
     if (selectedData?.pool && selectedData?.lend && !tokenListStatus.isOpen) {
+      console.log("lendChnage")
       setIsTokenLoading({ ...isTokenLoading, quotation: true });
-      setReceiveAmount("");
       setLendAmount("");
       handleQuoteValue();
     }
   }, [selectedData?.lend]);
+
+
+
+  useEffect(() => {
+      if(selectedData?.pool?.source === 'compound'){
+          setReceiveAmount(
+          (selectedData?.receive?.collateralBalanceFixed || 0)
+      )
+      }else{
+          setReceiveAmount(
+          (selectedData?.receive?.collateralBalanceFixed || 0) +
+          (selectedData?.receive?.redeemBalanceFixed || 0)
+        )
+      }
+  }, [selectedData?.receive]);
+  
 
   // loading state
   useEffect(() => {
@@ -318,7 +374,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
           onMaxClick={() => console.log("Max Clicked")}
           buttonText={selectedData?.lend?.symbol}
           onClick={
-            selectedData?.borrow !== null
+            selectedData?.borrow !== null && receiveAmount > "0"
               ? () => handleOpenTokenList("lend")
               : () => {}
           }
@@ -333,15 +389,20 @@ export default function RepayCard({ uniSwapTokens }: any) {
             (selectedData?.receive?.collateralBalanceFixed || 0) +
             (selectedData?.receive?.redeemBalanceFixed || 0)
           }
-          buttonText={selectedData?.pool?.otherToken?.symbol}
+          // buttonText={selectedData?.pool?.otherToken?.symbol}
+          buttonText={
+            selectedData?.pool?.source === "Compound" ? selectedData?.receive?.symbol : selectedData?.pool?.otherToken?.symbol
+          }
           isShowMaxBtn
           onClick={
-            selectedData?.pool !== null
-              ? () => handleOpenTokenList("pool")
+            selectedData?.pool !== null && selectedData.pool.source ==="Compound"
+              ? () => handleOpenTokenList("receive")
               : () => {}
           }
           readonly
-          btnClass='disable_btn'
+          btnClass={
+            selectedData?.pool?.source === "Compound" ? "" : "disable_btn"
+          }
         />
 
         <Button

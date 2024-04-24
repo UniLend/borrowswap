@@ -38,13 +38,22 @@ export const handleQuote = async (
       lendAddress,
       chainId
     );
-
+    let flag = false;
     if (value?.quoteDecimals) {
       setb2rRatio(value.quoteDecimals);
+       if (selectedData?.borrow?.source === "Unilend") {
       const payLendAmount =
-        value.quoteDecimals * (selectedData?.borrow?.borrowBalanceFixed || 0);
-      console.log("pay amount", payLendAmount);
-      setLendAmount(payLendAmount.toString());
+          value.quoteDecimals * (selectedData?.borrow?.borrowBalanceFixed || 0);
+        console.log("pay amount", payLendAmount);
+        setLendAmount(payLendAmount.toString());
+        flag = true;
+      } else {
+          const payLendAmount =
+          value.quoteDecimals * (selectedData?.borrow?.BorrowBalanceFixed || 0);
+        console.log("pay amount", payLendAmount);
+        setLendAmount(payLendAmount.toString());
+        flag = true;
+      }
     }
 
     setBorrowAmount(selectedData?.borrow?.borrowBalanceFixed || 0);
@@ -53,6 +62,9 @@ export const handleQuote = async (
         (selectedData?.receive?.redeemBalanceFixed || 0)
     );
     setQuoteError(false);
+    if(flag)
+      setIsTokenLoading({ ...isTokenLoading, quotation: false });
+      
   } catch (error: any) {
     console.error("Error in handleQuote:", error);
     NotificationMessage(
@@ -61,7 +73,8 @@ export const handleQuote = async (
     );
     setQuoteError(true);
   } finally {
-    setIsTokenLoading({ ...isTokenLoading, quotation: false });
+    // setIsTokenLoading({ ...isTokenLoading, quotation: false });
+    // console.log("finally", isTokenLoading)
   }
 };
 
@@ -117,30 +130,46 @@ export const handleSelectRepayToken = async (
         ["borrow"]: data.token1,
       });
     }
-  } else {
-    const tokenBal = await getAllowance(poolData.otherToken, address);
-    const collateralToken = await getCollateralTokenData(
-      poolData.otherToken,
+  } else{
+     setSelectedData({
+      ...selectedData,
+      ["pool"]: poolData,
+      ["lend"]: null,
+      ["receive"]:null,
+      ["borrow"]:null,
+    });
+    
+  }
+  setIsTokenLoading({ ...isTokenLoading, pool: false });
+};
+
+export const handleSelectReceiveToken = async (
+  data:any,
+  address:any,
+  isTokenLoading:any,
+  selectedData: any,
+  setIsTokenLoading: (value: any) => void,
+  setSelectedData: (value: any) => void
+) =>{
+     const tokenBal = await getAllowance(data, address);
+     const collateralToken = await getCollateralTokenData(
+      data,
       address
     );
     const borrowedToken = await getBorrowTokenData(
-      poolData.borrowToken,
+      selectedData.pool.borrowToken,
       address
     );
     setSelectedData({
       ...selectedData,
-      ["pool"]: poolData,
       ["lend"]: null,
       ["receive"]: {
-        ...poolData.otherToken,
-        ...collateralToken,
-        ...tokenBal,
+        ...data.otherToken, ...collateralToken, ...tokenBal
       },
-      ["borrow"]: { ...poolData.borrowToken, ...borrowedToken },
+      ["borrow"]: { ...selectedData.pool.borrowToken, ...borrowedToken },
     });
-  }
-  setIsTokenLoading({ ...isTokenLoading, pool: false });
-};
+    setIsTokenLoading({ ...isTokenLoading, borrow: false });
+}
 
 //handle Repay transaction function
 export const handleRepayTransaction = async (
