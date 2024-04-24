@@ -71,11 +71,11 @@ export const handleApproval = async (
   const Amount =
     amount == "" ? maxAllow : (Number(amount) * 10 ** 18).toString();
 
-  console.log("hanldeApproval", instance, Amount, tokenAddress);
+  console.log("hanldeApproval", instance, maxAllow, tokenAddress);
   const chainId = getChainId(wagmiConfig);
   const controllerAddress =
     contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
-  const { hash } = await instance?.approve(controllerAddress, Amount);
+  const { hash } = await instance?.approve(controllerAddress, maxAllow);
   const receipt = await waitForTransaction(hash);
   return receipt;
 };
@@ -244,34 +244,7 @@ export const handleCompoundRepay = async (
   selectedData: any,
   borrowAmount: any
 ) => {
-  console.log(
-    "repay",
 
-    // address _borrowedToken,   borrow token address
-    // address _tokenIn, erc token address
-    // address _user, user address
-    // address _collateralToken, recive token address - weth  - 
-    // uint256 _collateralAmount, colltaral amount 
-    // uint256 _repayAmount repay amount  // 250 sushi  - 
-    
-  '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-    '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-    // '0x0b3F868E0BE5597D5DB7fEB59E1CADBb0fdDa50a',
-  "0xB32794a7B538adF268dB7f1e4F59E6db84f0a988",
-    '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
-    '100000000000000000',
-   "145818661",
-//        selectedData?.borrow?.address,
-//     // selectedData?.borrow?.address,
-
-//     selectedData?.lend?.address,
-//     user,
-//     selectedData?.receive?.address,
-//     selectedData.receive.collateralBalance,
-//     //  "5817938978",
-//  decimal2Fixed(0.16481),
-
-  );
   try {
     const chainId = getChainId(wagmiConfig);
     const controllerAddress =
@@ -280,21 +253,12 @@ export const handleCompoundRepay = async (
 
     console.log("instance", instance)
     const { hash } = await instance?.reapay(
- '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-    '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-    // '0x0b3F868E0BE5597D5DB7fEB59E1CADBb0fdDa50a',
-  "0xB32794a7B538adF268dB7f1e4F59E6db84f0a988",
-    '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
-    '100000000000000000',
-    "145818661",
-    //    selectedData?.borrow?.address,
-    // // selectedData?.borrow?.address,
-    //   selectedData?.lend?.address,
-    //   user,
-    //   selectedData?.receive?.address,
-    //   selectedData.receive.collateralBalance,
-    //   // "5817938978"
-    //   decimal2Fixed(0.16481),
+      lend == ''? selectedData?.borrow.address: selectedData?.lend.address,
+      selectedData?.borrow.address,
+      user,
+      selectedData?.receive.address,
+      selectedData.receive.collateralBalance,
+      decimal2Fixed(lend, selectedData?.lend.decimals)
     );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);

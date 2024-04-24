@@ -143,7 +143,7 @@ export const handleSelectRepayToken = async (
   setIsTokenLoading({ ...isTokenLoading, pool: false });
 };
 
-export const handleSelectReceiveToken =async (
+export const handleSelectReceiveToken = async (
   data:any,
   address:any,
   isTokenLoading:any,
