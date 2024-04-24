@@ -126,15 +126,20 @@ export const handleSwap = async (
     // '10000000000000000000',
     // '200000000000000',
     // owner.address
-
-    console.log("handleswap", selectedTokens, borrowAmount);
+    console.log("handleswap",    pool.pool,
+      selectedTokens.lend.address,
+      selectedTokens.receive.address,
+      // selectedTokens.borrow.address,
+      decimal2Fixed(amount, selectedTokens.lend.decimals),
+      borrowAmount,
+      user, instance);
 
     const { hash } = await instance?.uniBorrow(
       pool.pool,
       selectedTokens.lend.address,
       selectedTokens.receive.address,
-      selectedTokens.borrow.address,
-      decimal2Fixed(amount),
+      // selectedTokens.borrow.address,
+      decimal2Fixed(amount, selectedTokens.lend.decimals),
       borrowAmount,
       user
     );
@@ -154,7 +159,7 @@ export const handleRepay = async (
   pool: any,
   selectedData: any,
   user: any,
-  borrowAmount: any,
+  borrow: any,
   receiveAmount: any
 ) => {
   try {
@@ -165,14 +170,17 @@ export const handleRepay = async (
     const positionAddress =
       contractAddresses[chainId as keyof typeof contractAddresses]?.positionAddress;
     const positionInstance = await getEtherContract(positionAddress, positionAbi);
-        const getNftID = await positionInstance?.getNftId(
-      // selectedData.pool.pool,
-      // user
-      "0x784c4a12f82204e5fb713b055de5e8008d5916b6",
-      "0xB32794a7B538adF268dB7f1e4F59E6db84f0a988"
+    const getNftID = await positionInstance?.getNftId(
+      selectedData.pool.pool,
+      "0x75264A54CB62F488f7C4B44a63BC021455B000E9"
     )
-   console.log("nftId", parseInt(getNftID, 10)); 
+  const borrowAmount =
+      selectedData.borrow.token == 1
+        ? String(decimal2Fixed(borrow, selectedData.borrow.decimals))
+        : String(decimal2Fixed(-borrow, selectedData.borrow.decimals));
 
+    const nftId = parseInt(getNftID, 10);
+    console.log("nftId", nftId)
     console.log(
       "repay",
       // address _pool,
@@ -182,23 +190,21 @@ export const handleRepay = async (
       // uint256 _nftID, // position Id
       // int256 _amountOut,  // redeem 
       // int256 _repayAmount,  // borrowed amount amount
-      // selectedData.pool.pool,
-      // selectedData.lend.address,
-      // selectedData.borrow.address,
-      // user,
-      // selectedData.pool.positionId,
-      // decimal2Fixed(receiveAmount),
 
-      // "50000000002472170",
-      // "272235",
-        // decimal2Fixed("0.300156"),
-"0x784c4a12f82204e5fb713b055de5e8008d5916b6",
-"0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
-"0xB32794a7B538adF268dB7f1e4F59E6db84f0a988",
-"0x221997D76c0B2DD880F3F15317CB0cdC5807C9a7",
- decimal2Fixed(1),
- decimal2Fixed(1),
-decimal2Fixed(1),
+      // "0x2e3204ee5ef49543671e7062aea4f42f389faea3",
+      // "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
+      // "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
+      // "0xe1cF3edCe24D67E049075304850914fD9AAA6883",
+      // "22",
+      // decimal2Fixed(receiveAmount),
+      // decimal2Fixed(borrowAmount),
+      "0x2e3204ee5ef49543671e7062aea4f42f389faea3",
+      "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
+      "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
+      "0xe1cF3edCe24D67E049075304850914fD9AAA6883",
+      "27",
+    decimal2Fixed(0.01),
+     "-3988348792588741",
       instance,
       positionInstance
     );
@@ -208,18 +214,18 @@ decimal2Fixed(1),
       // selectedData.lend.address,
       // selectedData.borrow.address,
       // user,
-      // selectedData.pool.positionId,
+      // nftId,
       // decimal2Fixed(receiveAmount),
-      // // "50000000002472170",
-      // "272235"
-      // // decimal2Fixed("0.300156")
-"0x784c4a12f82204e5fb713b055de5e8008d5916b6",
-"0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
-"0x172370d5cd63279efa6d502dab29171933a610af",
-"0x221997D76c0B2DD880F3F15317CB0cdC5807C9a7",
- decimal2Fixed(1),
- decimal2Fixed(1),
-decimal2Fixed(1),
+      // decimal2Fixed(borrowAmount),
+
+      "0x2e3204ee5ef49543671e7062aea4f42f389faea3",
+      "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
+      "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
+      "0xe1cF3edCe24D67E049075304850914fD9AAA6883",
+      "27",
+      decimal2Fixed(0.01),
+      "-3988348792588741",
+
     );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
@@ -335,6 +341,8 @@ export const getAllowance = async (
 
 export const getPoolData = (poolAddress: string) => {};
 
+
+
 export const getPoolBasicData = async (
   contracts: any,
   poolAddress: string,
@@ -342,7 +350,7 @@ export const getPoolBasicData = async (
   userAddress: any
 ) => {
   let pool = { ...poolData };
-
+  console.log("PoolData", poolData);
   if (true) {
     try {
       const proxy = await getUserProxy(userAddress);
@@ -365,7 +373,7 @@ export const getPoolBasicData = async (
         ),
       ]);
       // const token0 = await getAllowance(pool.token0.address, userAddress)
-
+      console.log("data", data)
       let token0Price = 0;
       let token1Price = 0;
 

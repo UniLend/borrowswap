@@ -403,20 +403,30 @@ export const getRepayBtnActions = (
   selectedData: any,
   isTokenLoading: any,
   quoteError: boolean,
-  isLowBal: boolean
+  isLowBal: boolean,
+  isLowBalReceive:boolean
 ) => {
   let btn = {
     text: "Repay",
     disable: false,
   };
-  const { pool, lend, borrow } = selectedData;
+  const { pool, lend, borrow, receive } = selectedData;
   const { quotation } = isTokenLoading;
-  if (pool == null) {
+  if (pool == null ) {
     btn.text = "Select Position";
-  } else if (isTokenLoading.pool || borrow === null) {
+  } else if (isTokenLoading.pool) {
     btn.text = "Pools data loading";
-  } else if (isLowBal) {
+  }  else if ( receive === null) {
+    btn.text = "Select Receive Token";
+  } 
+  else if (borrow === null) {
+    btn.text = "Pools data loading";
+  }
+
+   else if (isLowBal) {
     btn.text = "Low balance";
+  }  else if (isLowBalReceive) {
+    btn.text = "No Receive Value";
   }
    else if (lend === null) {
     btn.text = "Select lend token";
