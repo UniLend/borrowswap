@@ -30,31 +30,30 @@ export const handleQuote = async (
     const lendAddress = selectedData?.lend?.address;
     const borrowAddress = selectedData?.borrow?.address;
     const chainId = 16153 ? 137 : chain?.id;
-
-    const value = await getQuote(
-      decimal2Fixed(1, borrowDecimals),
-      address,
-      borrowAddress,
-      lendAddress,
-      chainId
-    );
     let flag = false;
-    if (value?.quoteDecimals) {
-      setb2rRatio(value.quoteDecimals);
-       if (selectedData?.borrow?.source === "Unilend") {
-      const payLendAmount =
-          value.quoteDecimals * (selectedData?.borrow?.borrowBalanceFixed || 0);
-        console.log("pay amount", payLendAmount);
-        setLendAmount(payLendAmount.toString());
-        flag = true;
-      } else {
-          const payLendAmount =
-          value.quoteDecimals * (selectedData?.borrow?.BorrowBalanceFixed || 0);
-        console.log("pay amount", payLendAmount);
-        setLendAmount(payLendAmount.toString());
-        flag = true;
+    if( String(borrowAddress).toLowerCase() === String(lendAddress).toLowerCase()){
+      setb2rRatio(1)
+      setLendAmount(selectedData?.borrow?.borrowBalanceFixed)
+      flag = true;
+    } else {
+      const value = await getQuote(
+        decimal2Fixed(1, borrowDecimals),
+        address,
+        borrowAddress,
+        lendAddress,
+        chainId
+      );
+   
+      if (value?.quoteDecimals) {
+        setb2rRatio(value.quoteDecimals);
+        const payLendAmount =
+        value.quoteDecimals * (selectedData?.borrow?.borrowBalanceFixed  || 0);
+      console.log("pay amount", payLendAmount);
+      setLendAmount(payLendAmount.toString());
+      flag = true;
       }
     }
+  
 
     setBorrowAmount(selectedData?.borrow?.borrowBalanceFixed || 0);
     setReceiveAmount(
@@ -143,7 +142,7 @@ export const handleSelectRepayToken = async (
   setIsTokenLoading({ ...isTokenLoading, pool: false });
 };
 
-export const handleSelectReceiveToken =async (
+export const handleSelectReceiveToken = async (
   data:any,
   address:any,
   isTokenLoading:any,
