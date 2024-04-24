@@ -170,9 +170,10 @@ export const handleRepay = async (
     const positionAddress =
       contractAddresses[chainId as keyof typeof contractAddresses]?.positionAddress;
     const positionInstance = await getEtherContract(positionAddress, positionAbi);
+    const proxy = await getUserProxy(user);
     const getNftID = await positionInstance?.getNftId(
       selectedData.pool.pool,
-      "0x75264A54CB62F488f7C4B44a63BC021455B000E9"
+      proxy
     )
   const borrowAmount =
       selectedData.borrow.token == 1
@@ -180,52 +181,23 @@ export const handleRepay = async (
         : String(decimal2Fixed(-borrow, selectedData.borrow.decimals));
 
     const nftId = parseInt(getNftID, 10);
-    console.log("nftId", nftId)
-    console.log(
-      "repay",
-      // address _pool,
-      // address _tokenIn, //erc 20 token address
-      // address _borrowedToken, // borrowed token address
-      // address _user,  // user address
-      // uint256 _nftID, // position Id
-      // int256 _amountOut,  // redeem 
-      // int256 _repayAmount,  // borrowed amount amount
+    console.log("nftId",   selectedData.pool.pool,
+    selectedData.lend.address,
+    selectedData.borrow.address,
+    user,
+    nftId,
+    decimal2Fixed(receiveAmount),
+    borrowAmount)
 
-      // "0x2e3204ee5ef49543671e7062aea4f42f389faea3",
-      // "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
-      // "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
-      // "0xe1cF3edCe24D67E049075304850914fD9AAA6883",
-      // "22",
-      // decimal2Fixed(receiveAmount),
-      // decimal2Fixed(borrowAmount),
-      "0x2e3204ee5ef49543671e7062aea4f42f389faea3",
-      "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
-      "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
-      "0xe1cF3edCe24D67E049075304850914fD9AAA6883",
-      "27",
-    decimal2Fixed(0.01),
-     "-3988348792588741",
-      instance,
-      positionInstance
-    );
 
     const { hash } = await instance?.uniRepay(
-      // selectedData.pool.pool,
-      // selectedData.lend.address,
-      // selectedData.borrow.address,
-      // user,
-      // nftId,
-      // decimal2Fixed(receiveAmount),
-      // decimal2Fixed(borrowAmount),
-
-      "0x2e3204ee5ef49543671e7062aea4f42f389faea3",
-      "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
-      "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
-      "0xe1cF3edCe24D67E049075304850914fD9AAA6883",
-      "27",
-      decimal2Fixed(0.01),
-      "-3988348792588741",
-
+      selectedData.pool.pool,
+      selectedData.lend.address,
+      selectedData.borrow.address,
+      user,
+      nftId,
+      decimal2Fixed(receiveAmount),
+      decimal2Fixed(borrowAmount),
     );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
