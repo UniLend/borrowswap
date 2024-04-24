@@ -7,9 +7,7 @@ import type { UnilendV2State } from "../../../states/store";
 import { useSelector } from "react-redux";
 import "./index.scss";
 import useWalletHook from "../../../api/hooks/useWallet";
-import TokenListModal from "../../Common/TokenListModal";
-import AmountContainer from "../../Common/AmountContainer";
-import ButtonWithDropdown from "../../Common/ButtonWithDropdown";
+import { TokenListModal, AmountContainer, ButtonWithDropdown } from "../../Common"
 import BorrowLoader from "../../Loader/BorrowLoader";
 import {
   handleQuote,
