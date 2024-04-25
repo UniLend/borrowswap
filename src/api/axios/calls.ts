@@ -2,7 +2,9 @@ import axios from "axios";
 import { ethers } from "ethers";
 import { aggregatorV3InterfaceABI } from "../contracts/abi";
 import { getEthersProvider } from "../contracts/ethers";
-
+import {
+  fixed2Decimals,
+} from "../../helpers/index";
 export const fetchGraphQlData = async (chainId: number, FILMS_QUERY: any) => {
   const graphURL = {
     80001: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/my_unilend",
@@ -162,10 +164,36 @@ export const getQuote = async (
       }),
     });
 
-    return {
-      quoteDecimals: response.data.quote.quoteDecimals,
-      quote: response.data.quote.quote,
-    };
+    const findQuoteAmount = (quote: any): { quoteValue: string, quoteDecimals: number } => {
+    let quoteValue = "";
+    let quoteDecimals = 0;
+    
+    if (quote && quote.route && quote.route.length > 0) {
+      quote.route.forEach((pool: any) => {
+        pool.forEach((routeItem: any) => {
+          if (routeItem.amountOut && routeItem.tokenOut && routeItem.tokenOut.decimals) {
+            const decimals = routeItem.tokenOut.decimals;
+            const amountOut = routeItem.amountOut;
+            const scaledAmountOut = fixed2Decimals(amountOut, decimals);
+            quoteValue += amountOut;
+            quoteDecimals += scaledAmountOut;
+          }
+        });
+      });
+    }
+
+    return { quoteValue, quoteDecimals };
+  };
+
+  const { quoteValue, quoteDecimals } = findQuoteAmount(response.data.quote);
+
+  return {
+    quoteDecimals: quoteDecimals,
+    quote: quoteValue,
+    slippage: response.data.quote.slippage,
+    fee: response.data.quote.gasUseEstimateUSD,
+  };
+
   } catch (error) {
     if (axios.isCancel(error)) {
       console.log("Previous request cancelled", error);

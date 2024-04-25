@@ -94,6 +94,8 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     rangeSlider: false,
   });
   const [operationProgress, setOperationProgress] = useState(0);
+  const [fee, setFee] = useState(0);
+  const [slippage, setSlippage] = useState(0);
 
   const isLowBal: boolean =
     +lendAmount >
@@ -168,7 +170,9 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       setb2rRatio,
       setSelectedLTV,
       setQuoteError,
-      setIsTokenLoading
+      setIsTokenLoading,
+      setFee,
+      setSlippage
     );
   };
 
@@ -377,7 +381,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           {borrowBtn.text}
         </Button>
 
-        <AccordionContainer selectedTokens={selectedTokens}/>
+        <AccordionContainer selectedTokens={selectedTokens} b2rRatio = {b2rRatio} fee={fee} slippage={slippage}/>
 
       </div>
       <Modal
@@ -397,7 +401,8 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           lendTokenSymbol={selectedTokens?.lend?.symbol}
         />
       </Modal>
-      <Modal
+     
+        <Modal
         className='antd_popover_content'
         centered
         onCancel={() => handleBorrowModal(false)}
@@ -407,6 +412,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       >
         <BorrowLoader msg={modalMsg} progress={operationProgress} />
       </Modal>
+    
     </>
   );
 }

@@ -94,6 +94,9 @@ export const handleLTVSlider = (
   }
 };
 
+
+
+
 export const handleQuote = async (
   selectedTokensRef: any,
   address: string,
@@ -103,7 +106,9 @@ export const handleQuote = async (
   setb2rRatio: (value: number) => void,
   setSelectedLTV: (value: number) => void,
   setQuoteError: (value: boolean) => void,
-  setIsTokenLoading: (value: any) => void
+  setIsTokenLoading: (value: any) => void,
+  setFee:any,
+  setSlippage:any
 ) => {
   try {
     const value = await getQuote(
@@ -113,8 +118,12 @@ export const handleQuote = async (
       selectedTokensRef.current.receive.address,
       chain?.id == 16153 ? 137 : chain?.id
     );
+    console.log("quote", value)
+  
     if (value?.quoteDecimals) {
       setb2rRatio(value?.quoteDecimals);
+      setFee(value?.fee);
+      setSlippage(value?.slippage);
     }
     setQuoteError(false);
     setSelectedLTV(5); // TODO check
@@ -145,7 +154,6 @@ export const handleSwapTransaction = async (
     const borrowToken = await getAllowance(selectedTokens?.borrow, address);
     setIsBorrowProgressModal(true);
     if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
-        console.log("lendAmount", lendAmount)
       setModalMsg("Spend Aprroval for " + selectedTokens.lend.symbol);
       await handleApproval(selectedTokens?.lend.address, address, lendAmount);
       handleSwapTransaction(
@@ -240,8 +248,6 @@ export const handleTokenSelection = async (
   });
   setTokenListStatus({ isOpen: false, operation: "" });
   const tokenBal = await getAllowance(token, address);
-  console.log("tokenBal", tokenBal);
-
   if (tokenListStatus.operation == "lend") {
     handleSelectLendToken(token);
     setSelectedTokens({
@@ -301,14 +307,12 @@ export const getOprationToken = (
         };
       }
     }
-    console.log("tokenOperatrion", common, tokenArray);
-
+  
     return Object.values(common);
   } else if (tokenListStatus.operation === "borrow") {
     const tokensAvailableIn =
       Array.isArray(selectedTokens.lend.availableIn) &&
       selectedTokens.lend.availableIn;
-    console.log("selectedTokens", selectedTokens, tokensAvailableIn);
     if (
       tokensAvailableIn.includes("unilend") &&
       tokensAvailableIn.includes("compound")
