@@ -1,0 +1,44 @@
+@import "/src/theme";
+
+.accordion {
+  margin: 10px 0 5px;
+
+  .toggle_div {
+    transition: all 1s ease-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 2px 10px;
+    .bold{
+        font-weight: 700;
+        color: var(--always-white);
+    }
+    p {
+      margin: 8px 0;
+      display: flex;
+      justify-content: space-between;
+
+      span {
+        font-size: $font-size-xsm;
+        color: var(--light-gray);
+
+        &:last-child {
+          color: var(--pure-black);
+        }
+      }
+    }
+  }
+
+  .content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in, opacity 0.3s ease-in;
+    opacity: 0;
+
+    &.open {
+      max-height: 200px;
+      opacity: 1;
+      transition-delay: 0.3s;
+    }
+  }
+}

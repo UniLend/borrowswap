@@ -1,6 +1,7 @@
 import React from "react";
 import cubeLoader from "../../../assets/3D-Cube-loader.json";
-import loader from "../../../assets/3D-Cube-loader.gif";
+// import loader from "../../../assets/3D-Cube-loader.gif";
+import loader from "../../../assets/transaction-loader.gif";
 import "./index.scss";
 
 interface BorrowLoaderProps {

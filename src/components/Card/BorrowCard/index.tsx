@@ -10,9 +10,7 @@ import type { UnilendV2State } from "../../../states/store";
 import { useSelector } from "react-redux";
 import "./index.scss";
 import useWalletHook from "../../../api/hooks/useWallet";
-import TokenListModal from "../../Common/TokenListModal";
-import AmountContainer from "../../Common/AmountContainer";
-import ButtonWithDropdown from "../../Common/ButtonWithDropdown";
+import {AccordionContainer, TokenListModal, AmountContainer, ButtonWithDropdown } from "../../Common"
 import BorrowLoader from "../../Loader/BorrowLoader";
 import {
   checkLiquidity,
@@ -368,6 +366,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
             }
           />
         </div>
+
         <Button
           disabled={borrowBtn.disable}
           className='primary_btn'
@@ -377,6 +376,9 @@ export default function BorrowCard({ uniSwapTokens }: any) {
         >
           {borrowBtn.text}
         </Button>
+
+        <AccordionContainer selectedTokens={selectedTokens}/>
+
       </div>
       <Modal
         className='antd_modal_overlay'

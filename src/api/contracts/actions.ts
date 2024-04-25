@@ -222,8 +222,7 @@ export const handleCompoundRepay = async (
     const controllerAddress =
       contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
     const instance = await getEtherContract(controllerAddress, controllerABI);
-
-    console.log("instance", instance)
+    
     const { hash } = await instance?.reapay(
       lend == ''? selectedData?.borrow.address: selectedData?.lend.address,
       selectedData?.borrow.address,
@@ -286,7 +285,6 @@ export const getPoolBasicData = async (
   userAddress: any
 ) => {
   let pool = { ...poolData };
-  console.log("PoolData", poolData);
   if (true) {
     try {
       const proxy = await getUserProxy(userAddress);
@@ -309,7 +307,6 @@ export const getPoolBasicData = async (
         ),
       ]);
       // const token0 = await getAllowance(pool.token0.address, userAddress)
-      console.log("data", data)
       let token0Price = 0;
       let token1Price = 0;
 
@@ -554,7 +551,6 @@ export const getPoolBasicData = async (
         },
       };
 
-      console.log("poolData", pool);
       return pool;
     } catch (error) {
       console.error("REPAY_POOLDATA_ERROR", error);
