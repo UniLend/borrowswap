@@ -164,29 +164,23 @@ export const getQuote = async (
       }),
     });
 
-    const findQuoteAmount = (quote: any): { quoteValue: string, quoteDecimals: number } => {
+  const findQuoteAmount = (quote: any): { quoteValue: string, quoteDecimals: number } => {
     let quoteValue = "";
     let quoteDecimals = 0;
     
-    if (quote && quote.route && quote.route.length > 0) {
-      quote.route.forEach((pool: any) => {
-        pool.forEach((routeItem: any) => {
-          if (routeItem.amountOut && routeItem.tokenOut && routeItem.tokenOut.decimals) {
-            const decimals = routeItem.tokenOut.decimals;
-            const amountOut = routeItem.amountOut;
-            const scaledAmountOut = fixed2Decimals(amountOut, decimals);
-            quoteValue += amountOut;
-            quoteDecimals += scaledAmountOut;
-          }
-        });
-      });
+    if (quote?.route?.length > 0) {
+      let route = quote.route[quote.route.length - 1];
+      let { amountOut, tokenOut: { decimals } } = route[route.length - 1];
+      const scaledAmountOut = fixed2Decimals(amountOut, decimals);
+      quoteValue = amountOut.toString();
+      quoteDecimals = scaledAmountOut;
     }
-
+    
     return { quoteValue, quoteDecimals };
   };
 
-  const { quoteValue, quoteDecimals } = findQuoteAmount(response.data.quote);
 
+  const { quoteValue, quoteDecimals } = findQuoteAmount(response.data.quote);
   return {
     quoteDecimals: quoteDecimals,
     quote: quoteValue,
