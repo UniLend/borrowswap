@@ -295,8 +295,10 @@ export const getPoolBasicData = async (
   let pool = { ...poolData };
   if (true) {
     try {
-      const chainId = getChainId(wagmiConfig);
-      const proxy = await getUserProxy(userAddress);
+     // const chainId = getChainId(wagmiConfig);
+      // const proxy = await getUserProxy(userAddress);
+      console.log("getPoolBasicData", contracts, poolAddress, poolData, userAddress);
+      
      
       const instance = await getEtherContract(
         contracts.helperAddress,
@@ -312,21 +314,19 @@ export const getPoolBasicData = async (
         instance?.getPoolFullData(
           contracts.positionAddress,
           poolAddress,
-          proxy
+          userAddress
         ),
       ]);
-      const positionAddress =
-      contractAddresses[chainId as keyof typeof contractAddresses]?.positionAddress;
-    const positionInstance = await getEtherContract(positionAddress, positionAbi);
+      // const positionAddress =
+      // contractAddresses[chainId as keyof typeof contractAddresses]?.positionAddress;
+   // const positionInstance = await getEtherContract(positionAddress, positionAbi);
     
-    const NftID = await positionInstance?.getNftId(
-      poolData.id,
-      proxy
-    )
-
-    console.log("positionID", poolData, proxy,  fromBigNumber(NftID));
-    
+    // const NftID = await positionInstance?.getNftId(
+    //   poolData.id,
+    //   proxy
+    // )    
       // const token0 = await getAllowance(pool.token0.address, userAddress)
+
       let token0Price = 0;
       let token1Price = 0;
 

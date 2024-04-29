@@ -109,7 +109,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
     receive: null,
     borrow: null,
   });
-console.log("selectedData", selectedData)
+
   //open  diffrent modal dynamically
   const [tokenListStatus, setTokenListStatus] = useState({
     isOpen: false,
@@ -383,10 +383,10 @@ console.log("selectedData", selectedData)
           balance={selectedData?.receive?.balanceFixed}
           value={Number(receiveAmount) > 0 ? receiveAmount : "0"}
           onChange={(e: any) => handleReceiveAmount(e.target.value)}
-          onMaxClick={() =>
-            (selectedData?.receive?.collateralBalanceFixed || 0) +
-            (selectedData?.receive?.redeemBalanceFixed || 0)
-          }
+          onMaxClick={() => {
+            setLendAmount((selectedData?.borrow?.borrowBalanceFixed * b2rRatio).toString())
+           
+          }}
           // buttonText={selectedData?.pool?.otherToken?.symbol}
           buttonText={
             selectedData?.pool?.source === "Compound" ? selectedData?.receive?.symbol : selectedData?.pool?.otherToken?.symbol
@@ -430,7 +430,6 @@ console.log("selectedData", selectedData)
           showPoolData={tokenListStatus.operation == "pool" ? true : false}
           positionData={[
             ...Object.values(positions),
-            ...compoundTempPosition,
           ].filter(
             (item) =>
               item.borrowBalance0 !== 0 || item.token1.borrowBalance1 !== 0

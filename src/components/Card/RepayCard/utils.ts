@@ -48,7 +48,7 @@ export const handleQuote = async (
         setb2rRatio(value.quoteDecimals);
         const payLendAmount =
         value.quoteDecimals * (selectedData?.borrow?.borrowBalanceFixed  || 0);
-      console.log("pay amount", payLendAmount);
+      console.log("pay amount", selectedData, payLendAmount, selectedData?.borrow?.borrowBalanceFixed, value.quoteDecimals);
       setLendAmount(payLendAmount.toString());
       flag = true;
       }
