@@ -99,7 +99,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
 
   const isLowBal: boolean =
     +lendAmount >
-    truncateToDecimals(selectedTokens?.lend?.balanceFixed || 0, 4);
+    selectedTokens?.lend?.balanceFixed;
 
   const borrowBtn = getButtonAction(
     selectedTokens,
@@ -319,10 +319,13 @@ export default function BorrowCard({ uniSwapTokens }: any) {
                 ? () => handleOpenTokenList("borrow")
                 : () => {}
             }
-            className={"transparent_btn"}
+            className={ selectedTokens?.borrow === null ?  "transparent_btn" :""}
             title={
               selectedTokens?.lend === null ? "please select you pay token" : ""
             }
+             btnClass={
+             selectedTokens?.lend === null ?  "disable_btn newbtn" :"visible"
+          }
           />
         </div>
         <p className='paragraph06 label'>You Receive</p>
@@ -345,12 +348,15 @@ export default function BorrowCard({ uniSwapTokens }: any) {
               ? "please select you borrow token"
               : ""
           }
+          btnClass={
+             selectedTokens?.borrow === null ?  "disable_btn newbtn" :"visible"
+          }
         />
         <div className='range_container'>
-          <div>
+          {/* <div>
             <p className='paragraph06 '>Current LTV</p>
             <p className='paragraph06'>{currentLTV}%</p>
-          </div>
+          </div> */}
           <div>
             <p className='paragraph06 '>New LTV</p>
             <p className='paragraph06'>

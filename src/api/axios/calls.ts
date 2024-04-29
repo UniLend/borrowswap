@@ -164,28 +164,39 @@ export const getQuote = async (
       }),
     });
 
-  const findQuoteAmount = (quote: any): { quoteValue: string, quoteDecimals: number } => {
-    let quoteValue = "";
-    let quoteDecimals = 0;
-    
-    if (quote?.route?.length > 0) {
-      let route = quote.route[quote.route.length - 1];
-      let { amountOut, tokenOut: { decimals } } = route[route.length - 1];
-      const scaledAmountOut = fixed2Decimals(amountOut, decimals);
+const findQuoteAmount = (quote: any): { quoteValue: string, quoteDecimals: number, totalFee:number } => {
+  let quoteValue = "";
+  let quoteDecimals = 0;
+  let totalFee = 0;
+
+  const route = quote?.route?.[quote.route.length - 1];
+  if (route.length > 0) {
+    totalFee = route.reduce((acc: any, pool: any) => {
+      let scaledFee= ""
+       const fee = pool.fee;
+        // const scaledFee = fixed2Decimals(fee, 18);
+        scaledFee += fee;
+      return scaledFee;
+    }, 0);
+ 
+    const { amountOut, tokenOut: { decimals } } = route[route.length - 1];
+    if (amountOut && decimals) {
+      const scaledAmountOut = fixed2Decimals(amountOut, Number(decimals));
       quoteValue = amountOut.toString();
       quoteDecimals = scaledAmountOut;
     }
-    
-    return { quoteValue, quoteDecimals };
-  };
+  }
+
+  return { quoteValue, quoteDecimals, totalFee };
+};
 
 
-  const { quoteValue, quoteDecimals } = findQuoteAmount(response.data.quote);
+  const { quoteValue, quoteDecimals, totalFee } = findQuoteAmount(response.data.quote);
   return {
     quoteDecimals: quoteDecimals,
     quote: quoteValue,
     slippage: response.data.quote.slippage,
-    fee: response.data.quote.gasUseEstimateUSD,
+    fee: totalFee,
   };
 
   } catch (error) {

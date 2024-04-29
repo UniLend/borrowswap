@@ -376,7 +376,11 @@ console.log("selectedData", selectedData)
               ? () => handleOpenTokenList("lend")
               : () => {}
           }
+          className={ selectedData?.lend === null ?  "transparent_btn" :""}
           // readonly
+          btnClass={
+            selectedData?.pool === null || selectedData?.receive?.collateralBalanceFixed === 0 || selectedData?.receive === null   ? "disable_btn" : "visible"
+          }
         />
         <p className='paragraph06 label'>You Receive</p>
         <AmountContainer
