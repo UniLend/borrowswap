@@ -387,7 +387,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           {borrowBtn.text}
         </Button>
 
-        <AccordionContainer selectedTokens={selectedTokens} b2rRatio = {b2rRatio} fee={fee} slippage={slippage}/>
+        <AccordionContainer selectedTokens={selectedTokens} b2rRatio = {b2rRatio} fee={fee} slippage={slippage} lendAmount={lendAmount} />
 
       </div>
       <Modal

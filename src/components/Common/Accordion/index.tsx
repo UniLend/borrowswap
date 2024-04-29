@@ -10,7 +10,7 @@ const LiquidityFactors: React.FC<LiquidityFactorsProps> = ({ fee, slippage }) =>
   <div className="toggle_div">
     <p>
       <span>Fee</span>
-      <span>${fee}</span>
+      <span>{fee} Wei</span>
     </p>
     <p>
       <span>Max. Slippage</span>
@@ -28,9 +28,20 @@ interface AccordionProps {
   b2rRatio:any;
   fee:number;
   slippage:number;
+  lendAmount:string;
 }
 
-const AccordionContainer: React.FC<AccordionProps> = ({ selectedTokens, b2rRatio, fee, slippage }) => {
+// function calculateFee(lendAmount: number, fee: number) {
+//     const feeAmount = lendAmount * fee;
+//     return feeAmount;
+// }
+
+// const lendAmount = 100; // Example lend amount
+// const fee = 0.003; // Example fee rate
+// console.log("Fee:", calculateFee(lendAmount, fee));
+
+
+const AccordionContainer: React.FC<AccordionProps> = ({ selectedTokens, b2rRatio, fee, slippage, lendAmount }) => {
   const [isLiquidityFactorsOpen, setIsLiquidityFactorsOpen] = useState(false);
 
   const toggleLiquidityFactors = () => {
