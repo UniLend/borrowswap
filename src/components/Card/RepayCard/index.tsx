@@ -358,7 +358,7 @@ console.log("selectedData", selectedData)
                 : "Select"
             }
             onClick={() => handleOpenTokenList("pool")}
-            className='transparent_btn'
+            className={ selectedData?.pool === null ?  "transparent_btn" : ""}
           />
         </div>
         <p className='paragraph06 label'>You Pay</p>
@@ -376,7 +376,7 @@ console.log("selectedData", selectedData)
               ? () => handleOpenTokenList("lend")
               : () => {}
           }
-          className={ selectedData?.lend === null ?  "transparent_btn" :""}
+          
           // readonly
           btnClass={
             selectedData?.pool === null || selectedData?.receive?.collateralBalanceFixed === 0 || selectedData?.receive === null   ? "disable_btn" : "visible"

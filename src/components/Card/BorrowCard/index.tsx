@@ -319,7 +319,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
                 ? () => handleOpenTokenList("borrow")
                 : () => {}
             }
-            className={ selectedTokens?.borrow === null ?  "transparent_btn" :""}
+            className={ selectedTokens?.borrow === null ?  "transparent_btn" : ""}
             title={
               selectedTokens?.lend === null ? "please select you pay token" : ""
             }
