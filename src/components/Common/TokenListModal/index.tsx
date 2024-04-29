@@ -5,6 +5,7 @@ import "./index.scss";
 import UnilendLoader from "../../Loader/UnilendLoader";
 
 interface Token {
+  type: string;
   logoURI?: string;
   logo: string;
   name: string;
@@ -61,13 +62,15 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
   const container = useRef<any>(null);
   const [page, setPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
-
+  const [filteredTokenList, setFilteredTokenList]= useState<any>([]);
+  const [borrowedPosition, setBorrowedposition] = useState([])
   const handleTokensList = (token: Token) => {
     onSelectToken(token);
     setSearchQuery("");
   };
 
-  let list: any = [];
+  const findBorrowPosition = () => {
+    let list: any = [];
   for (let i = 0; i < positionData!.length; i++) {
     if (
       positionData[i].borrowBalance0 > 0 &&
@@ -109,19 +112,46 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
       list.push(temp);
     }
   }
+  setBorrowedposition(list)
+  console.log("Position List", list);
+  
+  }
 
-  let filteredTokenList = [];
+   
+  useEffect(()=> {
+      
+    if(tokenList.length && tokenList[0]?.type == 'position'){
+      console.log("TokenList", tokenList);
+      findBorrowPosition()
+    }
+    
+      
+  },[tokenList])
 
-  if (currentOperation === "pool") {
-    filteredTokenList = list.filter((token: Token) =>
+  useEffect(()=> {
+    handleSearch('')
+  },[page, tokenList, borrowedPosition])
+
+
+
+
+
+  const handleSearch = (searched: string) => {
+
+    setSearchQuery(searched);
+    let filtered= [];
+      if (currentOperation === "pool") {
+    filtered = borrowedPosition.filter((token: Token) =>
       token.borrowToken.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   } else {
-    filteredTokenList = tokenList.filter(
+    filtered = tokenList.filter(
       (token) =>
         token.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         token.symbol.toLowerCase().includes(searchQuery.toLowerCase())
     );
+  }
+  setFilteredTokenList(filtered);
   }
 
   useEffect(() => {
@@ -146,7 +176,7 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
             type='text'
             placeholder='Search Address/ Token/ Tnx'
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
           />
         </div>
       </div>
@@ -158,7 +188,7 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
         <div ref={container} className='token_list'>
           {filteredTokenList.length > 0 ? (
             filteredTokenList?.map((token: Token, i: number) =>
-              i < page * 100 ? (
+              i < page * 10 ? (
                 <TokenCard
                   key={i}
                   token={token}

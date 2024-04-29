@@ -103,6 +103,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
     const allPositions = data?.positions?.map((item: any) => ({
       ...item,
       source: "Unilend",
+      type: 'position'
     }));
     console.log("allPositions", allPositions);
     const poolData: any = {};

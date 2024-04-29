@@ -167,26 +167,24 @@ export const handleRepay = async (
     const controllerAddress =
       contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
     const instance = await getEtherContract(controllerAddress, controllerABI);
-    const positionAddress =
-      contractAddresses[chainId as keyof typeof contractAddresses]?.positionAddress;
-    const positionInstance = await getEtherContract(positionAddress, positionAbi);
-    const proxy = await getUserProxy(user);
-    const getNftID = await positionInstance?.getNftId(
-      selectedData.pool.pool,
-      proxy
-    )
-  const borrowAmount =
+    // const positionAddress =
+    //   contractAddresses[chainId as keyof typeof contractAddresses]?.positionAddress;
+    // const positionInstance = await getEtherContract(positionAddress, positionAbi);
+    // const proxy = await getUserProxy(user);
+    // const getNftID = await positionInstance?.getNftId(
+    //   selectedData.pool.pool,
+    //   proxy
+    // )
+  const PayAmount =
       selectedData.borrow.token == 1
-        ? String(decimal2Fixed(borrow, selectedData.borrow.decimals))
-        : String(decimal2Fixed(-borrow, selectedData.borrow.decimals));
+        ? String(decimal2Fixed(payAmount, selectedData.borrow.decimals))
+        : String(decimal2Fixed(-payAmount, selectedData.borrow.decimals));
 
-    const nftId = parseInt(getNftID, 10);
-    console.log("nftId", selectedData.pool.pool,
+
+    console.log("handleRepay", instance, selectedData.pool.pool,
     selectedData.lend.address,
     selectedData.borrow.address,
     user,
-    decimal2Fixed(receiveAmount),
-   borrowAmount,
     '0x49B0c695039243BBfEb8EcD054EB70061fd54aa0',
     '0x336584C8E6Dc19637A5b36206B1c79923111b405')
 
@@ -205,7 +203,7 @@ export const handleRepay = async (
       selectedData.borrow.address,
       user,
       decimal2Fixed(receiveAmount),
-      borrowAmount,
+      PayAmount,
       '0x49B0c695039243BBfEb8EcD054EB70061fd54aa0',
       '0x336584C8E6Dc19637A5b36206B1c79923111b405'
     );
@@ -297,8 +295,10 @@ export const getPoolBasicData = async (
   let pool = { ...poolData };
   if (true) {
     try {
-      const chainId = getChainId(wagmiConfig);
-      const proxy = await getUserProxy(userAddress);
+     // const chainId = getChainId(wagmiConfig);
+      // const proxy = await getUserProxy(userAddress);
+      console.log("getPoolBasicData", contracts, poolAddress, poolData, userAddress);
+      
      
       const instance = await getEtherContract(
         contracts.helperAddress,
@@ -314,21 +314,19 @@ export const getPoolBasicData = async (
         instance?.getPoolFullData(
           contracts.positionAddress,
           poolAddress,
-          proxy
+          userAddress
         ),
       ]);
-      const positionAddress =
-      contractAddresses[chainId as keyof typeof contractAddresses]?.positionAddress;
-    const positionInstance = await getEtherContract(positionAddress, positionAbi);
+      // const positionAddress =
+      // contractAddresses[chainId as keyof typeof contractAddresses]?.positionAddress;
+   // const positionInstance = await getEtherContract(positionAddress, positionAbi);
     
-    const NftID = await positionInstance?.getNftId(
-      poolData.id,
-      proxy
-    )
-
-    console.log("positionID", poolData, proxy,  fromBigNumber(NftID));
-    
+    // const NftID = await positionInstance?.getNftId(
+    //   poolData.id,
+    //   proxy
+    // )    
       // const token0 = await getAllowance(pool.token0.address, userAddress)
+
       let token0Price = 0;
       let token1Price = 0;
 
