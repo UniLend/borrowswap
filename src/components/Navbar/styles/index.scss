@@ -102,6 +102,10 @@
       font-weight: $font-weight-semi-bold;
       border: 0px;
       padding: 15px;
+      cursor: pointer;
+      &:hover{
+        opacity: 0.9;
+      }
     }
     @media ($mobile) {
       font-size: $font-size-xsm;
