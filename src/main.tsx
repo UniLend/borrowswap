@@ -32,27 +32,6 @@ import {
 
 const { wallets } = getDefaultWallets();
 
-// const infinityWallet = ({ chains, projectId }) => ({
-//   id: 'Infinity',
-//   name: 'Infinity Wallet',
-//   iconUrl: infinityLogo,
-//   iconBackground: '#fff',
-//   createConnector: () => {
-//     const connector = new injected({
-//       chains: chains,
-//       options: {
-//         name: 'Injected',
-//         shimDisconnect: true,
-//       },
-//     });
-//     return {
-//       connector,
-//     };
-//   },
-// });
-
-
-
 
 export const wagmiConfig = getDefaultConfig({
   appName: 'BorrowSwap',
@@ -74,7 +53,16 @@ export const wagmiConfig = getDefaultConfig({
 
 console.log("wagmiConfig",wagmiConfig );
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            refetchOnWindowFocus: false,
+            retry:false,
+            refetchOnReconnect:false,
+            refetchOnMount:false,
+        },
+    },
+});
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

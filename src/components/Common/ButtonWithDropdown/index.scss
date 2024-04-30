@@ -8,7 +8,9 @@
   border: 1px solid var(--button-border);
   border-radius: 30px;
   margin: 6px auto;
- 
+  &:hover{
+      opacity: 0.9;
+    }
   .fade{
       opacity: 70% !important;
   }
@@ -41,6 +43,7 @@
       border-radius: 50%;
       padding: 3px;
     }
+   
   }
   .dropdown {
     width: 30%;
