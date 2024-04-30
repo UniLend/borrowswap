@@ -29,7 +29,7 @@ export const handleQuote = async (
     const borrowDecimals = selectedData?.borrow?.decimals;
     const lendAddress = selectedData?.lend?.address;
     const borrowAddress = selectedData?.borrow?.address;
-    const chainId = 16153 ? 137 : chain?.id;
+    const chainId = 16715 ? 137 : chain?.id;
     let flag = false;
     if( String(borrowAddress).toLowerCase() === String(lendAddress).toLowerCase()){
       setb2rRatio(1)
@@ -220,11 +220,8 @@ export const handleRepayTransaction = async (
       if (selectedData.borrow.source == "Unilend") {
         hash = await handleRepay(
           lendAmount,
-          unilendPool,
           selectedData,
           address,
-          borrowAmount,
-          receiveAmount
         );
       } else {
         hash = await handleCompoundRepay(

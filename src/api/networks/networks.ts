@@ -192,8 +192,8 @@ export const supportedNetworks = {
     baseCurrency: 'ETH',
   },
 
-  16153: {
-    chainId: 16153,
+  16715: {
+    chainId: 16715,
     chainName: 'unilendtest',
     nativeCurrency: {
       name: 'token',

@@ -1174,13 +1174,18 @@ export const controllerABI = [
       },
       {
         internalType: "address",
-        name: "_borrowedToken",
+        name: "_user",
         type: "address",
       },
       {
         internalType: "address",
-        name: "_user",
+        name: "_borrowAddress",
         type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "_repayAmount",
+        type: "uint256",
       },
     ],
     name: "uniRepay",
