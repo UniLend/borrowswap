@@ -94,10 +94,12 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     rangeSlider: false,
   });
   const [operationProgress, setOperationProgress] = useState(0);
+  const [fee, setFee] = useState(0);
+  const [slippage, setSlippage] = useState(0);
 
   const isLowBal: boolean =
     +lendAmount >
-    truncateToDecimals(selectedTokens?.lend?.balanceFixed || 0, 4);
+    selectedTokens?.lend?.balanceFixed;
 
   const borrowBtn = getButtonAction(
     selectedTokens,
@@ -168,7 +170,9 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       setb2rRatio,
       setSelectedLTV,
       setQuoteError,
-      setIsTokenLoading
+      setIsTokenLoading,
+      setFee,
+      setSlippage
     );
   };
 
@@ -315,10 +319,13 @@ export default function BorrowCard({ uniSwapTokens }: any) {
                 ? () => handleOpenTokenList("borrow")
                 : () => {}
             }
-            className={"transparent_btn"}
+            className={ selectedTokens?.borrow === null ?  "transparent_btn" : ""}
             title={
               selectedTokens?.lend === null ? "please select you pay token" : ""
             }
+             btnClass={
+             selectedTokens?.lend === null ?  "disable_btn newbtn" :"visible"
+          }
           />
         </div>
         <p className='paragraph06 label'>You Receive</p>
@@ -341,12 +348,15 @@ export default function BorrowCard({ uniSwapTokens }: any) {
               ? "please select you borrow token"
               : ""
           }
+          btnClass={
+             selectedTokens?.borrow === null ?  "disable_btn newbtn" :"visible"
+          }
         />
         <div className='range_container'>
-          <div>
+          {/* <div>
             <p className='paragraph06 '>Current LTV</p>
             <p className='paragraph06'>{currentLTV}%</p>
-          </div>
+          </div> */}
           <div>
             <p className='paragraph06 '>New LTV</p>
             <p className='paragraph06'>
@@ -377,7 +387,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           {borrowBtn.text}
         </Button>
 
-        <AccordionContainer selectedTokens={selectedTokens}/>
+        <AccordionContainer selectedTokens={selectedTokens} b2rRatio = {b2rRatio} fee={fee} slippage={slippage} lendAmount={lendAmount} />
 
       </div>
       <Modal
@@ -397,7 +407,8 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           lendTokenSymbol={selectedTokens?.lend?.symbol}
         />
       </Modal>
-      <Modal
+     
+        <Modal
         className='antd_popover_content'
         centered
         onCancel={() => handleBorrowModal(false)}
@@ -407,6 +418,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       >
         <BorrowLoader msg={modalMsg} progress={operationProgress} />
       </Modal>
+    
     </>
   );
 }

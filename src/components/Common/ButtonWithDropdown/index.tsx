@@ -10,6 +10,7 @@ interface ButtonWithDropdownProps {
   className?: string;
   title?: string;
   isTokensLoading?: boolean;
+  btnClass?:string;
 }
 
 const ButtonWithDropdown: React.FC<ButtonWithDropdownProps> = ({
@@ -18,12 +19,13 @@ const ButtonWithDropdown: React.FC<ButtonWithDropdownProps> = ({
   className,
   title,
   isTokensLoading,
+  btnClass
 }) => {
   return (
     <div
       role='presentation'
       onClick={!isTokensLoading ? onClick : undefined}
-      className={`btn_with_dropdown ${className}`}
+      className={`btn_with_dropdown ${className} ${btnClass}` }
       title={title}
     >
       <div onClick={() => console.log("dropdown")} className='token_tab'>
@@ -52,7 +54,8 @@ export default memo(ButtonWithDropdown);
 ButtonWithDropdown.defaultProps = {
   buttonText: "Select",
   onClick: () => console.log("Clicked"),
-  className: "",
+  className: "newbtn",
   title: "",
   isTokensLoading: false,
+  btnClass:""
 };

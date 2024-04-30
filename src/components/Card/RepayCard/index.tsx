@@ -358,7 +358,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
                 : "Select"
             }
             onClick={() => handleOpenTokenList("pool")}
-            className='transparent_btn'
+            className={ selectedData?.pool === null ?  "transparent_btn" : ""}
           />
         </div>
         <p className='paragraph06 label'>You Pay</p>
@@ -376,7 +376,11 @@ export default function RepayCard({ uniSwapTokens }: any) {
               ? () => handleOpenTokenList("lend")
               : () => {}
           }
+          
           // readonly
+          btnClass={
+            selectedData?.pool === null || selectedData?.receive?.collateralBalanceFixed === 0 || selectedData?.receive === null   ? "disable_btn" : "visible"
+          }
         />
         <p className='paragraph06 label'>You Receive</p>
         <AmountContainer
