@@ -116,7 +116,7 @@ export const handleQuote = async (
       address,
       selectedTokensRef.current.borrow.address,
       selectedTokensRef.current.receive.address,
-      chain?.id == 16153 ? 137 : chain?.id
+      chain?.id == 16715 ? 137 : chain?.id
     );
     console.log("quote", value)
   

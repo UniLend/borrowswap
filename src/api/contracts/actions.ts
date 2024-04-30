@@ -71,10 +71,11 @@ export const handleApproval = async (
   const Amount =
     amount == "" ? maxAllow : (Number(amount) * 10 ** 18).toString();
 
-  console.log("hanldeApproval", instance, maxAllow, tokenAddress);
+  
   const chainId = getChainId(wagmiConfig);
   const controllerAddress =
     contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
+    console.log("hanldeApproval", instance, controllerAddress, maxAllow, tokenAddress);
   const { hash } = await instance?.approve(controllerAddress, maxAllow);
   const receipt = await waitForTransaction(hash);
   return receipt;
@@ -125,7 +126,6 @@ export const handleSwap = async (
       pool.pool,
       selectedTokens.lend.address,
       selectedTokens.receive.address,
-      // selectedTokens.borrow.address,
       decimal2Fixed(amount, selectedTokens.lend.decimals),
       borrowAmount,
       user
@@ -143,58 +143,40 @@ export const handleSwap = async (
 //handle repay borrow
 export const handleRepay = async (
   payAmount: any,
-  pool: any,
-  selectedData: any,
+
+  selectedTokens: any,
   user: any,
-  borrow: any,
-  receiveAmount: any
+
 ) => {
   try {
     const chainId = getChainId(wagmiConfig);
     const controllerAddress =
       contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
     const instance = await getEtherContract(controllerAddress, controllerABI);
-    // const positionAddress =
-    //   contractAddresses[chainId as keyof typeof contractAddresses]?.positionAddress;
-    // const positionInstance = await getEtherContract(positionAddress, positionAbi);
-    // const proxy = await getUserProxy(user);
-    // const getNftID = await positionInstance?.getNftId(
-    //   selectedData.pool.pool,
-    //   proxy
-    // )
-  const PayAmount =
-      selectedData.borrow.token == 1
-        ? String(decimal2Fixed(payAmount, selectedData.borrow.decimals))
-        : String(decimal2Fixed(-payAmount, selectedData.borrow.decimals));
 
+    const borrowAmount =
+      selectedTokens.borrow.token == 1
+        ? String(decimal2Fixed(payAmount, selectedTokens.borrow.decimals))
+        : String(decimal2Fixed(payAmount, selectedTokens.borrow.decimals));
 
-    console.log("handleRepay", instance, selectedData.pool.pool,
-    selectedData.lend.address,
-    selectedData.borrow.address,
-    user,
-    '0x49B0c695039243BBfEb8EcD054EB70061fd54aa0',
-    '0x336584C8E6Dc19637A5b36206B1c79923111b405')
+  console.log("handleRepay", instance,    selectedTokens.pool.pool,
+  selectedTokens.lend.address,
+  user,
+  selectedTokens.borrow.address,
+  borrowAmount);
+  
 
-    // address _pool,
-    //     address _tokenIn,
-    //     address _borrowedToken,
-    //     address _user,
-    //     int256 _amountOut,
-    //     int256 _repayAmount,
-    //     address _source0,
-    //     address _source1
-
-    // const hash = await instance?.logicAddress()
-    const hash  = await instance?.uniRepay(
-      selectedData.pool.pool,
-      selectedData.lend.address,
-      selectedData.borrow.address,
+    const { hash } = await instance?.uniRepay(
+      selectedTokens.pool.pool,
+      selectedTokens.lend.address,
       user,
+      selectedTokens.borrow.address,
+      borrowAmount
     );
-    console.log("transaction", hash, fromBigNumber(hash));
-    // const receipt = await waitForTransaction(hash);
-    // return receipt;
-    return "";
+   
+    console.log("transaction", hash);
+    const receipt = await waitForTransaction(hash);
+     return hash;
   } catch (error) {
     console.log("Error", { error });
 
@@ -281,7 +263,7 @@ export const getPoolBasicData = async (
     try {
      // const chainId = getChainId(wagmiConfig);
        const proxy = await getUserProxy(userAddress);
-      console.log("getPoolBasicData", contracts, poolAddress, poolData, userAddress);
+      console.log("getPoolBasicData", proxy,);
       
      
       const instance = await getEtherContract(
