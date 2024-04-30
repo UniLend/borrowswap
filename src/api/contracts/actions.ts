@@ -119,20 +119,7 @@ export const handleSwap = async (
         ? String(decimal2Fixed(borrow, selectedTokens.borrow.decimals))
         : String(decimal2Fixed(-borrow, selectedTokens.borrow.decimals));
 
-    // '0x784c4a12f82204e5fb713b055de5e8008d5916b6',
-    // '0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a',
-    // '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
-    // '0x172370d5cd63279efa6d502dab29171933a610af',
-    // '10000000000000000000',
-    // '200000000000000',
-    // owner.address
-    console.log("handleswap",    pool.pool,
-      selectedTokens.lend.address,
-      selectedTokens.receive.address,
-      // selectedTokens.borrow.address,
-      decimal2Fixed(amount, selectedTokens.lend.decimals),
-      borrowAmount,
-      user, instance);
+  
 
     const { hash } = await instance?.uniBorrow(
       pool.pool,
@@ -197,17 +184,14 @@ export const handleRepay = async (
     //     address _source0,
     //     address _source1
 
+    // const hash = await instance?.logicAddress()
     const hash  = await instance?.uniRepay(
       selectedData.pool.pool,
       selectedData.lend.address,
       selectedData.borrow.address,
       user,
-      decimal2Fixed(receiveAmount),
-      PayAmount,
-      '0x49B0c695039243BBfEb8EcD054EB70061fd54aa0',
-      '0x336584C8E6Dc19637A5b36206B1c79923111b405'
     );
-    console.log("transaction", hash, fromBigNumber(hash) );
+    console.log("transaction", hash, fromBigNumber(hash));
     // const receipt = await waitForTransaction(hash);
     // return receipt;
     return "";
@@ -296,7 +280,7 @@ export const getPoolBasicData = async (
   if (true) {
     try {
      // const chainId = getChainId(wagmiConfig);
-      // const proxy = await getUserProxy(userAddress);
+       const proxy = await getUserProxy(userAddress);
       console.log("getPoolBasicData", contracts, poolAddress, poolData, userAddress);
       
      
@@ -314,7 +298,7 @@ export const getPoolBasicData = async (
         instance?.getPoolFullData(
           contracts.positionAddress,
           poolAddress,
-          userAddress
+          proxy
         ),
       ]);
       // const positionAddress =
