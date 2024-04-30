@@ -103,10 +103,9 @@ export const handleSelectRepayToken = async (
       tokenPool,
       address
     );
-console.log("handleSelectRepayToken", data);
 
     if (
-      data.token0.borrowBalanceFixed > 0 &&
+      parseFloat(data.token0.borrowBalanceFixed) > 0 &&
       data.token0.address === poolData.borrowToken.id
     ) {
       setSelectedData({
@@ -119,7 +118,7 @@ console.log("handleSelectRepayToken", data);
     }
 
     if (
-      data.token1.borrowBalanceFixed > 0 &&
+      parseFloat(data.token1.borrowBalanceFixed) > 0 &&
       data.token1.address === poolData.borrowToken.id
     ) {
       setSelectedData({
@@ -131,9 +130,6 @@ console.log("handleSelectRepayToken", data);
       });
     }
   } else{
-
-    console.log("No Pool Data");
-    
      setSelectedData({
       ...selectedData,
       ["pool"]: poolData,

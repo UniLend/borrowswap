@@ -6,9 +6,9 @@ import { truncateToDecimals } from "../../../helpers";
 import {Tooltip} from "antd";
 interface AmountContainerProps {
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   buttonText: string;
-  onClick: () => void;
+  onClick?: () => void;
   onMaxClick?: () => void;
   balance: string;
   className?: string;

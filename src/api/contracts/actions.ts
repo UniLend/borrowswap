@@ -36,9 +36,9 @@ export const waitForTransaction = async (hash: any) => {
       hash: hash,
     });
 
-    // const status = await watchBlock(receipt.blockNumber);
+     const status = await watchBlock(receipt.blockNumber);
 
-    console.log("waitForTransaction", receipt, status);
+  
     return receipt;
   } catch (error) {
     throw error;
@@ -49,7 +49,7 @@ const watchBlock = async (prevBlockNumber: any) => {
   const blockNumber = await getBlockNumber(wagmiConfig);
 
   await new Promise((resolve, reject) => {
-    if (blockNumber - prevBlockNumber > 3) {
+    if (blockNumber - prevBlockNumber > 1) {
       return resolve(true);
     } else {
       setTimeout(async () => {
@@ -75,7 +75,7 @@ export const handleApproval = async (
   const chainId = getChainId(wagmiConfig);
   const controllerAddress =
     contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
-    console.log("hanldeApproval", instance, controllerAddress, maxAllow, tokenAddress);
+   
   const { hash } = await instance?.approve(controllerAddress, maxAllow);
   const receipt = await waitForTransaction(hash);
   return receipt;
@@ -91,7 +91,7 @@ export const getUserProxy = async (user: any) => {
       controllerABI,
       false
     );
-    console.log("getUserProxy", instance, user);
+ 
     
     const proxy = await instance?.proxyAddress(user);
     // if (proxy && isZeroAddress(proxy)) {
@@ -263,7 +263,7 @@ export const getPoolBasicData = async (
     try {
      // const chainId = getChainId(wagmiConfig);
        const proxy = await getUserProxy(userAddress);
-      console.log("getPoolBasicData", proxy,);
+     
       
      
       const instance = await getEtherContract(
@@ -376,12 +376,12 @@ export const getPoolBasicData = async (
           borrowBalanceFixed: fixed2Decimals(
             data._borrowBalance0,
             pool.token0.decimals
-          ),
+          ).toFixed(pool.token0.decimals),
           borrowShare: fromBigNumber(data._borrowShare0),
           borrowSharefixed: fixed2Decimals(
             data._borrowShare0,
             poolData.token0.decimals
-          ),
+          ).toFixed(pool.token0.decimals),
 
           healthFactor18: fromBigNumber(data._healthFactor0),
           healthFactorFixed: fixed2Decimals(data._healthFactor0, 18),
@@ -461,13 +461,13 @@ export const getPoolBasicData = async (
           borrowBalanceFixed: fixed2Decimals(
             data._borrowBalance1,
             poolData.token1.decimals
-          ),
+          ).toFixed(poolData.token1.decimals),
 
           borrowShare: fromBigNumber(data._borrowShare1),
           borrowSharefixed: fixed2Decimals(
             data._borrowShare1,
             poolData.token1.decimals
-          ),
+          ).toFixed(poolData.token1.decimals),
 
           healthFactor18: fromBigNumber(data._healthFactor1),
           healthFactorFixed: fixed2Decimals(data._healthFactor1, 18),
@@ -536,7 +536,7 @@ export const getPoolBasicData = async (
           ),
         },
       };
-
+      console.log("getPoolBasicData", proxy, pool);
       return pool;
     } catch (error) {
       console.error("REPAY_POOLDATA_ERROR", error);
@@ -552,7 +552,7 @@ export const getCollateralTokenData = async (token: any, address: any) => {
   const comet = await getEtherContract(compoundAddress, compoundABI);
 
   const proxy = await getUserProxy(address);
-  console.log("comp", comet, proxy);
+ 
   const tokenAddress = token?.address;
 
   const assetInfo = await comet?.getAssetInfoByAddress(tokenAddress);
@@ -574,7 +574,7 @@ export const getCollateralTokenData = async (token: any, address: any) => {
     price: Number(fromBigNumber(price)) / 10 ** 8,
     //quote: fixed2Decimals(fromBigNumber(quote))
   };
-  console.log("getCollateralTokenData", info);
+ 
   return info;
 };
 
@@ -588,7 +588,7 @@ export const getBorrowTokenData = async (token: any, address: any) => {
     const proxy = await getUserProxy(address);
 
     const tokenAddress = token?.address;
-    console.log("comp", comet, proxy, token);
+  
     //const assetInfo = await comet?.getAssetInfoByAddress(tokenAddress)
     const BorrowBal = await comet?.borrowBalanceOf(proxy);
     //  const Bal = await comet?.balanceOf( proxy)
@@ -612,7 +612,7 @@ export const getBorrowTokenData = async (token: any, address: any) => {
       price: Number(fromBigNumber(price)) / 10 ** 8,
       // quote: fixed2Decimals(fromBigNumber(quote))
     };
-    console.log("getBorrowTokenData", info, BorrowBal);
+    
     return info;
   } catch (error) {
     console.log("Error in getBorrowTokenData ", { error });

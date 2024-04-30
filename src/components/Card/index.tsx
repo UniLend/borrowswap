@@ -7,10 +7,16 @@ import useWalletHook from "../../api/hooks/useWallet";
 import BorrowCard from "./BorrowCard";
 import RepayCard from "./RepayCard";
 import { uniswapTokensData } from "../../api/axios/calls";
+import RedeemCard from "./RedeemCard";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
   REPAY = "Swap_Repay",
+}
+
+enum SubOperation {
+  REDEEM = "REDEEM",
+  REPAY = "REPAY",
 }
 
 export default function Card() {
@@ -19,6 +25,9 @@ export default function Card() {
   const { chainId } = useWalletHook();
   const [activeOperation, setActiveOperation] = useState<ActiveOperation>(
     ActiveOperation.BRROW
+  );
+  const [subOperation, setSubOperation] = useState<SubOperation>(
+    SubOperation.REPAY
   );
   const [uniSwapTokens, setUniSwapTokens] = useState([]);
 
@@ -58,12 +67,23 @@ export default function Card() {
             Swap & Repay
           </Button>
         </div>
+
+       { activeOperation === ActiveOperation.REPAY && <div className="sub_tabs">
+          <div onClick={()=> setSubOperation(SubOperation.REPAY)}><p>Repay</p></div>
+          <div onClick={()=> setSubOperation(SubOperation.REDEEM)}><p>Redeem</p></div>
+        </div>
+}
         {/*  */}
         {activeOperation === ActiveOperation.BRROW && (
           <BorrowCard uniSwapTokens={uniSwapTokens} />
         )}
-        {activeOperation === ActiveOperation.REPAY && (
+        {activeOperation === ActiveOperation.REPAY && subOperation == SubOperation.REPAY && (
+          
           <RepayCard  uniSwapTokens={uniSwapTokens} />
+        )}
+         {activeOperation === ActiveOperation.REPAY && subOperation == SubOperation.REDEEM && (
+          
+          <RedeemCard  uniSwapTokens={uniSwapTokens} />
         )}
       </div>
     </div>
