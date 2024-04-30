@@ -90,14 +90,14 @@ export const getUserProxy = async (user: any) => {
       controllerABI,
       false
     );
+    console.log("getUserProxy", instance, user);
+    
     const proxy = await instance?.proxyAddress(user);
-    if (proxy && isZeroAddress(proxy)) {
-      return user;
-    }
-
-    return proxy ? proxy : user;
+    // if (proxy && isZeroAddress(proxy)) {
+     
+    return proxy ;
   } catch (error) {
-    return user; //if no proxy just use the users address as
+    return '0x0000000000000000000000000000000000000000'; //if no proxy just use the users address as
   }
 };
 
@@ -119,20 +119,7 @@ export const handleSwap = async (
         ? String(decimal2Fixed(borrow, selectedTokens.borrow.decimals))
         : String(decimal2Fixed(-borrow, selectedTokens.borrow.decimals));
 
-    // '0x784c4a12f82204e5fb713b055de5e8008d5916b6',
-    // '0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a',
-    // '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
-    // '0x172370d5cd63279efa6d502dab29171933a610af',
-    // '10000000000000000000',
-    // '200000000000000',
-    // owner.address
-    console.log("handleswap",    pool.pool,
-      selectedTokens.lend.address,
-      selectedTokens.receive.address,
-      // selectedTokens.borrow.address,
-      decimal2Fixed(amount, selectedTokens.lend.decimals),
-      borrowAmount,
-      user, instance);
+  
 
     const { hash } = await instance?.uniBorrow(
       pool.pool,
@@ -167,41 +154,46 @@ export const handleRepay = async (
     const controllerAddress =
       contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
     const instance = await getEtherContract(controllerAddress, controllerABI);
-    const positionAddress =
-      contractAddresses[chainId as keyof typeof contractAddresses]?.positionAddress;
-    const positionInstance = await getEtherContract(positionAddress, positionAbi);
-    const proxy = await getUserProxy(user);
-    const getNftID = await positionInstance?.getNftId(
-      selectedData.pool.pool,
-      proxy
-    )
-  const borrowAmount =
+    // const positionAddress =
+    //   contractAddresses[chainId as keyof typeof contractAddresses]?.positionAddress;
+    // const positionInstance = await getEtherContract(positionAddress, positionAbi);
+    // const proxy = await getUserProxy(user);
+    // const getNftID = await positionInstance?.getNftId(
+    //   selectedData.pool.pool,
+    //   proxy
+    // )
+  const PayAmount =
       selectedData.borrow.token == 1
-        ? String(decimal2Fixed(borrow, selectedData.borrow.decimals))
-        : String(decimal2Fixed(-borrow, selectedData.borrow.decimals));
+        ? String(decimal2Fixed(payAmount, selectedData.borrow.decimals))
+        : String(decimal2Fixed(-payAmount, selectedData.borrow.decimals));
 
-    const nftId = parseInt(getNftID, 10);
-    console.log("nftId",   selectedData.pool.pool,
+
+    console.log("handleRepay", instance, selectedData.pool.pool,
     selectedData.lend.address,
     selectedData.borrow.address,
     user,
-    nftId,
-    decimal2Fixed(receiveAmount),
-    borrowAmount)
+    '0x49B0c695039243BBfEb8EcD054EB70061fd54aa0',
+    '0x336584C8E6Dc19637A5b36206B1c79923111b405')
 
+    // address _pool,
+    //     address _tokenIn,
+    //     address _borrowedToken,
+    //     address _user,
+    //     int256 _amountOut,
+    //     int256 _repayAmount,
+    //     address _source0,
+    //     address _source1
 
-    const { hash } = await instance?.uniRepay(
+    // const hash = await instance?.logicAddress()
+    const hash  = await instance?.uniRepay(
       selectedData.pool.pool,
       selectedData.lend.address,
       selectedData.borrow.address,
       user,
-      nftId,
-      decimal2Fixed(receiveAmount),
-      decimal2Fixed(borrowAmount),
     );
-    console.log("transaction", hash);
-    const receipt = await waitForTransaction(hash);
-    return receipt;
+    console.log("transaction", hash, fromBigNumber(hash));
+    // const receipt = await waitForTransaction(hash);
+    // return receipt;
     return "";
   } catch (error) {
     console.log("Error", { error });
@@ -287,8 +279,11 @@ export const getPoolBasicData = async (
   let pool = { ...poolData };
   if (true) {
     try {
-      const proxy = await getUserProxy(userAddress);
-
+     // const chainId = getChainId(wagmiConfig);
+       const proxy = await getUserProxy(userAddress);
+      console.log("getPoolBasicData", contracts, poolAddress, poolData, userAddress);
+      
+     
       const instance = await getEtherContract(
         contracts.helperAddress,
         helperAbi
@@ -306,7 +301,16 @@ export const getPoolBasicData = async (
           proxy
         ),
       ]);
+      // const positionAddress =
+      // contractAddresses[chainId as keyof typeof contractAddresses]?.positionAddress;
+   // const positionInstance = await getEtherContract(positionAddress, positionAbi);
+    
+    // const NftID = await positionInstance?.getNftId(
+    //   poolData.id,
+    //   proxy
+    // )    
       // const token0 = await getAllowance(pool.token0.address, userAddress)
+
       let token0Price = 0;
       let token1Price = 0;
 
