@@ -188,7 +188,7 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
         <div ref={container} className='token_list'>
           {filteredTokenList.length > 0 ? (
             filteredTokenList?.map((token: Token, i: number) =>
-              i < page * 10 ? (
+              i < page * 100 ? (
                 <TokenCard
                   key={i}
                   token={token}
