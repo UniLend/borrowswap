@@ -172,13 +172,11 @@ const findQuoteAmount = (quote: any): { quoteValue: string, quoteDecimals: numbe
   const route = quote?.route?.[quote.route.length - 1];
   if (route.length > 0) {
     totalFee = route.reduce((acc: any, pool: any) => {
-      let scaledFee= ""
-       const fee = pool.fee;
-        // const scaledFee = fixed2Decimals(fee, 18);
-        scaledFee += fee;
-      return scaledFee;
+    const fee = Number(pool.fee);
+    acc += fee;
+    return acc;
     }, 0);
- 
+
     const { amountOut, tokenOut: { decimals } } = route[route.length - 1];
     if (amountOut && decimals) {
       const scaledAmountOut = fixed2Decimals(amountOut, Number(decimals));
