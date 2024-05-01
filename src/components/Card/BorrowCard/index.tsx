@@ -21,6 +21,7 @@ import {
   handleSwapTransaction,
   handleTokenSelection,
 } from "./utils";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -100,6 +101,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
   const isLowBal: boolean =
     +lendAmount >
     selectedTokens?.lend?.balanceFixed;
+  const connectWallet = isConnected;
 
   const borrowBtn = getButtonAction(
     selectedTokens,
@@ -107,7 +109,8 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     isTokenLoading,
     quoteError,
     isLowLiquidity,
-    isLowBal
+    isLowBal,
+    connectWallet
   );
 
   const handleLendAmount = (amount: string) => {
@@ -307,8 +310,15 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           onChange={(e: any) => handleLendAmount(e.target.value)}
           onMaxClick={() => setLendAmount(selectedTokens?.lend?.balanceFixed)}
           buttonText={selectedTokens?.lend?.symbol}
-          onClick={() => handleOpenTokenList("lend")}
+          // onClick={() => handleOpenTokenList("lend")}
+          onClick={isConnected 
+                ? () => handleOpenTokenList("lend")
+                : () => {}}
+          
           isShowMaxBtn
+           btnClass={
+             !isConnected ?  "disable_btn newbtn" :"visible"
+          }
         />
         <div className='swap_route'>
           <p className='paragraph06 '>You borrow</p>
@@ -376,7 +386,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
             }
           />
         </div>
-
+        {isConnected ?  
         <Button
           disabled={borrowBtn.disable}
           className='primary_btn'
@@ -385,8 +395,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           loading={isTokenLoading.pools || isTokenLoading.rangeSlider}
         >
           {borrowBtn.text}
-        </Button>
-
+        </Button> : <div className="connect-btn"><ConnectButton/></div>}
         <AccordionContainer selectedTokens={selectedTokens} b2rRatio = {b2rRatio} fee={fee} slippage={slippage} lendAmount={lendAmount} />
 
       </div>

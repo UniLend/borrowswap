@@ -123,7 +123,7 @@ export default function SwapCard() {
         <Button className='primary_btn'>Borrow</Button>
       </div>
       {/* <TokenListModal /> */}
-      <BorrowLoader />
+     <BorrowLoader msg="" progress={1} />
     </div>
   );
 }

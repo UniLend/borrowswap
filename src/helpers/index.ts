@@ -365,7 +365,8 @@ export const getButtonAction = (
   isTokenLoading: any,
   quoteError: boolean,
   isLowLiquidity: boolean,
-  isLowBal: boolean
+  isLowBal: boolean,
+  connectWallet:any
 ) => {
   let btn = {
     text: "Borrow",
@@ -373,9 +374,13 @@ export const getButtonAction = (
   };
 
   const { lend, borrow, receive } = selectedTokens;
-  if (lend === null) {
+  if (!connectWallet ) {
+    btn.text = 'Connect Wallet';
+  }
+   else if (lend === null ) {
     btn.text = "Select pay token";
-  } else if (isTokenLoading.pools === true) {
+  }
+  else if (isTokenLoading.pools === true) {
     btn.text = "Pools are loading";
   } else if (isTokenLoading.rangeSlider) {
     btn.text = "Quote data loading";
@@ -395,7 +400,8 @@ export const getButtonAction = (
     }
   }
 
-  btn.disable = !!(btn.text !== "Borrow");
+  // btn.disable = !!(btn.text !== "Borrow");
+  btn.disable = !!(btn.text !== "Borrow" && btn.text !== "Connect Wallet");
 
   return btn;
 };
@@ -405,7 +411,8 @@ export const getRepayBtnActions = (
   isTokenLoading: any,
   quoteError: boolean,
   isLowBal: boolean,
-  isLowBalReceive:boolean
+  isLowBalReceive:boolean,
+  connectWallet:any
 ) => {
   let btn = {
     text: "Repay",
@@ -413,7 +420,9 @@ export const getRepayBtnActions = (
   };
   const { pool, lend, borrow, receive } = selectedData;
   const { quotation } = isTokenLoading;
-  if (pool == null ) {
+   if(!connectWallet ) {
+    btn.text = "Connect Wallet";
+  } else if (pool == null ) {
     btn.text = "Select Position";
   } else if (isTokenLoading.pool) {
     btn.text = "Pools data loading";
@@ -423,7 +432,6 @@ export const getRepayBtnActions = (
   else if (borrow === null) {
     btn.text = "Pools data loading";
   }
-
    else if (isLowBal) {
     btn.text = "Low balance";
   }  else if (isLowBalReceive) {
@@ -437,6 +445,7 @@ export const getRepayBtnActions = (
     btn.text = "Swap not available";
   }
 
-  btn.disable = !!(btn.text !== "Repay");
+  // btn.disable = !!(btn.text !== "Repay");
+  btn.disable = !!(btn.text !== "Repay" && btn.text !== "Connect Wallet");
   return btn;
 };

@@ -15,7 +15,7 @@ import {
   handleSelectRepayToken,
   handleSelectReceiveToken,
 } from "./utils";
-
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
   REPAY = "Swap_Repay",
@@ -153,12 +153,14 @@ export default function RepayCard({ uniSwapTokens }: any) {
 
   const isLowBalReceive: boolean = selectedData?.receive?.collateralBalanceFixed == 0
 
+  const connectWallet = isConnected
   const repayButton = getRepayBtnActions(
     selectedData,
     isTokenLoading,
     quoteError,
     isLowBal,
-    isLowBalReceive
+    isLowBalReceive,
+    connectWallet
   );
 
   const getOprationToken = () => {
@@ -330,8 +332,12 @@ export default function RepayCard({ uniSwapTokens }: any) {
                 ? `${selectedData.pool.borrowToken.symbol}`
                 : "Select"
             }
-            onClick={() => handleOpenTokenList("pool")}
+            onClick={isConnected 
+                ? () => handleOpenTokenList("pool")
+                : () => {}}
             className={ selectedData?.pool === null ?  "transparent_btn" : ""}
+            btnClass={ !isConnected ?  "disable_btn newbtn" :"visible"
+          }
           />
         </div>
         <p className='paragraph06 label'>You Pay</p>
@@ -379,6 +385,8 @@ export default function RepayCard({ uniSwapTokens }: any) {
           }
         />
 
+  
+        {isConnected ?  
         <Button
           disabled={repayButton.disable}
           className='primary_btn'
@@ -387,7 +395,8 @@ export default function RepayCard({ uniSwapTokens }: any) {
           loading={isTokenLoading.pool || isTokenLoading.quotation}
         >
           {repayButton.text}
-        </Button>
+        </Button> : <div className="connect-btn"><ConnectButton/></div>}
+
       </div>
 
       <Modal

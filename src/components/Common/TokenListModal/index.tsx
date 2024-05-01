@@ -17,6 +17,7 @@ interface Token {
   otherToken: any;
   pool: any;
   source: string;
+  address:string;
 }
 interface PositionData {
   borrowBalance0: number;
@@ -134,22 +135,22 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
   },[page, tokenList, borrowedPosition])
 
 
-
   const handleSearch = (searched: string) => {
     const searchQueryLower = searched.toLowerCase();
     setSearchQuery(searchQueryLower);
     let filtered= [];
+   
     if (currentOperation === "pool") {
       filtered = borrowedPosition.filter((token: Token) =>
-        token.borrowToken.name.toLowerCase().includes(searchQuery.toLowerCase())
+        token.borrowToken.name.toLowerCase().includes(searchQueryLower.toLowerCase())
       );
     setFilteredTokenList(filtered);
     } else {
       filtered = tokenList.filter(
         (token) =>
-          token.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          token.symbol.toLowerCase().includes(searchQuery.toLowerCase())
+          token.symbol.toLowerCase().includes(searchQueryLower.toLowerCase()) ||  token.address.toLowerCase().includes(searchQueryLower.toLowerCase()),
       );
+  
     const priorityTokens = ["usdc", "usdt", "sushi", "uft"];
     filtered.sort((a, b) => {
       const aIndex = priorityTokens?.indexOf(a.symbol.toLowerCase());
@@ -184,7 +185,7 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
           <input
             autoFocus
             type='text'
-            placeholder='Search Address/ Token/ Tnx'
+            placeholder='Search Token / Address'
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
           />

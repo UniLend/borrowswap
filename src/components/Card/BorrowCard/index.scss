@@ -91,7 +91,7 @@
     font-size: $font-size-md;
     cursor: pointer;
     text-transform: capitalize;
-
+    text-align: center !important;
     &:disabled {
       background-color: var(--low-dark-bg);
       color: var(--light-gray);
