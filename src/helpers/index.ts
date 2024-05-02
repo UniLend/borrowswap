@@ -105,14 +105,14 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
       source: "Unilend",
       type: 'position'
     }));
-    console.log("allPositions", allPositions);
+    
     const poolData: any = {};
     const tokenList: any = {};
 
     const poolsData = Array.isArray(data.pools) && data.pools;
     const tokenPrice = await getTokenPrice(data, chain);
-    console.log("tokenPrice", tokenPrice )
-    console.log("poolGraph", data, allPositions, poolsData);
+   
+
 
     for (const pool of poolsData) {
       const openPosiions = allPositions.filter(
@@ -284,7 +284,7 @@ export const getBorrowAmount = (
       Number(collateralToken.priceRatio) *
       (ltv / 100) -
     Number(selectedToken.borrowBalanceFixed);
-  console.log("borrowed", borrowAmount);
+
   return borrowAmount > 0 ? borrowAmount : 0;
 };
 
@@ -300,7 +300,7 @@ export const getCompoundBorrowAmount = (
       Number(priceRatio) *
       (ltv / 100) -
     Number(borrowBalanceFixed);
-  console.log("borrowed", borrowAmount);
+ 
   return borrowAmount > 0 ? borrowAmount : 0;
 };
 

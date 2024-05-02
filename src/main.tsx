@@ -51,7 +51,7 @@ export const wagmiConfig = getDefaultConfig({
   }
 });
 
-console.log("wagmiConfig",wagmiConfig );
+
 
 const queryClient = new QueryClient({
     defaultOptions: {

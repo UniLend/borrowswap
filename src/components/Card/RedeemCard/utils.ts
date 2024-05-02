@@ -1,3 +1,4 @@
+import { handleRedeem } from './../../../api/contracts/actions';
 import { valueType } from "antd/es/statistic/utils";
 import { getQuote } from "../../../api/axios/calls";
 import {
@@ -85,7 +86,8 @@ export const handleSelectRepayToken = async (
   address: any,
   selectedData: any,
   setIsTokenLoading: (value: any) => void,
-  setSelectedData: (value: any) => void
+  setSelectedData: (value: any) => void,
+  setLendAmount: (value: any) => void
 ) => {
   setIsTokenLoading({ ...isTokenLoading, pool: true });
   if (poolData.source === "Unilend") {
@@ -103,37 +105,33 @@ export const handleSelectRepayToken = async (
       tokenPool,
       address
     );
-console.log("handleSelectRepayToken", data);
 
     if (
-      data.token0.borrowBalanceFixed > 0 &&
+     
       data.token0.address === poolData.borrowToken.id
     ) {
       setSelectedData({
         ...selectedData,
         ["pool"]: poolData,
-        ["lend"]: null,
-        ["receive"]: data.token1,
+        ["lend"]:  data.token1,
+        ["receive"]: null,
         ["borrow"]: data.token0,
       });
-    }
-
-    if (
-      data.token1.borrowBalanceFixed > 0 &&
+      setLendAmount(data.token1.redeemBalanceFixed)
+    } else if (
+     
       data.token1.address === poolData.borrowToken.id
     ) {
       setSelectedData({
         ...selectedData,
         ["pool"]: poolData,
-        ["lend"]: null,
-        ["receive"]: data.token0,
+        ["lend"]: data.token0,
+        ["receive"]: null,
         ["borrow"]: data.token1,
       });
+      setLendAmount(data.token0.redeemBalanceFixed)
     }
   } else{
-
-    console.log("No Pool Data");
-    
      setSelectedData({
       ...selectedData,
       ["pool"]: poolData,
@@ -178,10 +176,11 @@ export const handleSelectReceiveToken = async (
 export const handleRepayTransaction = async (
   selectedData: any,
   address: any,
-  lendAmount: any,
+  redeemAmount: any,
   borrowAmount: any,
   receiveAmount: any,
   unilendPool: any,
+  isMax: boolean,
   setOperationProgress: (value: number) => void,
   setIsBorrowProgressModal: (value: boolean) => void,
   setModalMsg: (value: string) => void,
@@ -189,47 +188,49 @@ export const handleRepayTransaction = async (
 ) => {
   setOperationProgress(0);
   try {
-    const lendToken = await getAllowance(selectedData?.lend, address);
+   // const lendToken = await getAllowance(selectedData?.lend, address);
     // const borrowToken = await getAllowance(selectedData?.borrow, address);
     setIsBorrowProgressModal(true);
     
 
-    if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
-      setModalMsg("Spend Aprroval for " + selectedData.lend.symbol);
-      await handleApproval(selectedData?.lend.address, address, lendAmount);
-      setOperationProgress(1);
+    // if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
+    //   setModalMsg("Spend Aprroval for " + selectedData.lend.symbol);
+    //   await handleApproval(selectedData?.lend.address, address, lendAmount);
+    //   setOperationProgress(1);
 
-      handleRepayTransaction(
-        selectedData,
-        address,
-        lendAmount,
-        borrowAmount,
-        receiveAmount,
-        unilendPool,
-        setOperationProgress,
-        setIsBorrowProgressModal,
-        setModalMsg,
-        handleClear
-      );
-    }  else {
-      setModalMsg(
-        selectedData.lend.symbol +
-          "-" +
-          selectedData.borrow.symbol +
-          "-" +
-          selectedData.receive.symbol
-      );
+    //   handleRepayTransaction(
+    //     selectedData,
+    //     address,
+    //     lendAmount,
+    //     borrowAmount,
+    //     receiveAmount,
+    //     unilendPool,
+    //     setOperationProgress,
+    //     setIsBorrowProgressModal,
+    //     setModalMsg,
+    //     handleClear
+    //   );
+    // }  else
+     
+      // setModalMsg(
+      //   selectedData.lend.symbol +
+      //     "-" +
+      //     selectedData.borrow.symbol +
+      //     "-" +
+      //     selectedData.receive.symbol
+      // );
       setOperationProgress(2);
       let hash;
       if (selectedData.borrow.source == "Unilend") {
-        hash = await handleRepay(
-          lendAmount,
+        hash = await handleRedeem(
+          redeemAmount,
           selectedData,
           address,
+          isMax
         );
       } else {
         hash = await handleCompoundRepay(
-          lendAmount,
+          redeemAmount,
           address,
           selectedData,
           borrowAmount
@@ -242,7 +243,7 @@ export const handleRepayTransaction = async (
           setIsBorrowProgressModal(false);
         }, 1000);
       }
-    }
+    
   } catch (error) {
     console.log("Error1", { error });
   }

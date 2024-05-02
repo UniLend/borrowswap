@@ -88,7 +88,7 @@ const compoundCollateralTokens  = [
   },
 ]
 
-export default function RepayCard({ uniSwapTokens }: any) {
+export default function RedeemCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList, positions } = unilendV2Data;
   const { address, isConnected, chain } = useWalletHook();
@@ -102,6 +102,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
   const [pools, setPools] = useState<Array<any>>([]);
   const [modalMsg, setModalMsg] = useState("");
   const [quoteError, setQuoteError] = useState<boolean>(false);
+  const [isMax, setIsMax] = useState(false)
   //select data state
   const [selectedData, setSelectedData] = useState<any>({
     pool: null,
@@ -155,6 +156,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
 
   const handleLendAmount = (amount: string) => {
     setLendAmount(amount);
+    setIsMax(false)
   };
 
   const handleReceiveAmount = (amount: string) => {
@@ -208,6 +210,8 @@ export default function RepayCard({ uniSwapTokens }: any) {
   };
 
   const handleClear = () => {
+    console.log("handleClaer");
+    
     setLendAmount("");
     setBorrowAmount("");
     setReceiveAmount("");
@@ -237,10 +241,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
       setIsTokenLoading
     );
   };
-  useEffect(()=> {
-   console.log("selectedData", selectedData);
-   
-  },[selectedData]);
 
   const handleRepayToken = async (poolData: any) => {
     await handleSelectRepayToken(
@@ -251,7 +251,8 @@ export default function RepayCard({ uniSwapTokens }: any) {
       address,
       selectedData,
       setIsTokenLoading,
-      setSelectedData
+      setSelectedData,
+      setLendAmount,
     );
   };
   const handleReceiveToken =async (data:any) =>{
@@ -274,6 +275,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
       borrowAmount,
       receiveAmount,
       unilendPool,
+      isMax,
       setOperationProgress,
       setIsBorrowProgressModal,
       setModalMsg,
@@ -289,11 +291,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
       [tokenListStatus.operation]: { ...data, map: true },
     });
     if (tokenListStatus.operation == "pool") {
-
-      
-
       handleRepayToken(data);
-      
       setReceiveAmount("");
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
@@ -327,13 +325,16 @@ export default function RepayCard({ uniSwapTokens }: any) {
   useEffect(() => {
     if (selectedData?.pool && selectedData?.lend && !tokenListStatus.isOpen) {
       console.log("lendChnage")
-      setIsTokenLoading({ ...isTokenLoading, quotation: true });
+      // setIsTokenLoading({ ...isTokenLoading, quotation: true });
       setLendAmount("");
-      handleQuoteValue();
+      // handleQuoteValue();
     }
   }, [selectedData?.lend]);
 
-
+  useEffect(()=> {
+    console.log("selectedData", selectedData);
+    
+   },[selectedData]);
 
   useEffect(() => {
       if(selectedData?.pool?.source === 'compound'){
@@ -369,59 +370,57 @@ export default function RepayCard({ uniSwapTokens }: any) {
             className={ selectedData?.pool === null ?  "transparent_btn" : ""}
           />
         </div>
-        <p className='paragraph06 label'>You Pay</p>
+    
+        <p className='paragraph06 label'>You Lend</p>
         <AmountContainer
-          balance={truncateToDecimals(
-            selectedData?.lend?.balanceFixed || 0,
-            4
-          ).toString()}
+          balance={selectedData?.lend?.balanceFixed}
           value={Number(lendAmount) > 0 ? lendAmount : "0"}
           onChange={(e: any) => handleLendAmount(e.target.value)}
-         
-          isShowMaxBtn
-          buttonText={selectedData?.lend?.symbol}
           onMaxClick={() => {
-            setLendAmount((selectedData?.borrow?.borrowBalanceFixed * b2rRatio).toString())
-           
-          }}
-          onClick={
-            selectedData?.pool
-              ? () => handleOpenTokenList("lend")
-              : () => {}
-          }
-          
-          // readonly
-          btnClass={
-            selectedData?.pool === null || selectedData?.receive?.collateralBalanceFixed === 0 || selectedData?.receive === null   ? "disable_btn" : "visible"
-          }
-        />
-        <p className='paragraph06 label'>You Borrowed</p>
-        <AmountContainer
-          balance={selectedData?.receive?.balanceFixed}
-          value={Number(borrowAmount) > 0 ? borrowAmount : "0"}
-          onChange={(e: any) => handleReceiveAmount(e.target.value)}
-          onMaxClick={() => {
-            setLendAmount((selectedData?.borrow?.borrowBalanceFixed * b2rRatio).toString())
-           
+            // console.log(selectedData);
+            
+            setLendAmount((selectedData?.lend?.redeemBalanceFixed).toString())
+            setIsMax(true)
           }}
           // buttonText={selectedData?.pool?.otherToken?.symbol}
           buttonText={
             selectedData?.pool?.source === "Compound" ? selectedData?.receive?.symbol : selectedData?.pool?.otherToken?.symbol
           }
-          // isShowMaxBtn
+          isShowMaxBtn
           onClick={
             selectedData?.pool !== null && selectedData.pool.source ==="Compound"
               ? () => handleOpenTokenList("receive")
               : () => {}
           }
-          readonly
-          btnClass={
-            selectedData?.pool?.source === "Compound" ? "" : "disable_btn"
-          }
+         
+          // btnClass={
+          //   selectedData?.pool?.source === "Compound" ? "" : "disable_btn"
+          // }
         />
-
+    {/* <p className='paragraph06 label'>You Receive</p>
+        <AmountContainer
+          balance={truncateToDecimals(
+            selectedData?.receive?.balanceFixed || 0,
+            4
+          ).toString()}
+          value={Number(receiveAmount) > 0 ? receiveAmount : "0"}
+          onChange={(e: any) => handleReceiveAmount(e.target.value)}
+          
+          // onMaxClick={() => {
+          //   setLendAmount((selectedData?.lend?.redeemBalanceFixed))
+          // }}
+          buttonText={selectedData?.lend?.symbol}
+          onClick={
+            () => handleOpenTokenList("lend")
+          }
+          
+          // readonly
+          // btnClass={
+          //   selectedData?.pool === null || selectedData?.receive?.collateralBalanceFixed === 0 || selectedData?.receive === null   ? "disable_btn" : "visible"
+          // }
+        /> */}
         <Button
-          disabled={repayButton.disable}
+          // disabled={repayButton.disable}
           className='primary_btn'
           onClick={handleSwapRepayTransaction}
           title='please slect you pay token'

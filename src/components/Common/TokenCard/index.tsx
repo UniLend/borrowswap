@@ -58,8 +58,8 @@ const TokenCard: React.FC<TokenCardProps> = ({
                 <h3>{token.symbol}</h3>
                 {token?.source === "Unilend" && showPoolData && (
                   <div className='pool_logo'>
-                    <img src={token.logo} alt='' />
-                    <img src={token.pairToken?.logo} alt='' />
+                    <img src={token?.logo} alt='' />
+                    <img src={token?.pairToken?.logo} alt='' />
                   </div>
                 )}
                 {token?.source !== "Unilend" && showPoolData && (
@@ -84,7 +84,7 @@ const TokenCard: React.FC<TokenCardProps> = ({
                 <img src={getTokenLogo("UFT")} alt='' />
               </div>
               {token?.source === "Unilend" && (
-                <p className='paragraph06'>Max LTV: {token.maxLTV}%</p>
+                <p className='paragraph06'>Max LTV: {token?.maxLTV}%</p>
               )}
             </div>
           )}
@@ -93,19 +93,19 @@ const TokenCard: React.FC<TokenCardProps> = ({
         <div onClick={handleTokensList} className='token_card'>
           {!showPoolData ? (
             <div className='tokens_details'>
-              <img src={token.logoURI || token.logo} alt='' />
+              <img src={token?.logoURI || token?.logo} alt='' />
               <div>
                 <div className='token_pool_logo'>
-                  <h3>{token.symbol}</h3>
+                  <h3>{token?.symbol}</h3>
                 </div>
               </div>
             </div>
           ) : (
             <div className='tokens_details'>
-              <img src={getTokenLogo(token.borrowToken.symbol)} alt='' />
+              <img src={getTokenLogo(token?.borrowToken?.symbol)} alt='' />
               <div>
                 <div className='token_pool_logo'>
-                  <h3>{token.borrowToken.symbol}</h3>
+                  <h3>{token?.borrowToken?.symbol}</h3>
                 </div>
                 <span>{/* Repay:.0123 */}</span>
               </div>
@@ -116,12 +116,12 @@ const TokenCard: React.FC<TokenCardProps> = ({
               <div>
                 <img
                   className='token_over'
-                  src={getTokenLogo(token.borrowToken.symbol)}
+                  src={getTokenLogo(token?.borrowToken?.symbol)}
                   alt=''
                 />
-                <img src={getTokenLogo(token.otherToken.symbol)} alt='' />
+                <img src={getTokenLogo(token?.otherToken?.symbol)} alt='' />
               </div>
-              <p className='paragraph06'>{token.source}</p>
+              <p className='paragraph06'>{token?.source}</p>
             </div>
           )}
           {/* <div className='pool_details'>
