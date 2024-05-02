@@ -23,7 +23,8 @@ export const handleQuote = async (
   setBorrowAmount: (value: string) => void,
   setReceiveAmount: (value: string) => void,
   setQuoteError: (value: boolean) => void,
-  setIsTokenLoading: (value: any) => void
+  setIsTokenLoading: (value: any) => void,
+  setUniQuote: (value: any) => void
 ) => {
   try {
     const borrowDecimals = selectedData?.borrow?.decimals;
@@ -46,6 +47,11 @@ export const handleQuote = async (
    
       if (value?.quoteDecimals) {
         setb2rRatio(value.quoteDecimals);
+        setUniQuote({
+          totalFee: value?.fee,
+          slipage: value?.slippage,
+          path: value?.path,
+        })
         const payLendAmount =
         value.quoteDecimals * (selectedData?.borrow?.borrowBalanceFixed  || 0);
       console.log("pay amount", selectedData, payLendAmount, selectedData?.borrow?.borrowBalanceFixed, value.quoteDecimals);
@@ -199,7 +205,7 @@ export const handleRepayTransaction = async (
       await handleApproval(selectedData?.lend.address, address, lendAmount);
       setOperationProgress(1);
 
-      handleRepayTransaction(
+    await handleRepayTransaction(
         selectedData,
         address,
         lendAmount,
@@ -239,7 +245,9 @@ export const handleRepayTransaction = async (
         setOperationProgress(3);
         handleClear();
         setTimeout(() => {
+
           setIsBorrowProgressModal(false);
+          
         }, 1000);
       }
     }

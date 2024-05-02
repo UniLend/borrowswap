@@ -38,8 +38,11 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const parsedValue = value === "." ? "0" + value : value;
+    console.log("handleinput", value, parsedValue, /^[.]?[0-9]*[.]?[0-9]*$/.test(parsedValue) || parsedValue === "");
+    
     if (/^[.]?[0-9]*[.]?[0-9]*$/.test(parsedValue) || parsedValue === "") {
-      setInputValue(parsedValue);
+       setInputValue(parsedValue);
+      console.log("handleinput", value);
       onChange({
         target: { value: parsedValue },
       } as React.ChangeEvent<HTMLInputElement>);
@@ -47,7 +50,7 @@ const AmountContainer: React.FC<AmountContainerProps> = ({
   };
 
   useEffect(() => {
-    setInputValue(value);
+     setInputValue(value);
   }, [value]);
 
   return (

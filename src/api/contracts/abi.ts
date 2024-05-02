@@ -1176,6 +1176,11 @@ export const controllerABI = [
         "internalType": "int256",
         "name": "_amount",
         "type": "int256"
+      },
+      {
+        "internalType": "address",
+        "name": "_tokenOut",
+        "type": "address"
       }
     ],
     "name": "uniRedeem",

@@ -95,8 +95,13 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     rangeSlider: false,
   });
   const [operationProgress, setOperationProgress] = useState(0);
-  const [fee, setFee] = useState(0);
-  const [slippage, setSlippage] = useState(0);
+
+  const [uniQuote, setUniQuote] = useState({
+    totalFee: 0,
+    slippage: 0,
+    path: []
+  })
+
 
   const isLowBal: boolean =
     +lendAmount >
@@ -174,8 +179,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       setSelectedLTV,
       setQuoteError,
       setIsTokenLoading,
-      setFee,
-      setSlippage
+      setUniQuote
     );
   };
 
@@ -396,7 +400,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
         >
           {borrowBtn.text}
         </Button> : <div className="connect-btn"><ConnectButton/></div>}
-        <AccordionContainer selectedTokens={selectedTokens} b2rRatio = {b2rRatio} fee={fee} slippage={slippage} lendAmount={lendAmount} />
+        <AccordionContainer selectedTokens={selectedTokens} b2rRatio = {b2rRatio} fee={uniQuote.totalFee} slippage={uniQuote.slippage} lendAmount={lendAmount} />
 
       </div>
       <Modal
