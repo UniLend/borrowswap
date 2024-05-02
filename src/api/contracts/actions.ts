@@ -34,6 +34,7 @@ export const waitForTransaction = async (hash: any) => {
   try {
     const receipt = await waitForTransactionReceipt(wagmiConfig, {
       hash: hash,
+      confirmations: 2
     });
 
      const status = await watchBlock(receipt.blockNumber);
@@ -47,7 +48,8 @@ export const waitForTransaction = async (hash: any) => {
 
 const watchBlock = async (prevBlockNumber: any) => {
   const blockNumber = await getBlockNumber(wagmiConfig);
-
+   console.log("watchBlock", prevBlockNumber, blockNumber, blockNumber - prevBlockNumber > 1);
+   
   await new Promise((resolve, reject) => {
     if (blockNumber - prevBlockNumber > 1) {
       return resolve(true);
@@ -139,8 +141,59 @@ export const handleSwap = async (
 
     throw error;
   }
+
 };
+
+export const handleRedeem =  async (
+  redeemAmount: any,
+  selectedTokens: any,
+  user: any,
+ isMax: boolean
+) => {
+
+  try {
+    const chainId = getChainId(wagmiConfig);
+    const controllerAddress =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
+    const instance = await getEtherContract(controllerAddress, controllerABI);
+
+    // const Amount =
+    //   selectedTokens.lend.token == 1
+    //     ? String(decimal2Fixed(redeemAmount, selectedTokens.lend.decimals))
+    //     : String(decimal2Fixed(-redeemAmount, selectedTokens.lend.decimals));
+
+        let Amount = decimal2Fixed(redeemAmount, selectedTokens.lend.decimals);
+        let maxAmount = selectedTokens.lend.lendShare;
+        if (Number(selectedTokens.lend.lendShare) > Number(selectedTokens.lend.liquidity)) {
+          maxAmount = selectedTokens.lend.liquidity;
+        }
+        if ( selectedTokens.lend.token == 0) {
+          Amount = mul(Amount, -1);
+          maxAmount = mul(maxAmount, -1);
+        }
+
+        console.log("handleRedeem", instance,  selectedTokens.pool.pool,
+        user,
+        mul(selectedTokens.lend.lendShare, -1)  );
+        const { hash } = await instance?.uniRedeem(
+          selectedTokens.pool.pool,
+          user,
+          //Amount
+          mul(selectedTokens.lend.lendShare, -1)
+        );
+       
+        console.log("transaction", hash);
+        const receipt = await waitForTransaction(hash);
+        console.log("transaction after", hash);
+         return hash;
+
+  } catch (error) {
+    
+  }
+}
+
 //handle repay borrow
+
 export const handleRepay = async (
   payAmount: any,
 
@@ -445,7 +498,7 @@ export const getPoolBasicData = async (
           redeemBalanceFixed: fixed2Decimals(
             Number(redeem0) > 0 ? redeem0 : 0,
             poolData.token0.decimals
-          ),
+          ).toFixed(pool.token0.decimals),
         },
         token1: {
           ...poolData?.token1,
@@ -533,7 +586,7 @@ export const getPoolBasicData = async (
           redeemBalanceFixed: fixed2Decimals(
             Number(redeem1) > 0 ? redeem1 : 0,
             poolData.token1.decimals
-          ),
+          ).toFixed(pool.token0.decimals),
         },
       };
       console.log("getPoolBasicData", proxy, pool);

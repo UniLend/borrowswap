@@ -102,6 +102,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   const [pools, setPools] = useState<Array<any>>([]);
   const [modalMsg, setModalMsg] = useState("");
   const [quoteError, setQuoteError] = useState<boolean>(false);
+  const [isMax, setIsMax] = useState(false)
   //select data state
   const [selectedData, setSelectedData] = useState<any>({
     pool: null,
@@ -155,6 +156,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
 
   const handleLendAmount = (amount: string) => {
     setLendAmount(amount);
+    setIsMax(false)
   };
 
   const handleReceiveAmount = (amount: string) => {
@@ -208,6 +210,8 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   };
 
   const handleClear = () => {
+    console.log("handleClaer");
+    
     setLendAmount("");
     setBorrowAmount("");
     setReceiveAmount("");
@@ -247,7 +251,8 @@ export default function RedeemCard({ uniSwapTokens }: any) {
       address,
       selectedData,
       setIsTokenLoading,
-      setSelectedData
+      setSelectedData,
+      setLendAmount,
     );
   };
   const handleReceiveToken =async (data:any) =>{
@@ -270,6 +275,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
       borrowAmount,
       receiveAmount,
       unilendPool,
+      isMax,
       setOperationProgress,
       setIsBorrowProgressModal,
       setModalMsg,
@@ -319,9 +325,9 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   useEffect(() => {
     if (selectedData?.pool && selectedData?.lend && !tokenListStatus.isOpen) {
       console.log("lendChnage")
-      setIsTokenLoading({ ...isTokenLoading, quotation: true });
+      // setIsTokenLoading({ ...isTokenLoading, quotation: true });
       setLendAmount("");
-      handleQuoteValue();
+      // handleQuoteValue();
     }
   }, [selectedData?.lend]);
 
@@ -367,12 +373,14 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     
         <p className='paragraph06 label'>You Lend</p>
         <AmountContainer
-          balance={selectedData?.receive?.balanceFixed}
+          balance={selectedData?.lend?.balanceFixed}
           value={Number(lendAmount) > 0 ? lendAmount : "0"}
           onChange={(e: any) => handleLendAmount(e.target.value)}
           onMaxClick={() => {
-            setLendAmount((selectedData?.receive?.redeemBalanceFixed).toString())
-           
+            // console.log(selectedData);
+            
+            setLendAmount((selectedData?.lend?.redeemBalanceFixed).toString())
+            setIsMax(true)
           }}
           // buttonText={selectedData?.pool?.otherToken?.symbol}
           buttonText={
