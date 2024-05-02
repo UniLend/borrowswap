@@ -1,0 +1,58 @@
+
+import {Theme}  from '@rainbow-me/rainbowkit';
+
+export const myCustomTheme: Theme = {
+  blurs: {
+     modalOverlay: 'medium',
+  },
+  colors: {
+    accentColor: 'var(--pure-black)',
+    accentColorForeground: 'var(--pure-white)',
+    actionButtonBorder: '...',
+    actionButtonBorderMobile: 'var(--popup-border)',
+    actionButtonSecondaryBackground: 'var(--main)',
+    closeButton: 'var(--pure-black)',
+    closeButtonBackground: '...',
+    connectButtonBackground: '...',
+    connectButtonBackgroundError: '...',
+    connectButtonInnerBackground: '...',
+    connectButtonText: '...',
+    connectButtonTextError: '...',
+    connectionIndicator: '#e8e8e8',
+    downloadBottomCardBackground: '...',
+    downloadTopCardBackground: '...',
+    error: 'var(--light-red)',
+    generalBorder: 'small',
+    generalBorderDim: '#000',
+    menuItemBackground: 'var(--main)',
+    modalBackdrop: '...',
+    modalBackground: 'var(--popup-back-color)',
+      modalBorder: 'var(--button-border)',
+     modalText: 'var(--pure-black)',
+    modalTextDim: '...',
+    modalTextSecondary: 'var(--light-gray)',
+    profileAction: '...',
+    profileActionHover: '...',
+    profileForeground: '...',
+    selectedOptionBorder: '...',
+    standby: '...',
+  },
+  fonts: {
+   body: 'var(--pure-black)',
+  },
+  radii: {
+    actionButton: '...',
+    connectButton: '...',
+    menuButton: '8px',
+    modal: '12px',
+    modalMobile: '...',
+  },
+  shadows: {
+    dialog: 'var(--popup-shadow)',
+    connectButton: '...',
+    profileDetailsAction: '...',
+    selectedOption: '...',
+    selectedWallet: 'var(--popup-shadow)',
+    walletLogo: '...',
+  },
+};

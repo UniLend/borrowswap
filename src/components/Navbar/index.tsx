@@ -1,5 +1,5 @@
-import "./styles/index.scss";
-import React, { useState, useEffect } from "react";
+import "./index.scss";
+import React, { useState } from "react";
 import logo from "../../assets/logo.svg";
 import ethlogo from "../../assets/eth.svg";
 import arblogo from "../../assets/arbitrum-logo.svg";
@@ -23,7 +23,7 @@ export default function Navbar() {
   const [visible, setVisible] = useState(false);
   const [isNetworkVisible, setIsNetworkVisible] = useState(false);
   const currentUser = address;
-
+  console.log("currentUser", currentUser)
   const handleOpenSwitchNetwork = (visible:boolean) => {
     setIsNetworkVisible(visible);
   };
@@ -47,14 +47,6 @@ export default function Navbar() {
             <img src={arblogo} alt="Etherium" />
             <p>Arbitrum</p>
           </div>
-          {/* <div onClick={() => switchChain({ chainId: 1442 })}>
-            <img src={ethlogo} alt="Etherium" />
-            <p>zkEVM</p>
-          </div> */}
-          {/* <div onClick={() => switchChain({ chainId: 8081 })}>
-            <img src={shardeumLogo} alt="Etherium" />
-            <p>Shardeum</p>
-          </div> */}
         </div>
       </div>
     );
@@ -95,7 +87,7 @@ export default function Navbar() {
           <div>
             <p></p>
           </div>
-          <h4>{shortenAddress(currentUser)}</h4>
+         <h4>{currentUser ? shortenAddress(currentUser) : ""}</h4>
           <Button className="btn_class" onClick={() => disconnect()}>
             Disconnect
           </Button>

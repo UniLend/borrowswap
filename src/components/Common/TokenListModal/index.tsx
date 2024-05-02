@@ -17,6 +17,7 @@ interface Token {
   otherToken: any;
   pool: any;
   source: string;
+  address:string;
 }
 interface PositionData {
   borrowBalance0: number;
@@ -128,31 +129,41 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
       
   },[tokenList])
 
+
   useEffect(()=> {
     handleSearch('')
   },[page, tokenList, borrowedPosition])
 
 
-
-
-
   const handleSearch = (searched: string) => {
-
-    setSearchQuery(searched);
+    const searchQueryLower = searched.toLowerCase();
+    setSearchQuery(searchQueryLower);
     let filtered= [];
-      if (currentOperation === "pool") {
-    filtered = borrowedPosition.filter((token: Token) =>
-      token.borrowToken.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  } else {
-    filtered = tokenList.filter(
-      (token) =>
-        token.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        token.symbol.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+   
+    if (currentOperation === "pool") {
+      filtered = borrowedPosition.filter((token: Token) =>
+        token.borrowToken.name.toLowerCase().includes(searchQueryLower.toLowerCase())
+      );
+    setFilteredTokenList(filtered);
+    } else {
+      filtered = tokenList.filter(
+        (token) =>
+          token.symbol.toLowerCase().includes(searchQueryLower.toLowerCase()) ||  token.address.toLowerCase().includes(searchQueryLower.toLowerCase()),
+      );
+  
+    const priorityTokens = ["usdc", "usdt", "sushi", "uft"];
+    filtered.sort((a, b) => {
+      const aIndex = priorityTokens?.indexOf(a.symbol.toLowerCase());
+      const bIndex = priorityTokens?.indexOf(b.symbol.toLowerCase());
+      if (aIndex !== -1 && bIndex === -1) return -1;
+      if (aIndex === -1 && bIndex !== -1) return 1;
+      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+      return 0;
+    });
+    setFilteredTokenList(filtered);
+    }
   }
-  setFilteredTokenList(filtered);
-  }
+
 
   useEffect(() => {
     container?.current?.addEventListener("scroll", () => {
@@ -174,7 +185,7 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
           <input
             autoFocus
             type='text'
-            placeholder='Search Address/ Token/ Tnx'
+            placeholder='Search Token / Address'
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
           />

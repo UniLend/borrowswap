@@ -15,7 +15,7 @@ import {
   handleSelectRepayToken,
   handleSelectReceiveToken,
 } from "./utils";
-
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
   REPAY = "Swap_Repay",
@@ -126,33 +126,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
   const [unilendPool, setUnilendPool] = useState(null as any | null);
   const [operationProgress, setOperationProgress] = useState(0);
 
-  //sorted Specific tokens acording to our choice
-  const sortedToken = ["USDT", "USDC", "WETH", "WBTC"];
-  useEffect(() => {
-    const customSort = (a: any, b: any) => {
-      const aIndex = sortedToken.indexOf(a.symbol);
-      const bIndex = sortedToken.indexOf(b.symbol);
-
-      if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-      } else if (aIndex !== -1) {
-        return -1;
-      } else if (bIndex !== -1) {
-        return 1;
-      } else {
-        return a.symbol.localeCompare(b.symbol);
-      }
-    };
-
-    const sortedTokens = [...tokens].sort(customSort);
-    if (!arraysEqual(sortedTokens, tokens)) {
-      setTokens(sortedTokens);
-    }
-  }, [tokens, sortedToken]);
-  function arraysEqual(a: any, b: any) {
-    return JSON.stringify(a) === JSON.stringify(b);
-  }
-
   const handleLendAmount = (amount: string) => {
     setLendAmount(amount);
   };
@@ -180,19 +153,21 @@ export default function RepayCard({ uniSwapTokens }: any) {
 
   const isLowBalReceive: boolean = selectedData?.receive?.collateralBalanceFixed == 0
 
+  const connectWallet = isConnected
   const repayButton = getRepayBtnActions(
     selectedData,
     isTokenLoading,
     quoteError,
     isLowBal,
-    isLowBalReceive
+    isLowBalReceive,
+    connectWallet
   );
 
   const getOprationToken = () => {
     if (tokenListStatus.operation === "pool") {
       return positions;
     } else if (tokenListStatus.operation === "lend") {
-      return tokens;
+      return uniSwapTokens;
     } else if (tokenListStatus.operation === "receive") {
       if (selectedData.pool.source === "Compound") {
         return compoundCollateralTokens;
@@ -365,8 +340,12 @@ export default function RepayCard({ uniSwapTokens }: any) {
                 ? `${selectedData.pool.borrowToken.symbol}`
                 : "Select"
             }
-            onClick={() => handleOpenTokenList("pool")}
+            onClick={isConnected 
+                ? () => handleOpenTokenList("pool")
+                : () => {}}
             className={ selectedData?.pool === null ?  "transparent_btn" : ""}
+            btnClass={ !isConnected ?  "disable_btn newbtn" :"visible"
+          }
           />
         </div>
         <p className='paragraph06 label'>You Pay</p>
@@ -389,7 +368,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
               ? () => handleOpenTokenList("lend")
               : () => {}
           }
-          
           // readonly
           btnClass={
             selectedData?.pool === null || selectedData?.receive?.collateralBalanceFixed === 0 || selectedData?.receive === null   ? "disable_btn" : "visible"
@@ -420,6 +398,8 @@ export default function RepayCard({ uniSwapTokens }: any) {
           }
         />
 
+  
+        {isConnected ?  
         <Button
           disabled={repayButton.disable}
           className='primary_btn'
@@ -428,7 +408,8 @@ export default function RepayCard({ uniSwapTokens }: any) {
           loading={isTokenLoading.pool || isTokenLoading.quotation}
         >
           {repayButton.text}
-        </Button>
+        </Button> : <div className="connect-btn"><ConnectButton/></div>}
+
       </div>
 
       <Modal
