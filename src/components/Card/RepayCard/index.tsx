@@ -125,6 +125,11 @@ export default function RepayCard({ uniSwapTokens }: any) {
   });
   const [unilendPool, setUnilendPool] = useState(null as any | null);
   const [operationProgress, setOperationProgress] = useState(0);
+  const [uniQuote, setUniQuote] = useState({
+    totalFee: 0,
+    slippage: 0,
+    path: []
+  })
 
   const handleLendAmount = (amount: string) => {
     setLendAmount(amount);
@@ -160,7 +165,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
     quoteError,
     isLowBal,
     isLowBalReceive,
-    connectWallet
   );
 
   const getOprationToken = () => {
@@ -209,7 +213,8 @@ export default function RepayCard({ uniSwapTokens }: any) {
       setBorrowAmount,
       setReceiveAmount,
       setQuoteError,
-      setIsTokenLoading
+      setIsTokenLoading,
+      setUniQuote
     );
   };
   useEffect(()=> {
@@ -242,7 +247,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
   
 
   const handleSwapRepayTransaction = async () => {
-    handleRepayTransaction(
+   await handleRepayTransaction(
       selectedData,
       address,
       lendAmount,

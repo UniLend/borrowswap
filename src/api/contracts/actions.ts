@@ -163,23 +163,46 @@ export const handleRedeem =  async (
     //     : String(decimal2Fixed(-redeemAmount, selectedTokens.lend.decimals));
 
         let Amount = decimal2Fixed(redeemAmount, selectedTokens.lend.decimals);
-        let maxAmount = selectedTokens.lend.lendShare;
-        if (Number(selectedTokens.lend.lendShare) > Number(selectedTokens.lend.liquidity)) {
-          maxAmount = selectedTokens.lend.liquidity;
-        }
-        if ( selectedTokens.lend.token == 0) {
-          Amount = mul(Amount, -1);
-          maxAmount = mul(maxAmount, -1);
+        // let maxAmount = selectedTokens.lend.lendShare;
+        // if (Number(selectedTokens.lend.lendShare) > Number(selectedTokens.lend.liquidity)) {
+        //   maxAmount = selectedTokens.lend.liquidity;
+        // } 
+        // if( selectedTokens.borrow.borrowBalance > 0 && Number(Amount) > Number(selectedTokens.lend.liquidity) ){
+        //     Amount = Number(selectedTokens.lend.liquidity).toString() 
+        // } else if (selectedTokens.borrow.borrowBalance > 0){
+        //   Amount = decimal2Fixed(redeemAmount, selectedTokens.lend.decimals)
+        // }
+        if(Number(Amount) >  Number(selectedTokens.lend.liquidity)){
+          Amount = selectedTokens.lend.liquidity
         }
 
-        console.log("handleRedeem", instance,  selectedTokens.pool.pool,
+      
+        if(isMax && !(Number(selectedTokens.borrow.borrowBalance) > 0) ){
+
+        if (Number(selectedTokens.lend.lendShare) > Number(selectedTokens.lend.liquidity)) {
+          Amount = selectedTokens.lend.liquidity;
+        } else {
+          Amount = selectedTokens.lend.lendShare;
+        }
+         
+        }
+
+        if ( selectedTokens.lend.token == 0) {
+          Amount = mul(Amount, -1);
+         
+        }
+
+        console.log("handleRedeem", instance,   selectedTokens.pool.pool,
         user,
-        mul(selectedTokens.lend.lendShare, -1)  );
+        Amount,
+        selectedTokens.receive.address );
+
+
         const { hash } = await instance?.uniRedeem(
           selectedTokens.pool.pool,
           user,
-          //Amount
-          mul(selectedTokens.lend.lendShare, -1)
+          Amount,
+          selectedTokens.receive.address
         );
        
         console.log("transaction", hash);

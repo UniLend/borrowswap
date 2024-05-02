@@ -107,8 +107,7 @@ export const handleQuote = async (
   setSelectedLTV: (value: number) => void,
   setQuoteError: (value: boolean) => void,
   setIsTokenLoading: (value: any) => void,
-  setFee:any,
-  setSlippage:any
+  setUniQuote: (quoteData: any) => void
 ) => {
   try {
     const value = await getQuote(
@@ -122,8 +121,13 @@ export const handleQuote = async (
   
     if (value?.quoteDecimals) {
       setb2rRatio(value?.quoteDecimals);
-      setFee(value?.fee);
-      setSlippage(value?.slippage);
+  
+      setUniQuote({
+        totalFee: value?.fee,
+        slipage: value?.slippage,
+        path: value?.path,
+      })
+
     }
     setQuoteError(false);
     setSelectedLTV(5); // TODO check

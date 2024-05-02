@@ -126,6 +126,11 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   });
   const [unilendPool, setUnilendPool] = useState(null as any | null);
   const [operationProgress, setOperationProgress] = useState(0);
+  const [uniQuote, setUniQuote] = useState({
+    totalFee: 0,
+    slippage: 0,
+    path: []
+  })
 
   //sorted Specific tokens acording to our choice
   const sortedToken = ["USDT", "USDC", "WETH", "WBTC"];
@@ -156,10 +161,13 @@ export default function RedeemCard({ uniSwapTokens }: any) {
 
   const handleLendAmount = (amount: string) => {
     setLendAmount(amount);
+    setReceiveAmount((Number(amount)* b2rRatio).toString())
     setIsMax(false)
   };
 
   const handleReceiveAmount = (amount: string) => {
+    console.log(amount);
+    
     setReceiveAmount(amount);
   };
 
@@ -193,9 +201,9 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   const getOprationToken = () => {
     if (tokenListStatus.operation === "pool") {
       return positions;
-    } else if (tokenListStatus.operation === "lend") {
-      return tokens;
     } else if (tokenListStatus.operation === "receive") {
+      return tokens;
+    } else if (tokenListStatus.operation === "lend") {
       if (selectedData.pool.source === "Compound") {
         return compoundCollateralTokens;
       }
@@ -236,9 +244,10 @@ export default function RedeemCard({ uniSwapTokens }: any) {
       setb2rRatio,
       setLendAmount,
       setBorrowAmount,
-      setReceiveAmount,
+      handleReceiveAmount,
       setQuoteError,
-      setIsTokenLoading
+      setIsTokenLoading,
+      setUniQuote
     );
   };
 
@@ -296,23 +305,22 @@ export default function RedeemCard({ uniSwapTokens }: any) {
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
       setTokenListStatus({ isOpen: false, operation: "" });
-      console.log("tokenListStatus", tokenListStatus);
-      console.log("quotation", isTokenLoading);
+    
       const tokenBal = await getAllowance(data, address);
       setSelectedData({
         ...selectedData,
         [tokenListStatus.operation]: { ...data, ...tokenBal },
       });
     } else if (tokenListStatus.operation == "receive") {
-      handleReceiveToken(data)
-    //    setSelectedData({
-    //   ...selectedData,
-    //   ["lend"]: null,
-    //   ["receive"]: {
-    //     ...data.otherToken, ...borrowedToken 
-    //   },
-    //   ["borrow"]: { ...data.otherToken, ...borrowedToken },
-    // });
+      // handleReceiveToken(data)
+      setTokenListStatus({ isOpen: false, operation: "" });
+    
+      const tokenBal = await getAllowance(data, address);
+       setSelectedData({
+      ...selectedData,
+      [tokenListStatus.operation]:  { ...data, ...tokenBal }
+     
+    });
     }
    
   };
@@ -323,18 +331,16 @@ export default function RedeemCard({ uniSwapTokens }: any) {
 
   // Loading Quote Data based on lend State
   useEffect(() => {
-    if (selectedData?.pool && selectedData?.lend && !tokenListStatus.isOpen) {
-      console.log("lendChnage")
-      // setIsTokenLoading({ ...isTokenLoading, quotation: true });
-      setLendAmount("");
-      // handleQuoteValue();
+    if (selectedData?.pool && selectedData?.receive && !tokenListStatus.isOpen) {
+       setIsTokenLoading({ ...isTokenLoading, quotation: true });
+       handleQuoteValue();
     }
-  }, [selectedData?.lend]);
+  }, [selectedData?.receive]);
 
   useEffect(()=> {
-    console.log("selectedData", selectedData);
+    console.log("selectedData", receiveAmount);
     
-   },[selectedData]);
+   },[receiveAmount]);
 
   useEffect(() => {
       if(selectedData?.pool?.source === 'compound'){
@@ -371,7 +377,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           />
         </div>
     
-        <p className='paragraph06 label'>You Lend</p>
+        <p className='paragraph06 label'>You Redeem</p>
         <AmountContainer
           balance={selectedData?.lend?.balanceFixed}
           value={Number(lendAmount) > 0 ? lendAmount : "0"}
@@ -397,28 +403,28 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           //   selectedData?.pool?.source === "Compound" ? "" : "disable_btn"
           // }
         />
-    {/* <p className='paragraph06 label'>You Receive</p>
+    <p className='paragraph06 label'>You Receive</p>
         <AmountContainer
           balance={truncateToDecimals(
             selectedData?.receive?.balanceFixed || 0,
             4
           ).toString()}
           value={Number(receiveAmount) > 0 ? receiveAmount : "0"}
-          onChange={(e: any) => handleReceiveAmount(e.target.value)}
+          onChange={(e: any) => {}}
           
           // onMaxClick={() => {
           //   setLendAmount((selectedData?.lend?.redeemBalanceFixed))
           // }}
-          buttonText={selectedData?.lend?.symbol}
+          buttonText={selectedData?.receive?.symbol}
           onClick={
-            () => handleOpenTokenList("lend")
+            () => handleOpenTokenList("receive")
           }
           
-          // readonly
+          readonly
           // btnClass={
           //   selectedData?.pool === null || selectedData?.receive?.collateralBalanceFixed === 0 || selectedData?.receive === null   ? "disable_btn" : "visible"
           // }
-        /> */}
+        />
         <Button
           // disabled={repayButton.disable}
           className='primary_btn'

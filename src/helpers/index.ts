@@ -412,7 +412,6 @@ export const getRepayBtnActions = (
   quoteError: boolean,
   isLowBal: boolean,
   isLowBalReceive:boolean,
-  connectWallet:any
 ) => {
   let btn = {
     text: "Repay",
@@ -420,9 +419,7 @@ export const getRepayBtnActions = (
   };
   const { pool, lend, borrow, receive } = selectedData;
   const { quotation } = isTokenLoading;
-   if(!connectWallet ) {
-    btn.text = "Connect Wallet";
-  } else if (pool == null ) {
+  if (pool == null ) {
     btn.text = "Select Position";
   } else if (isTokenLoading.pool) {
     btn.text = "Pools data loading";

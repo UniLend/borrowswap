@@ -24,43 +24,49 @@ export const handleQuote = async (
   setBorrowAmount: (value: string) => void,
   setReceiveAmount: (value: string) => void,
   setQuoteError: (value: boolean) => void,
-  setIsTokenLoading: (value: any) => void
+  setIsTokenLoading: (value: any) => void,
+  setUniQuote: (value: any) => void
 ) => {
   try {
-    const borrowDecimals = selectedData?.borrow?.decimals;
+    const borrowDecimals = selectedData?.lend?.decimals;
     const lendAddress = selectedData?.lend?.address;
-    const borrowAddress = selectedData?.borrow?.address;
+    const borrowAddress = selectedData?.receive?.address;
     const chainId = 16715 ? 137 : chain?.id;
     let flag = false;
     if( String(borrowAddress).toLowerCase() === String(lendAddress).toLowerCase()){
       setb2rRatio(1)
-      setLendAmount(selectedData?.borrow?.borrowBalanceFixed)
+      setReceiveAmount(selectedData?.lend?.redeemBalanceFixed)
       flag = true;
     } else {
       const value = await getQuote(
         decimal2Fixed(1, borrowDecimals),
         address,
-        borrowAddress,
         lendAddress,
+        borrowAddress,
         chainId
       );
    
       if (value?.quoteDecimals) {
         setb2rRatio(value.quoteDecimals);
+        setUniQuote({
+          totalFee: value?.fee,
+          slipage: value?.slippage,
+          path: value?.path,
+        })
         const payLendAmount =
-        value.quoteDecimals * (selectedData?.borrow?.borrowBalanceFixed  || 0);
-      console.log("pay amount", selectedData, payLendAmount, selectedData?.borrow?.borrowBalanceFixed, value.quoteDecimals);
-      setLendAmount(payLendAmount.toString());
+        value.quoteDecimals * (selectedData?.lend?.redeemBalanceFixed  || 0);
+      console.log("pay amount", selectedData, payLendAmount, selectedData?.lend?.redeemBalanceFixed , value.quoteDecimals);
+      setReceiveAmount(payLendAmount.toString());
       flag = true;
       }
     }
   
 
-    setBorrowAmount(selectedData?.borrow?.borrowBalanceFixed || 0);
-    setReceiveAmount(
-      (selectedData?.receive?.collateralBalanceFixed || 0) +
-        (selectedData?.receive?.redeemBalanceFixed || 0)
-    );
+    // setBorrowAmount(selectedData?.borrow?.borrowBalanceFixed || 0);
+    // setReceiveAmount(
+    //   (selectedData?.receive?.collateralBalanceFixed || 0) +
+    //     (selectedData?.receive?.redeemBalanceFixed || 0)
+    // );
     setQuoteError(false);
     if(flag)
       setIsTokenLoading({ ...isTokenLoading, quotation: false });
