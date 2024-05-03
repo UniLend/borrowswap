@@ -11,8 +11,46 @@ import {
   handleRepay,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
-import { decimal2Fixed } from "../../../helpers";
+import { decimal2Fixed, fixed2Decimals, truncateToDecimals} from "../../../helpers";
 import NotificationMessage from "../../Common/NotificationMessage";
+
+// export const checkLiquidity = (
+//   lendAmount: string,
+//   source: string,
+//   unilendPool: any,
+//   selectedData: any,
+//   receiveAmount: any,
+//   setIsLowLiquidity: (value: boolean) => void
+// ) => {
+//   const lendAmountNumber = parseFloat(lendAmount);
+
+//   if (!isNaN(lendAmountNumber) && lendAmountNumber > 0) {
+//     if (source === "Unilend") {
+//       let liquidity = { value: "", decimals: "" };
+//       if (unilendPool?.token0?.address === selectedData?.borrow?.address) {
+//         liquidity.value = unilendPool?.liquidity0;
+//         liquidity.decimals = unilendPool?.token0?.decimals;
+//       } else {
+//         liquidity.value = unilendPool?.liquidity1;
+//         liquidity.decimals = unilendPool?.token1?.decimals;
+//       }
+//       let fixedLiquidity = fixed2Decimals(
+//         liquidity?.value,
+//         +liquidity?.decimals
+//       );
+//       console.log("fixed liquidity", fixedLiquidity )
+//       if (receiveAmount > truncateToDecimals(Number(fixedLiquidity) || 0, 9)) {
+//         setIsLowLiquidity(true);
+//       } else {
+//         setIsLowLiquidity(false);
+//       }
+//     } else {
+//       // TODO: write liquidity for compound
+//     }
+//   }
+// };
+
+
 
 export const handleQuote = async (
   selectedData: any,
@@ -66,8 +104,10 @@ export const handleQuote = async (
       setIsTokenLoading({ ...isTokenLoading, quotation: false });
     
   } catch (error: any) {
-    console.error("Error in handleQuote:", error);
     setQuoteError(true);
+     setIsTokenLoading({ ...isTokenLoading, quotation: false });
+    console.error("Error in handleQuote:", error);
+
     NotificationMessage(
       "error",
       error?.message || "Error occurred in handleQuote"

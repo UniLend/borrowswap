@@ -154,6 +154,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
           logo: getTokenLogo(pool.token0.symbol),
           priceUSD: tokenPrice[pool?.token0?.id] * pool.token0.decimals,
           pricePerToken: tokenPrice[pool?.token0?.id],
+          liquidityFixed: fixed2Decimals(pool.liquidity0, pool.token0.decimals),
         },
         token1: {
           ...pool.token1,
@@ -163,6 +164,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
           logo: getTokenLogo(pool.token1.symbol),
           priceUSD: tokenPrice[pool?.token1?.id] * pool.token1.decimals,
           pricePerToken: tokenPrice[pool?.token1?.id],
+          liquidityFixed: fixed2Decimals(pool.liquidity1, pool.token1.decimals),
         },
       };
       tokenList[String(pool.token0.id).toUpperCase()] = {
@@ -462,6 +464,7 @@ export const getRepayBtnActionsRedeem = (
   exceedRedeemBalace:boolean,
   lendAmount:any
 ) => {
+  console.log("QUote Err", quoteError)
   let btn = {
     text: "Redeem",
     disable: false,
@@ -470,24 +473,22 @@ export const getRepayBtnActionsRedeem = (
   const { quotation } = isTokenLoading;
   if (pool == null ) {
     btn.text = "Select Position";
-  } else if (isTokenLoading.pool === true) {
+  } else if (isTokenLoading.pool) {
     btn.text = "Pools data loading";
+  }  else if (quotation) {
+    btn.text = "Quote data loading";
+  }
+  else if (quoteError) {
+    console.log("quote err", quoteError)
+    btn.text = "Swap not available";
   }  else if ( receive === null) {
     btn.text = "Select Receive Token";
   } 
-  else if (borrow === null) {
-    btn.text = "Pools data loading";
-  }
    else if (isLowBal) {
     btn.text = "Low balance";
   }
    else if (lend === null) {
     btn.text = "Select lend token";
-  } else if (quotation) {
-    btn.text = "Quote data loading";
-  } else if (quoteError) {
-    console.log("quote err", quoteError)
-    btn.text = "Swap not available";
   } else if(exceedRedeemBalace){
     console.log("exceed balance")
     btn.text = "Exceeds Redeemable Amount"
@@ -496,6 +497,6 @@ export const getRepayBtnActionsRedeem = (
   }
 
   // btn.disable = !!(btn.text !== "Repay");
-  btn.disable = !!(btn.text !== "Repay" && btn.text !== "Connect Wallet");
+  btn.disable = !!(btn.text !== "Redeem" && btn.text !== "Connect Wallet");
   return btn;
 };

@@ -14,6 +14,7 @@ import {
   handleRepayTransaction,
   handleSelectRepayToken,
   handleSelectReceiveToken,
+  // checkLiquidity
 } from "./utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
@@ -191,7 +192,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
 
   const exceedRedeemBalace:boolean = lendAmount > selectedData?.lend?.redeemBalanceFixed
 
-  const isLowLiquidity:boolean = lendAmount > decimal2Fixed( selectedData?.lend?.totalLiqFull )
+  const isLowLiquidity:boolean = lendAmount > decimal2Fixed( selectedData?.lend?.liquidityFixed )
 
   const redeemButton = getRepayBtnActionsRedeem(
     selectedData,
@@ -436,7 +437,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           className='primary_btn'
           onClick={handleSwapRepayTransaction}
           title='please slect you pay token'
-          loading={isTokenLoading.pool || isTokenLoading.quotation}
+          loading={isTokenLoading.pool || isTokenLoading.quotation }
         >
           {redeemButton.text}
         </Button> : <ConnectButton/>}
