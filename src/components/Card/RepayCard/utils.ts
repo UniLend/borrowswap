@@ -8,6 +8,8 @@ import {
   handleApproval,
   handleCompoundRepay,
   handleRepay,
+  waitForTransaction,
+  // checkTxnStatus,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
 import { decimal2Fixed } from "../../../helpers";
@@ -191,7 +193,7 @@ export const handleRepayTransaction = async (
   setOperationProgress: (value: number) => void,
   setIsBorrowProgressModal: (value: boolean) => void,
   setModalMsg: (value: string) => void,
-  handleClear: () => void
+  handleClear: () => void,
 ) => {
   setOperationProgress(0);
   try {
@@ -244,10 +246,11 @@ export const handleRepayTransaction = async (
       if (hash) {
         setOperationProgress(3);
         handleClear();
+        NotificationMessage("success", `Repay is successful`);
+        // checkTxnStatus(hash, txnData, setIsBorrowProgressModal)
+        console.log("reciept", hash);
         setTimeout(() => {
-
           setIsBorrowProgressModal(false);
-          
         }, 1000);
       }
     }

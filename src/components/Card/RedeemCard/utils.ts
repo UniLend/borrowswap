@@ -245,6 +245,7 @@ export const handleRepayTransaction = async (
       if (hash) {
         setOperationProgress(3);
         handleClear();
+        NotificationMessage("success", `Redeem is successful`);
         setTimeout(() => {
           setIsBorrowProgressModal(false);
         }, 1000);
