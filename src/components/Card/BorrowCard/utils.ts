@@ -148,6 +148,7 @@ export const handleSwapTransaction = async (
   lendAmount: string,
   unilendPool: any,
   borrowAmount: number,
+  path: any,
   setIsBorrowProgressModal: (value: boolean) => void,
   setModalMsg: (value: string) => void,
   setOperationProgress: (value: number) => void,
@@ -166,6 +167,7 @@ export const handleSwapTransaction = async (
         lendAmount,
         unilendPool,
         borrowAmount,
+        path,
         setIsBorrowProgressModal,
         setModalMsg,
         setOperationProgress,
@@ -187,7 +189,8 @@ export const handleSwapTransaction = async (
           unilendPool,
           selectedTokens,
           address,
-          borrowAmount
+          borrowAmount,
+          path
         );
       } else {
         hash = await handleCompoundSwap(

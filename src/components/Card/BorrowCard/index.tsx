@@ -190,6 +190,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       lendAmount,
       unilendPool,
       borrowAmount,
+      uniQuote.path,
       setIsBorrowProgressModal,
       setModalMsg,
       setOperationProgress,
