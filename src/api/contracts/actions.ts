@@ -43,6 +43,7 @@ export const waitForTransaction = async (hash :any) => {
     console.log("reciept", receipt)
     return receipt
   } catch (error) {
+    throw error;
     console.log(error);
   }
 };
