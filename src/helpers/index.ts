@@ -452,3 +452,50 @@ export const getRepayBtnActions = (
   btn.disable = !!(btn.text !== "Repay" && btn.text !== "Connect Wallet");
   return btn;
 };
+
+export const getRepayBtnActionsRedeem = (
+  selectedData: any,
+  isTokenLoading: any,
+  quoteError: boolean,
+  isLowBal: boolean,
+  isLowLiquidity: boolean,
+  exceedRedeemBalace:boolean,
+  lendAmount:any
+) => {
+  let btn = {
+    text: "Redeem",
+    disable: false,
+  };
+  const { pool, lend, borrow, receive } = selectedData;
+  const { quotation } = isTokenLoading;
+  if (pool == null ) {
+    btn.text = "Select Position";
+  } else if (isTokenLoading.pool === true) {
+    btn.text = "Pools data loading";
+  }  else if ( receive === null) {
+    btn.text = "Select Receive Token";
+  } 
+  else if (borrow === null) {
+    btn.text = "Pools data loading";
+  }
+   else if (isLowBal) {
+    btn.text = "Low balance";
+  }
+   else if (lend === null) {
+    btn.text = "Select lend token";
+  } else if (quotation) {
+    btn.text = "Quote data loading";
+  } else if (quoteError) {
+    console.log("quote err", quoteError)
+    btn.text = "Swap not available";
+  } else if(exceedRedeemBalace){
+    console.log("exceed balance")
+    btn.text = "Exceeds Redeemable Amount"
+  } else if(isLowLiquidity){
+    btn.text = "Not Enough Liquidity"
+  }
+
+  // btn.disable = !!(btn.text !== "Repay");
+  btn.disable = !!(btn.text !== "Repay" && btn.text !== "Connect Wallet");
+  return btn;
+};

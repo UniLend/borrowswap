@@ -55,29 +55,24 @@ export const handleQuote = async (
         })
         const payLendAmount =
         value.quoteDecimals * (selectedData?.lend?.redeemBalanceFixed  || 0);
-      console.log("pay amount", selectedData, payLendAmount, selectedData?.lend?.redeemBalanceFixed , value.quoteDecimals);
-      setReceiveAmount(payLendAmount.toString());
-      flag = true;
+        console.log("pay amount", selectedData, payLendAmount, selectedData?.lend?.redeemBalanceFixed , value.quoteDecimals);
+        setReceiveAmount(payLendAmount.toString());
+        flag = true;
       }
     }
   
-
-    // setBorrowAmount(selectedData?.borrow?.borrowBalanceFixed || 0);
-    // setReceiveAmount(
-    //   (selectedData?.receive?.collateralBalanceFixed || 0) +
-    //     (selectedData?.receive?.redeemBalanceFixed || 0)
-    // );
     setQuoteError(false);
     if(flag)
       setIsTokenLoading({ ...isTokenLoading, quotation: false });
-      
+    
   } catch (error: any) {
     console.error("Error in handleQuote:", error);
+    setQuoteError(true);
     NotificationMessage(
       "error",
       error?.message || "Error occurred in handleQuote"
     );
-    setQuoteError(true);
+   
   } finally {
     // setIsTokenLoading({ ...isTokenLoading, quotation: false });
     // console.log("finally", isTokenLoading)

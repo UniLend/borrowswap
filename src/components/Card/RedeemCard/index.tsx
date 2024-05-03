@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button, Modal } from "antd";
 import { getAllowance } from "../../../api/contracts/actions";
-import { truncateToDecimals, getRepayBtnActions } from "../../../helpers";
+import { truncateToDecimals,getRepayBtnActionsRedeem, decimal2Fixed } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
 
 import { useSelector } from "react-redux";
@@ -15,6 +15,7 @@ import {
   handleSelectRepayToken,
   handleSelectReceiveToken,
 } from "./utils";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -110,7 +111,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     receive: null,
     borrow: null,
   });
-
+  console.log("state", selectedData)
   //open  diffrent modal dynamically
   const [tokenListStatus, setTokenListStatus] = useState({
     isOpen: false,
@@ -188,14 +189,18 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     +lendAmount >
     truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
 
-  const isLowBalReceive: boolean = selectedData?.receive?.collateralBalanceFixed == 0
+  const exceedRedeemBalace:boolean = lendAmount > selectedData?.lend?.redeemBalanceFixed
 
-  const repayButton = getRepayBtnActions(
+  const isLowLiquidity:boolean = lendAmount > decimal2Fixed( selectedData?.lend?.totalLiqFull )
+
+  const redeemButton = getRepayBtnActionsRedeem(
     selectedData,
     isTokenLoading,
     quoteError,
     isLowBal,
-    isLowBalReceive
+    isLowLiquidity,
+    exceedRedeemBalace,
+    lendAmount
   );
 
   const getOprationToken = () => {
@@ -384,7 +389,6 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           onChange={(e: any) => handleLendAmount(e.target.value)}
           onMaxClick={() => {
             // console.log(selectedData);
-            
             setLendAmount((selectedData?.lend?.redeemBalanceFixed).toString())
             setIsMax(true)
           }}
@@ -417,23 +421,26 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           // }}
           buttonText={selectedData?.receive?.symbol}
           onClick={
-            () => handleOpenTokenList("receive")
+            selectedData?.pool !== null
+              ? () => handleOpenTokenList("receive")
+              : () => {}
           }
           
           readonly
-          // btnClass={
-          //   selectedData?.pool === null || selectedData?.receive?.collateralBalanceFixed === 0 || selectedData?.receive === null   ? "disable_btn" : "visible"
-          // }
+          btnClass={
+            selectedData?.pool === null  ? "disable_btn" : "visible"
+          }
         />
-        <Button
-          // disabled={repayButton.disable}
+        {isConnected ? <Button
+          disabled={redeemButton.disable}
           className='primary_btn'
           onClick={handleSwapRepayTransaction}
           title='please slect you pay token'
           loading={isTokenLoading.pool || isTokenLoading.quotation}
         >
-          {repayButton.text}
-        </Button>
+          {redeemButton.text}
+        </Button> : <ConnectButton/>}
+        
       </div>
 
       <Modal

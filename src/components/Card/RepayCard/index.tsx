@@ -158,13 +158,14 @@ export default function RepayCard({ uniSwapTokens }: any) {
 
   const isLowBalReceive: boolean = selectedData?.receive?.collateralBalanceFixed == 0
 
-  const connectWallet = isConnected
+
   const repayButton = getRepayBtnActions(
     selectedData,
     isTokenLoading,
     quoteError,
     isLowBal,
     isLowBalReceive,
+    
   );
 
   const getOprationToken = () => {
