@@ -17,6 +17,12 @@ export const isZeroAddress = (address: any) => {
   }
 };
 
+export const abiEncode = (path: Array<String>) => {
+  const abiencode = ethers.utils.defaultAbiCoder 
+  const type = new Array(path.length).fill("string")
+  return abiencode.encode( type ,path)
+}
+
 export const findBorrowToken = (poolList: any, token: any) => {
   console.log("tokenPools", poolList);
   const tokenPools = Object.values(poolList).filter((pool: any) => {

@@ -1,3 +1,4 @@
+import { abiEncode } from './../../helpers/index';
 import axios from "axios";
 import { ethers } from "ethers";
 import { aggregatorV3InterfaceABI } from "../contracts/abi";
@@ -118,8 +119,9 @@ const findQuoteAmount = (quote: any): { quoteValue: string, quoteDecimals: numbe
   let quoteValue = "";
   let quoteDecimals = 0;
   let totalFee = 0;
-  const decode = []
+
   const route = quote?.route?.[quote.route.length - 1];
+  const decode = route
   if (route.length > 0) {
     totalFee = route.reduce((acc: any, pool: any) => {
     const fee = Number(pool.fee);
@@ -134,19 +136,18 @@ const findQuoteAmount = (quote: any): { quoteValue: string, quoteDecimals: numbe
       quoteDecimals = scaledAmountOut;
     }
 
-    decode.push(route[0].tokenIn.address)
+    // decode.push(route[0].tokenIn.address)
 
-    for (const path of route) {
-       console.log("QuotePath", path);
-       decode.push(path.fee)
-       decode.push(path.tokenOut.address)
+    // for (const path of route) {
+    //    console.log("QuotePath", path);
+    //    decode.push(path.fee)
+    //    decode.push(path.tokenOut.address)
        
-    }
+    // }
 
   }
 
 console.log("decode", decode);
-
 
   return { quoteValue, quoteDecimals, totalFee, decode };
 };

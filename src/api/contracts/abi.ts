@@ -1153,6 +1153,11 @@ export const controllerABI = [
         "internalType": "address",
         "name": "_user",
         "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "_route",
+        "type": "bytes"
       }
     ],
     "name": "uniBorrow",

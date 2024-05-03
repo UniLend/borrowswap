@@ -1,3 +1,4 @@
+import { abiEncode } from './../../helpers/index';
 import {
   borrowswapABI,
   compoundABI,
@@ -109,7 +110,8 @@ export const handleSwap = async (
   pool: any,
   selectedTokens: any,
   user: any,
-  borrow: any
+  borrow: any,
+  path: any
 ) => {
   try {
     const chainId = getChainId(wagmiConfig);
@@ -122,7 +124,7 @@ export const handleSwap = async (
         ? String(decimal2Fixed(borrow, selectedTokens.borrow.decimals))
         : String(decimal2Fixed(-borrow, selectedTokens.borrow.decimals));
 
-  
+     const encode = abiEncode(path)  
 
     const { hash } = await instance?.uniBorrow(
       pool.pool,
