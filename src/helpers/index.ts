@@ -431,7 +431,7 @@ export const getRepayBtnActions = (
     truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
 
   // const isLowBalRedeem: boolean = selectedData?.receive?.redeemBalanceFixed < lendAmount
-  const noBorrowedToken: boolean = selectedData?.borrow?.borrowBalance <= "0"
+  const noBorrowedToken: boolean = selectedData?.borrow?.borrowBalance == "0"
 
   const { quotation } = isTokenLoading;
   if (pool == null ) {
@@ -482,8 +482,8 @@ export const getRepayBtnActionsRedeem = (
 
   const exceedRedeemBalace:boolean = lendAmount > selectedData?.lend?.redeemBalanceFixed
   const isLowLiquidity:boolean = lendAmount > decimal2Fixed( selectedData?.lend?.liquidityFixed )
-  const noReceiveToken: boolean = selectedData?.lend?.collateralBalanceFixed <= 0
-  
+  const noReceiveToken: boolean = selectedData?.lend?.collateralBalanceFixed == 0
+
   const { quotation } = isTokenLoading;
   if (pool == null ) {
     btn.text = "Select Pool";
