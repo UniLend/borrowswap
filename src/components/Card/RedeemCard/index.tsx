@@ -112,7 +112,6 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     receive: null,
     borrow: null,
   });
-  console.log("state", selectedData)
   //open  diffrent modal dynamically
   const [tokenListStatus, setTokenListStatus] = useState({
     isOpen: false,
@@ -186,27 +185,17 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   }, [unilendV2Data]);
 
 
-  const isLowBal: boolean =
-    +lendAmount >
-    truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
-
-  const exceedRedeemBalace:boolean = lendAmount > selectedData?.lend?.redeemBalanceFixed
-
-  const isLowLiquidity:boolean = lendAmount > decimal2Fixed( selectedData?.lend?.liquidityFixed )
-
+ 
   const redeemButton = getRepayBtnActionsRedeem(
     selectedData,
     isTokenLoading,
     quoteError,
-    isLowBal,
-    isLowLiquidity,
-    exceedRedeemBalace,
     lendAmount
   );
 
   const getOprationToken = () => {
     if (tokenListStatus.operation === "pool") {
-      return positions;
+      return pools;
     } else if (tokenListStatus.operation === "receive") {
       return tokens;
     } else if (tokenListStatus.operation === "lend") {
@@ -371,15 +360,18 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     <>
       <div className='repay_container'>
         <div className='swap_route'>
-          <p className='paragraph06 '>Select Positions</p>
+          <p className='paragraph06 '>Select Pool</p>
           <ButtonWithDropdown
             buttonText={
               selectedData.pool
                 ? `${selectedData.pool.borrowToken.symbol}`
                 : "Select"
             }
-            onClick={() => handleOpenTokenList("pool")}
+           onClick={isConnected 
+                ? () => handleOpenTokenList("pool")
+                : () => {}}
             className={ selectedData?.pool === null ?  "transparent_btn" : ""}
+             btnClass={ !isConnected ?  "disable_btn newbtn" :"visible"}
           />
         </div>
     
@@ -403,7 +395,9 @@ export default function RedeemCard({ uniSwapTokens }: any) {
               ? () => handleOpenTokenList("receive")
               : () => {}
           }
-         
+         btnClass={
+            selectedData?.pool === null || selectedData?.receive?.collateralBalanceFixed === 0 || selectedData?.receive === null   ? "disable_btn" : "visible"
+          }
           // btnClass={
           //   selectedData?.pool?.source === "Compound" ? "" : "disable_btn"
           // }
@@ -422,14 +416,14 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           // }}
           buttonText={selectedData?.receive?.symbol}
           onClick={
-            selectedData?.pool !== null
+            selectedData?.pool !== null && selectedData?.lend?.collateralBalanceFixed > 0
               ? () => handleOpenTokenList("receive")
               : () => {}
           }
           
           readonly
           btnClass={
-            selectedData?.pool === null  ? "disable_btn" : "visible"
+            selectedData?.pool === null || selectedData?.lend?.collateralBalanceFixed <= 0  ? "disable_btn" : "visible"
           }
         />
         {isConnected ? <Button

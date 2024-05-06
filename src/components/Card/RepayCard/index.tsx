@@ -116,8 +116,8 @@ export default function RepayCard({ uniSwapTokens }: any) {
     operation: "",
   });
   const [isTokenLoading, setIsTokenLoading] = useState({
-    positions: true,
-    pool: false,
+    // positions: true,
+    pool: true,
     lend: false,
     receive: false,
     quotation: false,
@@ -143,34 +143,33 @@ export default function RepayCard({ uniSwapTokens }: any) {
     setTokenListStatus({ isOpen: true, operation });
   };
 
-  useEffect(() => {
+  // useEffect(() => {
+  //   const poolsArray = Object.values(poolList);
+  //   setPools(poolsArray);
+  //   if (Object.keys(unilendV2Data.poolList).length > 0) {
+  //     setIsTokenLoading({ ...isTokenLoading, positions: false });
+  //   }
+  // }, [unilendV2Data]);
+
+
+    useEffect(() => {
     const poolsArray = Object.values(poolList);
     setPools(poolsArray);
     if (Object.keys(unilendV2Data.poolList).length > 0) {
-      setIsTokenLoading({ ...isTokenLoading, positions: false });
+      setIsTokenLoading({ ...isTokenLoading, pool: false });
     }
   }, [unilendV2Data]);
-
-
-  const isLowBal: boolean =
-    +lendAmount >
-    truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
-
-  const isLowBalReceive: boolean = selectedData?.receive?.collateralBalanceFixed == 0
-
-
+  
   const repayButton = getRepayBtnActions(
     selectedData,
     isTokenLoading,
     quoteError,
-    isLowBal,
-    isLowBalReceive,
-    
+    lendAmount
   );
 
   const getOprationToken = () => {
     if (tokenListStatus.operation === "pool") {
-      return positions;
+      return pools;
     } else if (tokenListStatus.operation === "lend") {
       return uniSwapTokens;
     } else if (tokenListStatus.operation === "receive") {
@@ -211,7 +210,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
       isTokenLoading,
       setb2rRatio,
       setLendAmount,
-      setBorrowAmount,
       setReceiveAmount,
       setQuoteError,
       setIsTokenLoading,
@@ -321,13 +319,15 @@ export default function RepayCard({ uniSwapTokens }: any) {
           setReceiveAmount(
           (selectedData?.receive?.collateralBalanceFixed || 0)
       )
+      setBorrowAmount(selectedData?.borrow?.borrowBalanceFixed || 0)
       }else{
           setReceiveAmount(
           (selectedData?.receive?.collateralBalanceFixed || 0) +
           (selectedData?.receive?.redeemBalanceFixed || 0)
         )
+        setBorrowAmount(selectedData?.borrow?.borrowBalanceFixed || 0)
       }
-  }, [selectedData?.receive]);
+  }, [selectedData?.receive, selectedData.borrow]);
   
 
   // loading state
@@ -339,7 +339,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
     <>
       <div className='repay_container'>
         <div className='swap_route'>
-          <p className='paragraph06 '>Select Positions</p>
+          <p className='paragraph06 '>Select Pool</p>
           <ButtonWithDropdown
             buttonText={
               selectedData.pool
@@ -370,7 +370,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
            
           }}
           onClick={
-            selectedData?.pool
+           selectedData?.borrow?.borrowBalanceFixed > 0
               ? () => handleOpenTokenList("lend")
               : () => {}
           }
@@ -430,7 +430,8 @@ export default function RepayCard({ uniSwapTokens }: any) {
           tokenList={getOprationToken()}
           onSelectToken={(token: any) => handleTokenSelection(token)}
           operation={ActiveOperation.REPAY}
-          isTokenListLoading={isTokenLoading.positions}
+          // isTokenListLoading={isTokenLoading.positions}
+          isTokenListLoading={isTokenLoading.pool}
           showPoolData={tokenListStatus.operation == "pool" ? true : false}
           positionData={[
             ...Object.values(positions),

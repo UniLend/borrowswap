@@ -39,6 +39,7 @@ export const waitForTransaction = async (hash: any) => {
       confirmations: 3
     });
     const status = await watchBlock(receipt.blockNumber);
+    console.log("status", status)
     return receipt;
   } catch (error) {
     throw error;

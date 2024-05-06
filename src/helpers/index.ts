@@ -418,30 +418,36 @@ export const getRepayBtnActions = (
   selectedData: any,
   isTokenLoading: any,
   quoteError: boolean,
-  isLowBal: boolean,
-  isLowBalReceive:boolean,
+  lendAmount:any
 ) => {
   let btn = {
     text: "Repay",
     disable: false,
   };
+
   const { pool, lend, borrow, receive } = selectedData;
+  const isLowBal: boolean =
+    +lendAmount >
+    truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
+
+  // const isLowBalRedeem: boolean = selectedData?.receive?.redeemBalanceFixed < lendAmount
+  const noBorrowedToken: boolean = selectedData?.borrow?.borrowBalance <= "0"
+
   const { quotation } = isTokenLoading;
   if (pool == null ) {
-    btn.text = "Select Position";
+    btn.text = "Select Pool";
   } else if (isTokenLoading.pool) {
     btn.text = "Pools data loading";
   }  else if ( receive === null) {
     btn.text = "Select Receive Token";
-  } 
-  else if (borrow === null) {
+  } else if (borrow === null) {
     btn.text = "Pools data loading";
+  } else if (noBorrowedToken) {
+    btn.text = "Token not Borrowed";
   }
    else if (isLowBal) {
     btn.text = "Low balance";
-  }  else if (isLowBalReceive) {
-    btn.text = "No Receive Value";
-  }
+  } 
    else if (lend === null) {
     btn.text = "Select lend token";
   } else if (quotation) {
@@ -455,33 +461,43 @@ export const getRepayBtnActions = (
   return btn;
 };
 
+
+
 export const getRepayBtnActionsRedeem = (
   selectedData: any,
   isTokenLoading: any,
   quoteError: boolean,
-  isLowBal: boolean,
-  isLowLiquidity: boolean,
-  exceedRedeemBalace:boolean,
   lendAmount:any
 ) => {
-  console.log("QUote Err", quoteError)
+
   let btn = {
     text: "Redeem",
     disable: false,
   };
-  const { pool, lend, borrow, receive } = selectedData;
+
+  const { pool, lend, receive } = selectedData;
+    const isLowBal: boolean =
+  +lendAmount >
+  truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
+
+  const exceedRedeemBalace:boolean = lendAmount > selectedData?.lend?.redeemBalanceFixed
+  const isLowLiquidity:boolean = lendAmount > decimal2Fixed( selectedData?.lend?.liquidityFixed )
+  const noReceiveToken: boolean = selectedData?.lend?.collateralBalanceFixed <= 0
+  
   const { quotation } = isTokenLoading;
   if (pool == null ) {
-    btn.text = "Select Position";
+    btn.text = "Select Pool";
   } else if (isTokenLoading.pool) {
     btn.text = "Pools data loading";
   }  else if (quotation) {
     btn.text = "Quote data loading";
   }
   else if (quoteError) {
-    console.log("quote err", quoteError)
     btn.text = "Swap not available";
-  }  else if ( receive === null) {
+  } else if (noReceiveToken) {
+    btn.text = "Token not Borrowed";
+  }
+   else if ( receive === null) {
     btn.text = "Select Receive Token";
   } 
    else if (isLowBal) {
@@ -496,7 +512,6 @@ export const getRepayBtnActionsRedeem = (
     btn.text = "Not Enough Liquidity"
   }
 
-  // btn.disable = !!(btn.text !== "Repay");
   btn.disable = !!(btn.text !== "Redeem" && btn.text !== "Connect Wallet");
   return btn;
 };
