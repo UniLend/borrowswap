@@ -31,16 +31,15 @@ import {
 import { wagmiConfig } from "../../main";
 import { contractAddresses } from "./address";
 
+
 export const waitForTransaction = async (hash: any) => {
   try {
     const receipt = await waitForTransactionReceipt(wagmiConfig, {
       hash: hash,
-      confirmations: 2
+      confirmations: 3
     });
-
-     const status = await watchBlock(receipt.blockNumber);
-
-  
+    const status = await watchBlock(receipt.blockNumber);
+    console.log("status", status)
     return receipt;
   } catch (error) {
     throw error;
@@ -254,7 +253,7 @@ export const handleRepay = async (
    
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
-     return hash;
+     return receipt;
   } catch (error) {
     console.log("Error", { error });
 

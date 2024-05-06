@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button, Modal } from "antd";
 import { getAllowance } from "../../../api/contracts/actions";
-import { truncateToDecimals, getRepayBtnActions } from "../../../helpers";
+import { truncateToDecimals,getRepayBtnActionsRedeem, decimal2Fixed } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
 
 import { useSelector } from "react-redux";
@@ -14,7 +14,9 @@ import {
   handleRepayTransaction,
   handleSelectRepayToken,
   handleSelectReceiveToken,
+  // checkLiquidity
 } from "./utils";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -110,7 +112,6 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     receive: null,
     borrow: null,
   });
-
   //open  diffrent modal dynamically
   const [tokenListStatus, setTokenListStatus] = useState({
     isOpen: false,
@@ -184,23 +185,17 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   }, [unilendV2Data]);
 
 
-  const isLowBal: boolean =
-    +lendAmount >
-    truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
-
-  const isLowBalReceive: boolean = selectedData?.receive?.collateralBalanceFixed == 0
-
-  const repayButton = getRepayBtnActions(
+ 
+  const redeemButton = getRepayBtnActionsRedeem(
     selectedData,
     isTokenLoading,
     quoteError,
-    isLowBal,
-    isLowBalReceive
+    lendAmount
   );
 
   const getOprationToken = () => {
     if (tokenListStatus.operation === "pool") {
-      return positions;
+      return pools;
     } else if (tokenListStatus.operation === "receive") {
       return tokens;
     } else if (tokenListStatus.operation === "lend") {
@@ -365,15 +360,18 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     <>
       <div className='repay_container'>
         <div className='swap_route'>
-          <p className='paragraph06 '>Select Positions</p>
+          <p className='paragraph06 '>Select Pool</p>
           <ButtonWithDropdown
             buttonText={
               selectedData.pool
                 ? `${selectedData.pool.borrowToken.symbol}`
                 : "Select"
             }
-            onClick={() => handleOpenTokenList("pool")}
+           onClick={isConnected 
+                ? () => handleOpenTokenList("pool")
+                : () => {}}
             className={ selectedData?.pool === null ?  "transparent_btn" : ""}
+             btnClass={ !isConnected ?  "disable_btn newbtn" :"visible"}
           />
         </div>
     
@@ -384,7 +382,6 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           onChange={(e: any) => handleLendAmount(e.target.value)}
           onMaxClick={() => {
             // console.log(selectedData);
-            
             setLendAmount((selectedData?.lend?.redeemBalanceFixed).toString())
             setIsMax(true)
           }}
@@ -398,7 +395,9 @@ export default function RedeemCard({ uniSwapTokens }: any) {
               ? () => handleOpenTokenList("receive")
               : () => {}
           }
-         
+         btnClass={
+            selectedData?.pool === null || selectedData?.receive?.collateralBalanceFixed === 0 || selectedData?.receive === null   ? "disable_btn" : "visible"
+          }
           // btnClass={
           //   selectedData?.pool?.source === "Compound" ? "" : "disable_btn"
           // }
@@ -417,23 +416,26 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           // }}
           buttonText={selectedData?.receive?.symbol}
           onClick={
-            () => handleOpenTokenList("receive")
+            selectedData?.pool !== null && selectedData?.lend?.collateralBalanceFixed > 0
+              ? () => handleOpenTokenList("receive")
+              : () => {}
           }
           
           readonly
-          // btnClass={
-          //   selectedData?.pool === null || selectedData?.receive?.collateralBalanceFixed === 0 || selectedData?.receive === null   ? "disable_btn" : "visible"
-          // }
+          btnClass={
+            selectedData?.pool === null || selectedData?.lend?.collateralBalanceFixed <= 0  ? "disable_btn" : "visible"
+          }
         />
-        <Button
-          // disabled={repayButton.disable}
+        {isConnected ? <Button
+          disabled={redeemButton.disable}
           className='primary_btn'
           onClick={handleSwapRepayTransaction}
           title='please slect you pay token'
-          loading={isTokenLoading.pool || isTokenLoading.quotation}
+          loading={isTokenLoading.pool || isTokenLoading.quotation }
         >
-          {repayButton.text}
-        </Button>
+          {redeemButton.text}
+        </Button> : <ConnectButton/>}
+        
       </div>
 
       <Modal

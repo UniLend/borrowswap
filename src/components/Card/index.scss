@@ -134,12 +134,17 @@
       gap: 5px;
       margin: 10px auto;
       width: 80%;
-      
+      .active {
+        background-color: var(--dark-button);
+        border: 1.5px solid var(--button-border);
+        color: var(--main-light);
+      }
       div{
 
         width: 50%;
         color: white;
-        border: 1px solid white;
+        // border: 1px solid white;
+        background-color: var(--low-dark-bg);
         border-radius: 5px;
         p{
           text-align: center;
