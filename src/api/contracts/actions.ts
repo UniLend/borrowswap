@@ -124,15 +124,22 @@ export const handleSwap = async (
         ? String(decimal2Fixed(borrow, selectedTokens.borrow.decimals))
         : String(decimal2Fixed(-borrow, selectedTokens.borrow.decimals));
 
-     const encode = abiEncode(path)  
-
+  
+        console.log("BorrowTsransaction",   pool.pool,
+        selectedTokens.lend.address,
+        selectedTokens.receive.address,
+        decimal2Fixed(amount, selectedTokens.lend.decimals),
+        borrowAmount,
+        user,
+        path);  
     const { hash } = await instance?.uniBorrow(
       pool.pool,
       selectedTokens.lend.address,
       selectedTokens.receive.address,
       decimal2Fixed(amount, selectedTokens.lend.decimals),
       borrowAmount,
-      user
+      user,
+      path
     );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);

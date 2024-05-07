@@ -1153,6 +1153,11 @@ export const controllerABI = [
         "internalType": "address",
         "name": "_user",
         "type": "address"
+      },
+      {
+        "internalType": "uint24[]",
+        "name": "_route",
+        "type": "uint24[]"
       }
     ],
     "name": "uniBorrow",
@@ -1222,7 +1227,6 @@ export const controllerABI = [
     "type": "function"
   }
 ]
-
 export const erc20Abi = [
   {
     constant: true,

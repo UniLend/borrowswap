@@ -121,7 +121,7 @@ const findQuoteAmount = (quote: any): { quoteValue: string, quoteDecimals: numbe
   let totalFee = 0;
 
   const route = quote?.route?.[quote.route.length - 1];
-  const decode = route
+  const decode = []
   if (route.length > 0) {
     totalFee = route.reduce((acc: any, pool: any) => {
     const fee = Number(pool.fee);
@@ -136,14 +136,14 @@ const findQuoteAmount = (quote: any): { quoteValue: string, quoteDecimals: numbe
       quoteDecimals = scaledAmountOut;
     }
 
-    // decode.push(route[0].tokenIn.address)
+  
 
-    // for (const path of route) {
-    //    console.log("QuotePath", path);
-    //    decode.push(path.fee)
-    //    decode.push(path.tokenOut.address)
+    for (const path of route) {
+      
+       decode.push(path.fee)
+      
        
-    // }
+    }
 
   }
 
