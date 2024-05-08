@@ -203,20 +203,22 @@ export const handleRepayTransaction = async (
       setModalMsg("Spend Aprroval for " + selectedData.lend.symbol);
       await handleApproval(selectedData?.lend.address, address, lendAmount);
       setOperationProgress(1);
-
-    await handleRepayTransaction(
-        selectedData,
-        address,
-        lendAmount,
-        borrowAmount,
-        receiveAmount,
-        unilendPool,
-        setOperationProgress,
-        setIsBorrowProgressModal,
-        setModalMsg,
-        handleClear
-      );
-    }  else {
+      setTimeout(async () => {
+          await handleRepayTransaction(
+          selectedData,
+          address,
+          lendAmount,
+          borrowAmount,
+          receiveAmount,
+          unilendPool,
+          setOperationProgress,
+          setIsBorrowProgressModal,
+          setModalMsg,
+          handleClear
+        );
+        }, 3000);
+  
+    } else {
       setModalMsg(
         selectedData.lend.symbol +
           "-" +

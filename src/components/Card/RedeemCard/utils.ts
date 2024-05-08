@@ -238,8 +238,8 @@ export const handleRepayTransaction = async (
     //   setModalMsg("Spend Aprroval for " + selectedData.lend.symbol);
     //   await handleApproval(selectedData?.lend.address, address, lendAmount);
     //   setOperationProgress(1);
-
-    //   handleRepayTransaction(
+    // setTimeout(async () => {
+      //  await handleRepayTransaction(
     //     selectedData,
     //     address,
     //     lendAmount,
@@ -251,6 +251,8 @@ export const handleRepayTransaction = async (
     //     setModalMsg,
     //     handleClear
     //   );
+      // }, 3000);
+   
     // }  else
      
       // setModalMsg(
