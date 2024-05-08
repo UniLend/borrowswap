@@ -256,7 +256,8 @@ export default function RepayCard({ uniSwapTokens }: any) {
       setOperationProgress,
       setIsBorrowProgressModal,
       setModalMsg,
-      handleClear
+      handleClear,
+      uniQuote.path,
     );
   };
 

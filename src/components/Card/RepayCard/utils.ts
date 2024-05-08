@@ -55,8 +55,8 @@ export const handleQuote = async (
         })
         const payLendAmount =
         value.quoteDecimals * (selectedData?.borrow?.borrowBalanceFixed  || 0);
-      console.log("pay amount", selectedData, payLendAmount, selectedData?.borrow?.borrowBalanceFixed, value.quoteDecimals);
-      setLendAmount(payLendAmount.toString());
+      console.log("pay amount", selectedData, payLendAmount.toFixed(selectedData?.lend.decimals), selectedData?.borrow?.borrowBalanceFixed, value.quoteDecimals);
+      setLendAmount(payLendAmount.toFixed(selectedData?.lend.decimals));
       flag = true;
       }
     }
@@ -191,6 +191,7 @@ export const handleRepayTransaction = async (
   setIsBorrowProgressModal: (value: boolean) => void,
   setModalMsg: (value: string) => void,
   handleClear: () => void,
+  path: any
 ) => {
   setOperationProgress(0);
   try {
@@ -198,7 +199,8 @@ export const handleRepayTransaction = async (
     // const borrowToken = await getAllowance(selectedData?.borrow, address);
     setIsBorrowProgressModal(true);
     
-
+  console.log("repayapproval", lendToken, Number(lendAmount) > Number(lendToken.allowanceFixed));
+  
     if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
       setModalMsg("Spend Aprroval for " + selectedData.lend.symbol);
       await handleApproval(selectedData?.lend.address, address, lendAmount);
@@ -214,7 +216,8 @@ export const handleRepayTransaction = async (
         setOperationProgress,
         setIsBorrowProgressModal,
         setModalMsg,
-        handleClear
+        handleClear,
+        path
       );
     }  else {
       setModalMsg(
@@ -231,6 +234,7 @@ export const handleRepayTransaction = async (
           lendAmount,
           selectedData,
           address,
+          path
         );
       } else {
         hash = await handleCompoundRepay(

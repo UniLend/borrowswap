@@ -225,7 +225,8 @@ export const handleRepayTransaction = async (
   setOperationProgress: (value: number) => void,
   setIsBorrowProgressModal: (value: boolean) => void,
   setModalMsg: (value: string) => void,
-  handleClear: () => void
+  handleClear: () => void,
+  path: any
 ) => {
   setOperationProgress(0);
   try {
@@ -267,7 +268,8 @@ export const handleRepayTransaction = async (
           redeemAmount,
           selectedData,
           address,
-          isMax
+          isMax,
+          path
         );
       } else {
         hash = await handleCompoundRepay(

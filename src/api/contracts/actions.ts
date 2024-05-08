@@ -77,6 +77,7 @@ export const handleApproval = async (
   const chainId = getChainId(wagmiConfig);
   const controllerAddress =
     contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
+   console.log("handleApproval", instance, controllerAddress, maxAllow);
    
   const { hash } = await instance?.approve(controllerAddress, maxAllow);
   const receipt = await waitForTransaction(hash);
@@ -123,22 +124,27 @@ export const handleSwap = async (
         ? String(decimal2Fixed(borrow, selectedTokens.borrow.decimals))
         : String(decimal2Fixed(-borrow, selectedTokens.borrow.decimals));
 
-  
-        console.log("BorrowTsransaction",   pool.pool,
-        selectedTokens.lend.address,
-        selectedTokens.receive.address,
-        decimal2Fixed(amount, selectedTokens.lend.decimals),
-        borrowAmount,
-        user,
-        path);  
+     const parameters = {
+          _pool: pool.pool,
+    _supplyAsset:  selectedTokens.lend.address,
+    _tokenOUt: selectedTokens.receive.address,
+    _collateral_amount: decimal2Fixed(amount, selectedTokens.lend.decimals),
+    _amount: borrowAmount,
+    _user: user,
+    _route: path
+     }
+        console.log("BorrowTsransaction",  parameters);  
+
+    //     _pool: '0x784c4a12f82204e5fb713b055de5e8008d5916b6',
+    // _supplyAsset: '0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a',
+    // _tokenOUt: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+    // _collateral_amount: '10000000000000000000',
+    // _amount: '200000000000000',
+    // _user: owner.address,
+    // _route: [3000, 10000]
+
     const { hash } = await instance?.uniBorrow(
-      pool.pool,
-      selectedTokens.lend.address,
-      selectedTokens.receive.address,
-      decimal2Fixed(amount, selectedTokens.lend.decimals),
-      borrowAmount,
-      user,
-      path
+     parameters
     );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
@@ -156,7 +162,8 @@ export const handleRedeem =  async (
   redeemAmount: any,
   selectedTokens: any,
   user: any,
- isMax: boolean
+ isMax: boolean,
+ path: any
 ) => {
 
   try {
@@ -200,17 +207,19 @@ export const handleRedeem =  async (
          
         }
 
-        console.log("handleRedeem", instance,   selectedTokens.pool.pool,
-        user,
-        Amount,
-        selectedTokens.receive.address );
+        const parameters = {
+          _pool: selectedTokens.pool.pool,
+          _user: user,
+          _amount: Amount,
+          _tokenOut:  selectedTokens.receive.address,
+          _route: path,
+      
+        }
+        console.log("handleRedeem", instance,   parameters);
 
 
         const { hash } = await instance?.uniRedeem(
-          selectedTokens.pool.pool,
-          user,
-          Amount,
-          selectedTokens.receive.address
+          parameters
         );
        
         console.log("transaction", hash);
@@ -230,7 +239,7 @@ export const handleRepay = async (
 
   selectedTokens: any,
   user: any,
-
+ path: any
 ) => {
   try {
     const chainId = getChainId(wagmiConfig);
@@ -240,22 +249,25 @@ export const handleRepay = async (
 
     const borrowAmount =
       selectedTokens.borrow.token == 1
-        ? String(decimal2Fixed(payAmount, selectedTokens.borrow.decimals))
-        : String(decimal2Fixed(payAmount, selectedTokens.borrow.decimals));
+        ? String(decimal2Fixed(payAmount, selectedTokens.lend.decimals))
+        : String(decimal2Fixed(payAmount, selectedTokens.lend.decimals));
 
-  console.log("handleRepay", instance,    selectedTokens.pool.pool,
-  selectedTokens.lend.address,
-  user,
-  selectedTokens.borrow.address,
-  borrowAmount);
+
+        const parameters = {
+          _pool: selectedTokens.pool.pool,
+          _tokenIn: selectedTokens.lend.address,
+          _user: user,
+          _borrowAddress: selectedTokens.borrow.address,
+          _repayAmount: borrowAmount,
+          _route: path,
+      
+        }
+
+  console.log("handleRepay", instance,   parameters);
   
 
     const { hash } = await instance?.uniRepay(
-      selectedTokens.pool.pool,
-      selectedTokens.lend.address,
-      user,
-      selectedTokens.borrow.address,
-      borrowAmount
+      parameters
     );
    
     console.log("transaction", hash);

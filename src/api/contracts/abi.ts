@@ -1017,34 +1017,96 @@ export const controllerABI = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_supplyAsset",
-        "type": "address"
-      },
+        "components": [
+          {
+            "internalType": "address",
+            "name": "_borrowedToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "_tokenIn",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "_user",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "_collateralToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "_collateralAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "_repayAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint24[]",
+            "name": "_route",
+            "type": "uint24[]"
+          }
+        ],
+        "internalType": "struct CompRepay",
+        "name": "params",
+        "type": "tuple"
+      }
+    ],
+    "name": "compRepay",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
       {
-        "internalType": "address",
-        "name": "_borrowAsset",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_tokenOut",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_supplyAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_borrowAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
+        "components": [
+          {
+            "internalType": "address",
+            "name": "_supplyAsset",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "_borrowAsset",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "_tokenOut",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "_supplyAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "_borrowAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "_user",
+            "type": "address"
+          },
+          {
+            "internalType": "uint24[]",
+            "name": "_route",
+            "type": "uint24[]"
+          }
+        ],
+        "internalType": "struct CompBorrow",
+        "name": "params",
+        "type": "tuple"
       }
     ],
     "name": "compoundBorrow",
@@ -1087,77 +1149,46 @@ export const controllerABI = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_borrowedToken",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_tokenIn",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_collateralToken",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_collateralAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_repayAmount",
-        "type": "uint256"
-      }
-    ],
-    "name": "reapay",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_pool",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_supplyAsset",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_tokenOUt",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_collateral_amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "int256",
-        "name": "_amount",
-        "type": "int256"
-      },
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
-      },
-      {
-        "internalType": "uint24[]",
-        "name": "_route",
-        "type": "uint24[]"
+        "components": [
+          {
+            "internalType": "address",
+            "name": "_pool",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "_supplyAsset",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "_tokenOUt",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "_collateral_amount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "int256",
+            "name": "_amount",
+            "type": "int256"
+          },
+          {
+            "internalType": "address",
+            "name": "_user",
+            "type": "address"
+          },
+          {
+            "internalType": "uint24[]",
+            "name": "_route",
+            "type": "uint24[]"
+          }
+        ],
+        "internalType": "struct UniBorrow",
+        "name": "params",
+        "type": "tuple"
       }
     ],
     "name": "uniBorrow",
@@ -1168,24 +1199,36 @@ export const controllerABI = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_pool",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
-      },
-      {
-        "internalType": "int256",
-        "name": "_amount",
-        "type": "int256"
-      },
-      {
-        "internalType": "address",
-        "name": "_tokenOut",
-        "type": "address"
+        "components": [
+          {
+            "internalType": "address",
+            "name": "_pool",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "_user",
+            "type": "address"
+          },
+          {
+            "internalType": "int256",
+            "name": "_amount",
+            "type": "int256"
+          },
+          {
+            "internalType": "address",
+            "name": "_tokenOut",
+            "type": "address"
+          },
+          {
+            "internalType": "uint24[]",
+            "name": "_route",
+            "type": "uint24[]"
+          }
+        ],
+        "internalType": "struct UniRedeem",
+        "name": "params",
+        "type": "tuple"
       }
     ],
     "name": "uniRedeem",
@@ -1196,29 +1239,41 @@ export const controllerABI = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_pool",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_tokenIn",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_borrowAddress",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_repayAmount",
-        "type": "uint256"
+        "components": [
+          {
+            "internalType": "address",
+            "name": "_pool",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "_tokenIn",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "_user",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "_borrowAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "_repayAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint24[]",
+            "name": "_route",
+            "type": "uint24[]"
+          }
+        ],
+        "internalType": "struct UniRepay",
+        "name": "params",
+        "type": "tuple"
       }
     ],
     "name": "uniRepay",

@@ -283,7 +283,8 @@ export default function RedeemCard({ uniSwapTokens }: any) {
       setOperationProgress,
       setIsBorrowProgressModal,
       setModalMsg,
-      handleClear
+      handleClear,
+      uniQuote.path
     );
   };
 
