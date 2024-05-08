@@ -11,8 +11,46 @@ import {
   handleRepay,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
-import { decimal2Fixed } from "../../../helpers";
+import { decimal2Fixed, fixed2Decimals, truncateToDecimals} from "../../../helpers";
 import NotificationMessage from "../../Common/NotificationMessage";
+
+// export const checkLiquidity = (
+//   lendAmount: string,
+//   source: string,
+//   unilendPool: any,
+//   selectedData: any,
+//   receiveAmount: any,
+//   setIsLowLiquidity: (value: boolean) => void
+// ) => {
+//   const lendAmountNumber = parseFloat(lendAmount);
+
+//   if (!isNaN(lendAmountNumber) && lendAmountNumber > 0) {
+//     if (source === "Unilend") {
+//       let liquidity = { value: "", decimals: "" };
+//       if (unilendPool?.token0?.address === selectedData?.borrow?.address) {
+//         liquidity.value = unilendPool?.liquidity0;
+//         liquidity.decimals = unilendPool?.token0?.decimals;
+//       } else {
+//         liquidity.value = unilendPool?.liquidity1;
+//         liquidity.decimals = unilendPool?.token1?.decimals;
+//       }
+//       let fixedLiquidity = fixed2Decimals(
+//         liquidity?.value,
+//         +liquidity?.decimals
+//       );
+//       console.log("fixed liquidity", fixedLiquidity )
+//       if (receiveAmount > truncateToDecimals(Number(fixedLiquidity) || 0, 9)) {
+//         setIsLowLiquidity(true);
+//       } else {
+//         setIsLowLiquidity(false);
+//       }
+//     } else {
+//       // TODO: write liquidity for compound
+//     }
+//   }
+// };
+
+
 
 export const handleQuote = async (
   selectedData: any,
@@ -55,29 +93,26 @@ export const handleQuote = async (
         })
         const payLendAmount =
         value.quoteDecimals * (selectedData?.lend?.redeemBalanceFixed  || 0);
-      console.log("pay amount", selectedData, payLendAmount, selectedData?.lend?.redeemBalanceFixed , value.quoteDecimals);
-      setReceiveAmount(payLendAmount.toString());
-      flag = true;
+        console.log("pay amount", selectedData, payLendAmount, selectedData?.lend?.redeemBalanceFixed , value.quoteDecimals);
+        setReceiveAmount(payLendAmount.toString());
+        flag = true;
       }
     }
   
-
-    // setBorrowAmount(selectedData?.borrow?.borrowBalanceFixed || 0);
-    // setReceiveAmount(
-    //   (selectedData?.receive?.collateralBalanceFixed || 0) +
-    //     (selectedData?.receive?.redeemBalanceFixed || 0)
-    // );
     setQuoteError(false);
     if(flag)
       setIsTokenLoading({ ...isTokenLoading, quotation: false });
-      
+    
   } catch (error: any) {
+    setQuoteError(true);
+     setIsTokenLoading({ ...isTokenLoading, quotation: false });
     console.error("Error in handleQuote:", error);
+
     NotificationMessage(
       "error",
       error?.message || "Error occurred in handleQuote"
     );
-    setQuoteError(true);
+   
   } finally {
     // setIsTokenLoading({ ...isTokenLoading, quotation: false });
     // console.log("finally", isTokenLoading)
@@ -245,6 +280,7 @@ export const handleRepayTransaction = async (
       if (hash) {
         setOperationProgress(3);
         handleClear();
+        NotificationMessage("success", `Redeem is successful`);
         setTimeout(() => {
           setIsBorrowProgressModal(false);
         }, 1000);

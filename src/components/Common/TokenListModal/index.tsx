@@ -65,11 +65,14 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [filteredTokenList, setFilteredTokenList]= useState<any>([]);
   const [borrowedPosition, setBorrowedposition] = useState([])
+   const [poolsData, setPoolsData] = useState([])
   const handleTokensList = (token: Token) => {
     onSelectToken(token);
     setSearchQuery("");
   };
 
+  console.log("positionData", positionData)
+    console.log("tokenList", tokenList)
   const findBorrowPosition = () => {
     let list: any = [];
   for (let i = 0; i < positionData!.length; i++) {
@@ -118,17 +121,53 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
   
   }
 
+  const findPoolData = () => {
+    let list: any = [];
+  for (let i = 0; i < tokenList!.length; i++) {
+    if (
+      positionData[i]
+    ) {
+      let temp0 = {
+        borrowToken: positionData[i].pool.token0,
+        otherToken: positionData[i].pool.token1,
+        pool: positionData[i].pool.pool,
+        positionId: positionData[i].id,
+        source: positionData[i].source,
+      };
+      list.push(temp0);
+      let temp1 = {
+        borrowToken: positionData[i].pool.token1,
+        otherToken: positionData[i].pool.token0,
+        pool: positionData[i].pool.pool,
+        positionId: positionData[i].id,
+        source: positionData[i].source,
+      };
+      list.push(temp1);
+    } 
+  }
+  setPoolsData(list)
+  console.log("pool List", list);
+  }
    
-  useEffect(()=> {
+  // useEffect(()=> {
       
-    if(tokenList.length && tokenList[0]?.type == 'position'){
-      console.log("TokenList", tokenList);
-      findBorrowPosition()
-    }
+  //   if(tokenList.length && tokenList[0]?.type == 'position'){
+  //     console.log("TokenList", tokenList);
+  //     findBorrowPosition()
+  //   }
     
       
-  },[tokenList])
+  // },[tokenList])
 
+  useEffect(()=> {
+      
+    if(tokenList.length){
+      console.log("TokenList", tokenList);
+      findBorrowPosition()
+      findPoolData()
+    }
+      
+  },[tokenList])
 
   useEffect(()=> {
     handleSearch('')
@@ -141,7 +180,7 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
     let filtered= [];
    
     if (currentOperation === "pool") {
-      filtered = borrowedPosition.filter((token: Token) =>
+      filtered = poolsData.filter((token: Token) =>
         token.borrowToken.name.toLowerCase().includes(searchQueryLower.toLowerCase())
       );
     setFilteredTokenList(filtered);

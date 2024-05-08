@@ -8,6 +8,8 @@ import {
   handleApproval,
   handleCompoundRepay,
   handleRepay,
+  waitForTransaction,
+  // checkTxnStatus,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
 import { decimal2Fixed } from "../../../helpers";
@@ -20,7 +22,6 @@ export const handleQuote = async (
   isTokenLoading: any,
   setb2rRatio: (value: number) => void,
   setLendAmount: (value: string) => void,
-  setBorrowAmount: (value: string) => void,
   setReceiveAmount: (value: string) => void,
   setQuoteError: (value: boolean) => void,
   setIsTokenLoading: (value: any) => void,
@@ -60,8 +61,6 @@ export const handleQuote = async (
       }
     }
   
-
-    setBorrowAmount(selectedData?.borrow?.borrowBalanceFixed || 0);
     setReceiveAmount(
       (selectedData?.receive?.collateralBalanceFixed || 0) +
         (selectedData?.receive?.redeemBalanceFixed || 0)
@@ -110,9 +109,9 @@ export const handleSelectRepayToken = async (
       address
     );
 console.log("handleSelectRepayToken", data);
-
+ 
     if (
-      data.token0.borrowBalanceFixed > 0 &&
+      // data.token0.borrowBalanceFixed > 0 &&
       data.token0.address === poolData.borrowToken.id
     ) {
       setSelectedData({
@@ -125,7 +124,7 @@ console.log("handleSelectRepayToken", data);
     }
 
     if (
-      data.token1.borrowBalanceFixed > 0 &&
+      // data.token1.borrowBalanceFixed > 0 &&
       data.token1.address === poolData.borrowToken.id
     ) {
       setSelectedData({
@@ -191,7 +190,7 @@ export const handleRepayTransaction = async (
   setOperationProgress: (value: number) => void,
   setIsBorrowProgressModal: (value: boolean) => void,
   setModalMsg: (value: string) => void,
-  handleClear: () => void
+  handleClear: () => void,
 ) => {
   setOperationProgress(0);
   try {
@@ -244,10 +243,11 @@ export const handleRepayTransaction = async (
       if (hash) {
         setOperationProgress(3);
         handleClear();
+        NotificationMessage("success", `Repay is successful`);
+        // checkTxnStatus(hash, txnData, setIsBorrowProgressModal)
+        console.log("reciept", hash);
         setTimeout(() => {
-
           setIsBorrowProgressModal(false);
-          
         }, 1000);
       }
     }

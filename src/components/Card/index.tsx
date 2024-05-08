@@ -69,9 +69,14 @@ export default function Card() {
         </div>
 
        { activeOperation === ActiveOperation.REPAY && <div className="sub_tabs">
-          <div onClick={()=> setSubOperation(SubOperation.REPAY)}><p>Repay</p></div>
-          <div onClick={()=> setSubOperation(SubOperation.REDEEM)}><p>Redeem</p></div>
+        <div className={`${subOperation === SubOperation.REPAY ? "active" : ""}`} onClick={() => setSubOperation(SubOperation.REPAY)}>
+          <p>Repay</p>
         </div>
+        <div className={`${subOperation === SubOperation.REDEEM ? "active" : ""}`} onClick={() => setSubOperation(SubOperation.REDEEM)}>
+          <p>Redeem</p>
+        </div>
+      </div>
+
 }
         {/*  */}
         {activeOperation === ActiveOperation.BRROW && (

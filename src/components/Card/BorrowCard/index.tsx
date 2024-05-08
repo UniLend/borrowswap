@@ -396,7 +396,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           disabled={borrowBtn.disable}
           className='primary_btn'
           onClick={handleBorrowSwapTransaction}
-          title='please slect you pay token'
+          title='please select you pay token'
           loading={isTokenLoading.pools || isTokenLoading.rangeSlider}
         >
           {borrowBtn.text}
