@@ -1,4 +1,4 @@
-import { handleCompoundRedeem, handleRedeem } from './../../../api/contracts/actions';
+import { getCollateralValue, handleCompoundRedeem, handleRedeem } from './../../../api/contracts/actions';
 import { valueType } from "antd/es/statistic/utils";
 import { getQuote } from "../../../api/axios/calls";
 import {
@@ -174,20 +174,25 @@ export const handleSelectRepayToken = async (
     }
   } else{
   
-
+    const {redeemBalanceInUSD} = await getCollateralValue(address)
     const tokenData = await getCollateralTokenData(poolData.borrowToken  , address )
     console.log("selectedData", poolData, tokenData);
      setSelectedData({
       ...selectedData,
       ["pool"]: poolData,
-      ["lend"]: {...tokenData,  redeemBalanceFixed: tokenData.collateralBalanceFixed},
+      ["lend"]: {...tokenData,  redeemBalanceFixed: (redeemBalanceInUSD/ tokenData.price )},
       ["receive"]:null,
       ["borrow"]: tokenData,
     });
-    
+    setLendAmount((redeemBalanceInUSD/ tokenData.price ))
   }
   setIsTokenLoading({ ...isTokenLoading, pool: false });
 };
+
+
+const getCompoundData = () => {
+
+}
 
 export const handleSelectReceiveToken = async (
   data:any,

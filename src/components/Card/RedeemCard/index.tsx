@@ -394,6 +394,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           onMaxClick={() => {
             // console.log(selectedData);
             setLendAmount((selectedData?.lend?.redeemBalanceFixed).toString())
+            setReceiveAmount((Number(selectedData?.lend?.redeemBalanceFixed)* b2rRatio).toString())
             setIsMax(true)
           }}
           // buttonText={selectedData?.pool?.otherToken?.symbol}

@@ -278,6 +278,11 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     checkLoading(isTokenLoading);
   }, [isTokenLoading]);
 
+  useEffect(()=> {
+console.log("selectedTokens", selectedTokens);
+
+  }, [selectedTokens])
+
   return (
     <>
       <div className='borrow_container'>

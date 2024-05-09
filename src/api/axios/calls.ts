@@ -116,8 +116,8 @@ let cancelPreviousRequest: any;
 
 
 const findQuoteAmount = (quote: any): { quoteValue: string, quoteDecimals: number, totalFee:number, decode: any } => {
-  let quoteValue = "";
-  let quoteDecimals = 0;
+  let quoteValue = quote.quoteGasAndPortionAdjusted;
+  let quoteDecimals = quote.quoteGasAndPortionAdjustedDecimals;
   let totalFee = 0;
 
   const route = quote?.route?.[quote.route.length - 1];
@@ -129,12 +129,12 @@ const findQuoteAmount = (quote: any): { quoteValue: string, quoteDecimals: numbe
     return acc;
     }, 0);
 
-    const { amountOut, tokenOut: { decimals } } = route[route.length - 1];
-    if (amountOut && decimals) {
-      const scaledAmountOut = fixed2Decimals(amountOut, Number(decimals));
-      quoteValue = amountOut.toString();
-      quoteDecimals = scaledAmountOut;
-    }
+    // const { amountOut, tokenOut: { decimals } } = route[route.length - 1];
+    // if (amountOut && decimals) {
+    //   const scaledAmountOut = fixed2Decimals(amountOut, Number(decimals));
+    //   quoteValue = amountOut.toString();
+    //   quoteDecimals = scaledAmountOut;
+    // }
 
   
 
@@ -160,9 +160,9 @@ export const getQuote = async (
   chainId = 1
 ) => {
   // Cancel the previous request if it exists
-  if (cancelPreviousRequest) {
-    cancelPreviousRequest();
-  }
+  // if (cancelPreviousRequest) {
+  //   cancelPreviousRequest();
+  // }
 
   console.log("QuoteData", { amountIn, user, tokenIn, tokenOut, chainId });
   try {
@@ -196,7 +196,11 @@ export const getQuote = async (
       },
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/json, text/plain, */*",
+        "Accept": "application/json, text/plain, */*",
+        "Referer": "http://localhost:5005/",
+        "Origin":"https://app.uniswap.org",
+      
+        
       },
       cancelToken: new CancelToken(function executor(c) {
         cancelPreviousRequest = c;

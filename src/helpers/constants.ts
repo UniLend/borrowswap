@@ -29,14 +29,14 @@ export const USDT_TOKEN = new Token(
 )
 
 
-export const CompoundBaseTokens = [
+export const CompoundBaseTokens: any = [
   {
     address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
     symbol: "USDC (PoS)",
     name: "USD Coin (PoS) ",
     decimals: 6,
     source: "Compound",
-    compoundCollateralTokens:  [{
+    compoundCollateralTokens: [{
       address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
       symbol: "WETH",
       name: "Wrapped ETH",

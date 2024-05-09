@@ -78,7 +78,7 @@ export const handleLTVSlider = (
       lendAmount,
       value,
       selectedTokens.lend.collateralBalanceFixed,
-      selectedTokens.borrow.BorrowBalanceFixed,
+      selectedTokens.borrow.borrowBalanceFixed,
       selectedTokens.lend.price
     );
   }

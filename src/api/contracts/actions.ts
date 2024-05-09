@@ -30,6 +30,7 @@ import {
 } from "@wagmi/core";
 import { wagmiConfig } from "../../main";
 import { contractAddresses } from "./address";
+import { CompoundBaseTokens } from '../../helpers/constants';
 
 
 export const waitForTransaction = async (hash: any) => {
@@ -679,6 +680,46 @@ export const getPoolBasicData = async (
     }
   }
 };
+
+export const getCollateralValue = async (address: any) => {
+  const chainId = getChainId(wagmiConfig);
+  const compoundAddress =
+    contractAddresses[chainId as keyof typeof contractAddresses]?.compound;
+  const comet = await getEtherContract(compoundAddress, compoundABI);
+
+  const proxy = await getUserProxy(address);
+ 
+  // const tokenAddress = token?.address;
+
+  const collateralTokens:any = CompoundBaseTokens[0]?.compoundCollateralTokens
+
+  const values =  (await Promise.all(collateralTokens.map((token: any)=> comet?.userCollateral(proxy, token.address)))).map((values: any, i: any)=>  fixed2Decimals(fromBigNumber(values.balance), collateralTokens[i].decimals ))
+  const assets =  (await Promise.all(collateralTokens.map((token: any)=> comet?.getAssetInfoByAddress(token.address))))
+  const priceFeeds = assets.map((values: any)=> values.priceFeed )
+  //const quote =  (await Promise.all(collateralTokens.map((token: any)=> comet?.quoteCollateral(token.address, 1)))).map((values: any)=> fromBigNumber(values) )
+  const prices =  (await Promise.all(priceFeeds.map((add: any, i: any)=> comet?.getPrice(add)))).map((value: any)=> Number(fromBigNumber(value)) / 10 ** 8 )
+
+  const borrowToken = await Promise.all([comet?.borrowBalanceOf(proxy), comet?.baseTokenPriceFeed()]);
+  const borrowPrice =  await comet?.getPrice(borrowToken[1]);
+
+  let totalCollateral = 0
+
+   const totalBorrow = ( Number(fromBigNumber(borrowPrice)) / 10 ** 8) * fixed2Decimals(fromBigNumber(borrowToken[0]), CompoundBaseTokens[0].decimals )
+  
+  for (let i = 0; i< collateralTokens.length; i++ ) {
+    const ltv = fixed2Decimals(fromBigNumber(assets[i].borrowCollateralFactor))
+    console.log("LTV", ltv);
+    
+    totalCollateral = totalCollateral +( values[i] * prices[i] * ltv)
+  }
+
+  const redeemBalanceInUSD = totalCollateral - totalBorrow;
+
+  console.log("getCollateralValue",  totalCollateral, totalBorrow, redeemBalanceInUSD)
+  
+  return { totalCollateral, totalBorrow, redeemBalanceInUSD }
+
+}
 
 export const getCollateralTokenData = async (token: any, address: any) => {
   const chainId = getChainId(wagmiConfig);
