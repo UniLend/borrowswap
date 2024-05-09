@@ -1020,16 +1020,6 @@ export const controllerABI = [
         "components": [
           {
             "internalType": "address",
-            "name": "_borrowedToken",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "_tokenIn",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
             "name": "_user",
             "type": "address"
           },
@@ -1042,6 +1032,41 @@ export const controllerABI = [
             "internalType": "uint256",
             "name": "_collateralAmount",
             "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "_tokenOut",
+            "type": "address"
+          },
+          {
+            "internalType": "uint24[]",
+            "name": "_route",
+            "type": "uint24[]"
+          }
+        ],
+        "internalType": "struct CompRedeem",
+        "name": "params",
+        "type": "tuple"
+      }
+    ],
+    "name": "compRedeem",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "_borrowedToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "_tokenIn",
+            "type": "address"
           },
           {
             "internalType": "uint256",

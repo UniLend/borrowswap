@@ -16,6 +16,7 @@ import {
   handleSelectReceiveToken,
 } from "./utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { CompoundBaseTokens } from "../../../helpers/constants";
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
   REPAY = "Swap_Repay",
@@ -169,7 +170,9 @@ export default function RepayCard({ uniSwapTokens }: any) {
 
   const getOprationToken = () => {
     if (tokenListStatus.operation === "pool") {
-      return pools;
+      console.log("poos", pools);
+      
+      return [...pools, ...CompoundBaseTokens];
     } else if (tokenListStatus.operation === "lend") {
       return uniSwapTokens;
     } else if (tokenListStatus.operation === "receive") {
@@ -269,11 +272,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
       [tokenListStatus.operation]: { ...data, map: true },
     });
     if (tokenListStatus.operation == "pool") {
-
-      
-
-      handleRepayToken(data);
-      
+      handleRepayToken(data);  
       setReceiveAmount("");
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {

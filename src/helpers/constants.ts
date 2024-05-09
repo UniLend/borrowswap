@@ -27,3 +27,81 @@ export const USDT_TOKEN = new Token(
   '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
   6,
 )
+
+
+export const CompoundBaseTokens = [
+  {
+    address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    symbol: "USDC (PoS)",
+    name: "USD Coin (PoS) ",
+    decimals: 6,
+    source: "Compound",
+    compoundCollateralTokens:  [{
+      address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+      symbol: "WETH",
+      name: "Wrapped ETH",
+      decimals: 18,
+      source: "Compound",
+      logo: "https://assets.coingecko.com/coins/images/17238/small/aWETH_2x.png?1626940782"
+    },
+    {
+      address: "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
+      symbol: "WBTC",
+      name: "Wrapped BTC",
+      decimals: 8,
+      source: "Compound",
+      logo: "https://assets.coingecko.com/coins/images/7598/small/wrapped_bitcoin_wbtc.png?1548822744"
+    },
+      {
+      address: "0x3A58a54C066FdC0f2D55FC9C89F0415C92eBf3C4",
+      symbol: "stMATIC",
+      name: "Staked Matic",
+      decimals: 18,
+      source: "Compound",
+      logo: "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912"
+    },
+      {
+      address: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+      symbol: "WMATIC",
+      name: "Wrapped Matic",
+      decimals: 18,
+      source: "Compound",
+      logo: "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912"
+    }]
+  },
+];
+
+export const compoundCollateralTokens = [
+  {
+    address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+    symbol: "WETH",
+    name: "Wrapped ETH",
+    decimals: 18,
+    source: "Compound",
+    logo: "https://assets.coingecko.com/coins/images/17238/small/aWETH_2x.png?1626940782"
+  },
+  {
+    address: "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
+    symbol: "WBTC",
+    name: "Wrapped BTC",
+    decimals: 8,
+    source: "Compound",
+    logo: "https://assets.coingecko.com/coins/images/7598/small/wrapped_bitcoin_wbtc.png?1548822744"
+  },
+    {
+    address: "0x3A58a54C066FdC0f2D55FC9C89F0415C92eBf3C4",
+    symbol: "stMATIC",
+    name: "Staked Matic",
+    decimals: 18,
+    source: "Compound",
+    logo: "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912"
+  },
+    {
+    address: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+    symbol: "WMATIC",
+    name: "Wrapped Matic",
+    decimals: 18,
+    source: "Compound",
+    logo: "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912"
+  },
+];

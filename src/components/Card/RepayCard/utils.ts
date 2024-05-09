@@ -138,13 +138,18 @@ console.log("handleSelectRepayToken", data);
   } else{
 
     console.log("No Pool Data");
+
+    const tokenData = await getBorrowTokenData(poolData.borrowToken, address)
+
+    console.log("tokenData", tokenData);
+    
     
      setSelectedData({
       ...selectedData,
       ["pool"]: poolData,
       ["lend"]: null,
-      ["receive"]:null,
-      ["borrow"]:null,
+      ["receive"]: tokenData,
+      ["borrow"]: tokenData,
     });
     
   }

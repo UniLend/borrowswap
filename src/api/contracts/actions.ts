@@ -295,22 +295,16 @@ export const handleCompoundRedeem = async (
     const instance = await getEtherContract(controllerAddress, controllerABI);
 
     const parameters = {
-      _borrowedToken: selectedData?.borrow.address,
-      _tokenIn: lend == ''? selectedData?.borrow.address: selectedData?.lend.address,
       _user: user,
-      _collateralToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
-      _collateralAmount: '500000000100000000',
-      _repayAmount: '244625095',
-      _route: [3000, 10000],
-  
+      _collateralToken: selectedData?.borrow.address,
+      _collateralAmount:  decimal2Fixed(lend, selectedData?.lend.decimals),
+      _tokenOut:  selectedData?.receive.address,
+      _route: fees,
     }
-    const { hash } = await instance?.compRepay(
-      lend == ''? selectedData?.borrow.address: selectedData?.lend.address,
-      selectedData?.borrow.address,
-      user,
-      selectedData?.receive.address,
-      selectedData.receive.collateralBalance,
-      decimal2Fixed(lend, selectedData?.lend.decimals)
+console.log("handleComReeem", parameters);
+
+    const { hash } = await instance?.compRedeem(
+   parameters
     );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
@@ -340,20 +334,11 @@ export const handleCompoundRepay = async (
     const parameters = {
       _borrowedToken: selectedData?.borrow.address,
       _tokenIn: lend == ''? selectedData?.borrow.address: selectedData?.lend.address,
-      _user: user,
-      _collateralToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
-      _collateralAmount: '500000000100000000',
-      _repayAmount: '244625095',
-      _route: [3000, 10000],
-  
+      _repayAmount:  decimal2Fixed(lend, selectedData?.lend.decimals),
+      _route: fees,
     }
     const { hash } = await instance?.compRepay(
-      lend == ''? selectedData?.borrow.address: selectedData?.lend.address,
-      selectedData?.borrow.address,
-      user,
-      selectedData?.receive.address,
-      selectedData.receive.collateralBalance,
-      decimal2Fixed(lend, selectedData?.lend.decimals)
+     parameters
     );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
@@ -370,7 +355,7 @@ export const getAllowance = async (
   token: any,
   user: `0x${string}` | undefined
 ) => {
-  console.log("allowance", token);
+
   try {
     var maxAllow =
       "115792089237316195423570985008687907853269984665640564039457584007913129639935";
@@ -385,7 +370,7 @@ export const getAllowance = async (
         ? fromBigNumber(allowance)
         : fixed2Decimals(fromBigNumber(allowance), token.decimals);
     const bal = await instance?.balanceOf(user);
-
+    console.log("allowance", {...token,allowanceFixed });
     return {
       allowance: fromBigNumber(allowance),
       allowanceFixed: allowanceFixed,
@@ -709,9 +694,11 @@ export const getCollateralTokenData = async (token: any, address: any) => {
   const collateralBal = await comet?.userCollateral(proxy, tokenAddress);
   //const baseToken = await comet?.getCollateralReserves(tokenAddress)
   // quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
+   const data = await getAllowance(token, address)
   const price = await comet?.getPrice(assetInfo.priceFeed);
   const info = {
     ...token,
+ ...data,
     ltv:
       fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor)) * 100 -
       0.5,
@@ -741,7 +728,7 @@ export const getBorrowTokenData = async (token: any, address: any) => {
   
     //const assetInfo = await comet?.getAssetInfoByAddress(tokenAddress)
     const BorrowBal = await comet?.borrowBalanceOf(proxy);
-    //  const Bal = await comet?.balanceOf( proxy)
+      const Bal = await comet?.balanceOf( proxy)
     // const quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
     const borrowMin = await comet?.baseBorrowMin();
     const baseTokenPriceFeed = await comet?.baseTokenPriceFeed();
@@ -749,8 +736,9 @@ export const getBorrowTokenData = async (token: any, address: any) => {
     const info = {
       ...token,
       // ltv: fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor))*100,
-      BorrowBalance: fromBigNumber(BorrowBal),
-      BorrowBalanceFixed: fixed2Decimals(
+      bal: fromBigNumber(Bal),
+      borrowBalance: fromBigNumber(BorrowBal),
+      borrowBalanceFixed: fixed2Decimals(
         fromBigNumber(BorrowBal),
         token?.decimals || 18
       ),

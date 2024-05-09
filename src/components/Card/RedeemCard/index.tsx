@@ -17,10 +17,11 @@ import {
   // checkLiquidity
 } from "./utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { CompoundBaseTokens } from "../../../helpers/constants";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
-  REPAY = "Swap_Repay",
+  REDEEM = "Redeem_Swap",
 }
 
 const compoundTempPosition = [
@@ -195,7 +196,9 @@ export default function RedeemCard({ uniSwapTokens }: any) {
 
   const getOprationToken = () => {
     if (tokenListStatus.operation === "pool") {
-      return pools;
+      console.log("pools", pools);
+      
+      return [...pools, ...CompoundBaseTokens];
     } else if (tokenListStatus.operation === "receive") {
       return tokens;
     } else if (tokenListStatus.operation === "lend") {
@@ -289,7 +292,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   };
 
   const handleTokenSelection = async (data: any) => {
-    console.log("handletokendata", data);
+    console.log("handletokendata", data,tokenListStatus );
      setTokenListStatus({ isOpen: false, operation: "" });
     setSelectedData({
       ...selectedData,
@@ -299,6 +302,13 @@ export default function RedeemCard({ uniSwapTokens }: any) {
       handleRepayToken(data);
       setReceiveAmount("");
       setLendAmount("");
+      // if(data.source == 'Compound'){
+      //   const tokenBal = await getAllowance(data.borrowToken, address);
+      //   setSelectedData({
+      //     ...selectedData,
+      //     ['lend']: { ...data.borrowToken, ...tokenBal },
+      //   });
+      // }
     } else if (tokenListStatus.operation == "lend") {
       setTokenListStatus({ isOpen: false, operation: "" });
     
@@ -388,7 +398,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           }}
           // buttonText={selectedData?.pool?.otherToken?.symbol}
           buttonText={
-            selectedData?.pool?.source === "Compound" ? selectedData?.receive?.symbol : selectedData?.pool?.otherToken?.symbol
+            selectedData?.pool?.source === "Compound" ? selectedData?.lend?.symbol : selectedData?.pool?.otherToken?.symbol
           }
           isShowMaxBtn
           onClick={
@@ -450,7 +460,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
         <TokenListModal
           tokenList={getOprationToken()}
           onSelectToken={(token: any) => handleTokenSelection(token)}
-          operation={ActiveOperation.REPAY}
+          operation={ActiveOperation.REDEEM}
           isTokenListLoading={isTokenLoading.positions}
           showPoolData={tokenListStatus.operation == "pool" ? true : false}
           positionData={[

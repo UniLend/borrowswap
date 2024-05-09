@@ -173,12 +173,16 @@ export const handleSelectRepayToken = async (
       setLendAmount(data.token0.redeemBalanceFixed)
     }
   } else{
+  
+
+    const tokenData = await getCollateralTokenData(poolData.borrowToken  , address )
+    console.log("selectedData", poolData, tokenData);
      setSelectedData({
       ...selectedData,
       ["pool"]: poolData,
-      ["lend"]: null,
+      ["lend"]: {...tokenData,  redeemBalanceFixed: tokenData.collateralBalanceFixed},
       ["receive"]:null,
-      ["borrow"]:null,
+      ["borrow"]: tokenData,
     });
     
   }
