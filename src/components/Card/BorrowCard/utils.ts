@@ -158,10 +158,10 @@ export const handleSwapTransaction = async (
     const lendToken = await getAllowance(selectedTokens?.lend, address);
     // const borrowToken = await getAllowance(selectedTokens?.borrow, address);
     setIsBorrowProgressModal(true);
-    if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
+    if (Number(lendAmount) > Number(lendToken.allowanceFixed) ) {
       setModalMsg("Spend Aprroval for " + selectedTokens.lend.symbol);
       console.log("runnn ")
-    const checkApproval =  await handleApproval(selectedTokens?.lend.address, address, lendAmount);
+    const checkApproval =  await handleApproval(selectedTokens?.lend.address, selectedTokens?.lend.decimals,  address, lendAmount);
     const allow = await getAllowance(selectedTokens?.lend, address);
       console.log("allow", allow );
       console.log("checkApproval", checkApproval );
