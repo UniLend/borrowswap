@@ -201,7 +201,8 @@ export const handleSwapTransaction = async (
           selectedTokens.receive.address,
           decimal2Fixed(lendAmount, selectedTokens.lend.decimals),
           decimal2Fixed(borrowAmount, selectedTokens.borrow.decimals),
-          address
+          address,
+          path
         );
       }
 

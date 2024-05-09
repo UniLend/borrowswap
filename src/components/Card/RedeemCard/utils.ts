@@ -1,4 +1,4 @@
-import { handleRedeem } from './../../../api/contracts/actions';
+import { handleCompoundRedeem, handleRedeem } from './../../../api/contracts/actions';
 import { valueType } from "antd/es/statistic/utils";
 import { getQuote } from "../../../api/axios/calls";
 import {
@@ -272,11 +272,12 @@ export const handleRepayTransaction = async (
           path
         );
       } else {
-        hash = await handleCompoundRepay(
+        hash = await handleCompoundRedeem(
           redeemAmount,
           address,
           selectedData,
-          borrowAmount
+          borrowAmount,
+          path
         );
       }
       if (hash) {

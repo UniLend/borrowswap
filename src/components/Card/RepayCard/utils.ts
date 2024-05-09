@@ -241,7 +241,8 @@ export const handleRepayTransaction = async (
           lendAmount,
           address,
           selectedData,
-          borrowAmount
+          borrowAmount,
+          path
         );
       }
       if (hash) {

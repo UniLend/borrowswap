@@ -280,11 +280,12 @@ export const handleRepay = async (
   }
 };
 
-export const handleCompoundRepay = async (
+export const handleCompoundRedeem = async (
   lend: any,
   user: any,
   selectedData: any,
-  borrowAmount: any
+  borrowAmount: any,
+  fees: any
 ) => {
 
   try {
@@ -292,8 +293,61 @@ export const handleCompoundRepay = async (
     const controllerAddress =
       contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
     const instance = await getEtherContract(controllerAddress, controllerABI);
-    
-    const { hash } = await instance?.reapay(
+
+    const parameters = {
+      _borrowedToken: selectedData?.borrow.address,
+      _tokenIn: lend == ''? selectedData?.borrow.address: selectedData?.lend.address,
+      _user: user,
+      _collateralToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+      _collateralAmount: '500000000100000000',
+      _repayAmount: '244625095',
+      _route: [3000, 10000],
+  
+    }
+    const { hash } = await instance?.compRepay(
+      lend == ''? selectedData?.borrow.address: selectedData?.lend.address,
+      selectedData?.borrow.address,
+      user,
+      selectedData?.receive.address,
+      selectedData.receive.collateralBalance,
+      decimal2Fixed(lend, selectedData?.lend.decimals)
+    );
+    console.log("transaction", hash);
+    const receipt = await waitForTransaction(hash);
+    return receipt;
+    return "";
+  } catch (error) {
+    console.log("Error", { error });
+
+    throw error;
+  }
+};
+
+export const handleCompoundRepay = async (
+  lend: any,
+  user: any,
+  selectedData: any,
+  borrowAmount: any,
+  fees: any
+) => {
+
+  try {
+    const chainId = getChainId(wagmiConfig);
+    const controllerAddress =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
+    const instance = await getEtherContract(controllerAddress, controllerABI);
+
+    const parameters = {
+      _borrowedToken: selectedData?.borrow.address,
+      _tokenIn: lend == ''? selectedData?.borrow.address: selectedData?.lend.address,
+      _user: user,
+      _collateralToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+      _collateralAmount: '500000000100000000',
+      _repayAmount: '244625095',
+      _route: [3000, 10000],
+  
+    }
+    const { hash } = await instance?.compRepay(
       lend == ''? selectedData?.borrow.address: selectedData?.lend.address,
       selectedData?.borrow.address,
       user,
@@ -721,30 +775,27 @@ export const handleCompoundSwap = async (
   tokenOut: string,
   supplyAmount: string,
   borrowAmount: string,
-  user: any
+  user: any,
+  fees:any
 ) => {
   const chainId = getChainId(wagmiConfig);
   const controllerAddress =
     contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
   const instance = await getEtherContract(controllerAddress, controllerABI);
 
-  console.log("instance", instance, {
-    tokenIn,
-    borrowAsset,
-    tokenOut,
-    supplyAmount,
-    borrowAmount,
-    user,
-  });
+  const parameters ={
+    _supplyAsset: tokenIn,
+    _borrowAsset: borrowAsset,
+    _tokenOut: tokenOut,
+    _supplyAmount: supplyAmount,
+    _borrowAmount: borrowAmount,
+    _user: user,
+    _route: fees,
 
-  const { hash } = await instance?.compoundBorrow(
-    tokenIn,
-    borrowAsset,
-    tokenOut,
-    supplyAmount,
-    borrowAmount,
-    user
-  );
+  }
+  console.log("instance", instance, parameters);
+
+  const { hash } = await instance?.compoundBorrow(parameters);
 
   const receipt = await waitForTransaction(hash);
   return hash;
