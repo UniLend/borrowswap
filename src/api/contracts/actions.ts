@@ -8,10 +8,9 @@ import {
   helperAbi,
   positionAbi,
 } from "./abi";
-// import { readContracts, writeContract } from "wagmi/actions";
-import { getEtherContract } from "./ethers";
-import { readContracts, writeContracts } from "./lib";
 
+import { getEtherContract } from "./ethers";
+import { readContractLib } from "./lib";
 import {
   add,
   decimal2Fixed,
@@ -95,7 +94,7 @@ export const getUserProxy = async (user: any) => {
     const chainId = getChainId(wagmiConfig);
     const controllerAddress =
       contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
-    const proxy = await readContracts(
+    const proxy = await readContractLib(
       controllerAddress,
       controllerABI,
       "proxyAddress",
@@ -121,7 +120,7 @@ export const handleSwap = async (
     const chainId = getChainId(wagmiConfig);
     const controllerAddress =
       contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
-    // const instance = await getEtherContract(controllerAddress, controllerABI);
+    const instance = await getEtherContract(controllerAddress, controllerABI);
 
     const borrowAmount =
       selectedTokens.borrow.token == 1
@@ -130,28 +129,14 @@ export const handleSwap = async (
 
     const encode = abiEncode(path);
 
-    const hash = await writeContracts(
-      controllerAddress,
-      controllerABI,
-      "uniBorrow",
-      [
-        pool.pool,
-        selectedTokens.lend.address,
-        selectedTokens.receive.address,
-        decimal2Fixed(amount, selectedTokens.lend.decimals),
-        borrowAmount,
-        user,
-      ]
+    const { hash } = await instance?.uniBorrow(
+      pool.pool,
+      selectedTokens.lend.address,
+      selectedTokens.receive.address,
+      decimal2Fixed(amount, selectedTokens.lend.decimals),
+      borrowAmount,
+      user
     );
-
-    // const { hash } = await instance?.uniBorrow(
-    //   pool.pool,
-    //   selectedTokens.lend.address,
-    //   selectedTokens.receive.address,
-    //   decimal2Fixed(amount, selectedTokens.lend.decimals),
-    //   borrowAmount,
-    //   user
-    // );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
     return hash;
@@ -217,19 +202,13 @@ export const handleRedeem = async (
       Amount,
       selectedTokens.receive.address
     );
-    const hash = await writeContracts(
-      controllerAddress,
-      controllerABI,
-      "uniRedeem",
-      [selectedTokens.pool.pool, user, Amount, selectedTokens.receive.address]
-    );
 
-    // const { hash } = await instance?.uniRedeem(
-    //   selectedTokens.pool.pool,
-    //   user,
-    //   Amount,
-    //   selectedTokens.receive.address
-    // );
+    const { hash } = await instance?.uniRedeem(
+      selectedTokens.pool.pool,
+      user,
+      Amount,
+      selectedTokens.receive.address
+    );
 
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
@@ -250,7 +229,7 @@ export const handleRepay = async (
     const chainId = getChainId(wagmiConfig);
     const controllerAddress =
       contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
-    // const instance = await getEtherContract(controllerAddress, controllerABI);
+    const instance = await getEtherContract(controllerAddress, controllerABI);
 
     const borrowAmount =
       selectedTokens.borrow.token == 1
@@ -266,26 +245,13 @@ export const handleRepay = async (
       borrowAmount
     );
 
-    const hash = await writeContracts(
-      controllerAddress,
-      controllerABI,
-      "uniRepay",
-      [
-        selectedTokens.pool.pool,
-        selectedTokens.lend.address,
-        user,
-        selectedTokens.borrow.address,
-        borrowAmount,
-      ]
+    const { hash } = await instance?.uniRepay(
+      selectedTokens.pool.pool,
+      selectedTokens.lend.address,
+      user,
+      selectedTokens.borrow.address,
+      borrowAmount
     );
-
-    // const { hash } = await instance?.uniRepay(
-    //   selectedTokens.pool.pool,
-    //   selectedTokens.lend.address,
-    //   user,
-    //   selectedTokens.borrow.address,
-    //   borrowAmount
-    // );
 
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
@@ -307,30 +273,16 @@ export const handleCompoundRepay = async (
     const chainId = getChainId(wagmiConfig);
     const controllerAddress =
       contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
-    // const instance = await getEtherContract(controllerAddress, controllerABI);
+    const instance = await getEtherContract(controllerAddress, controllerABI);
 
-    const hash = await writeContracts(
-      controllerAddress,
-      controllerABI,
-      "reapay",
-      [
-        lend == "" ? selectedData?.borrow.address : selectedData?.lend.address,
-        selectedData?.borrow.address,
-        user,
-        selectedData?.receive.address,
-        selectedData.receive.collateralBalance,
-        decimal2Fixed(lend, selectedData?.lend.decimals),
-      ]
+    const { hash } = await instance?.reapay(
+      lend == "" ? selectedData?.borrow.address : selectedData?.lend.address,
+      selectedData?.borrow.address,
+      user,
+      selectedData?.receive.address,
+      selectedData.receive.collateralBalance,
+      decimal2Fixed(lend, selectedData?.lend.decimals)
     );
-
-    // const { hash } = await instance?.reapay(
-    //   lend == ''? selectedData?.borrow.address: selectedData?.lend.address,
-    //   selectedData?.borrow.address,
-    //   user,
-    //   selectedData?.receive.address,
-    //   selectedData.receive.collateralBalance,
-    //   decimal2Fixed(lend, selectedData?.lend.decimals)
-    // );
     console.log("transaction", hash);
     const receipt = await waitForTransaction(hash);
     return receipt;
@@ -354,14 +306,14 @@ export const getAllowance = async (
     const chainId = getChainId(wagmiConfig);
     const controllerAddress =
       contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
-    const allowance = await readContracts(
+    const allowance = await readContractLib(
       token.address,
       erc20Abi,
       "allowance",
       [user, controllerAddress]
     );
 
-    const bal = await readContracts(token.address, erc20Abi, "balanceOf", [
+    const bal = await readContractLib(token.address, erc20Abi, "balanceOf", [
       user,
     ]);
 
@@ -420,7 +372,7 @@ export const getPoolBasicData = async (
       const [token0, token1, data]: any = await Promise.all([
         getAllowance(pool.token0, userAddress),
         getAllowance(pool.token1, userAddress),
-        readContracts(contracts.helperAddress, helperAbi, "getPoolFullData", [
+        readContractLib(contracts.helperAddress, helperAbi, "getPoolFullData", [
           contracts.positionAddress,
           poolAddress,
           proxy,
@@ -446,7 +398,7 @@ export const getPoolBasicData = async (
         //   decimal2Fixed(1, poolData.token1.decimals)
         // );
 
-        let oracleData = await readContracts(
+        let oracleData = await readContractLib(
           contracts.coreAddress,
           coreAbi,
           "getOraclePrice",
@@ -461,7 +413,7 @@ export const getPoolBasicData = async (
         token1Price = Price;
         token0Price = 1 / Price;
       } else {
-        let oracleData = await readContracts(
+        let oracleData = await readContractLib(
           contracts.coreAddress,
           coreAbi,
           "getOraclePrice",
@@ -712,38 +664,34 @@ export const getCollateralTokenData = async (token: any, address: any) => {
   const chainId = getChainId(wagmiConfig);
   const compoundAddress =
     contractAddresses[chainId as keyof typeof contractAddresses]?.compound;
-  // const comet = await getEtherContract(compoundAddress, compoundABI);
+  const comet = await getEtherContract(compoundAddress, compoundABI);
 
   const proxy = await getUserProxy(address);
 
   const tokenAddress = token?.address;
-  const assetInfo: any = await readContracts(
+  const assetInfo: any = await readContractLib(
     compoundAddress,
     compoundABI,
     "getAssetInfoByAddress",
     [tokenAddress]
   );
-  const collateralBal: any = await readContracts(
+
+  const price = await readContractLib(
     compoundAddress,
     compoundABI,
-    "userCollateral",
-    [proxy, tokenAddress]
+    "getPrice",
+    [assetInfo.priceFeed]
   );
-  const price = await readContracts(compoundAddress, compoundABI, "getPrice", [
-    assetInfo.priceFeed,
-  ]);
 
-  // const assetInfo = await comet?.getAssetInfoByAddress(tokenAddress);
-  // const collateralBal = await comet?.userCollateral(proxy, tokenAddress);
+  const collateralBal = await comet?.userCollateral(proxy, tokenAddress);
   //const baseToken = await comet?.getCollateralReserves(tokenAddress)
   // quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
-  // const price = await comet?.getPrice(assetInfo.priceFeed);
   const info = {
     ...token,
     ltv:
       fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor)) * 100 -
       0.5,
-    collateralBalance: fromBigNumber(collateralBal.balance),
+    collateralBalance: fromBigNumber(collateralBal[0]),
     collateralBalanceFixed: fixed2Decimals(
       fromBigNumber(collateralBal.balance),
       token?.decimals || 18
@@ -752,7 +700,6 @@ export const getCollateralTokenData = async (token: any, address: any) => {
     price: Number(fromBigNumber(price)) / 10 ** 8,
     //quote: fixed2Decimals(fromBigNumber(quote))
   };
-
   return info;
 };
 
@@ -761,19 +708,42 @@ export const getBorrowTokenData = async (token: any, address: any) => {
     const chainId = getChainId(wagmiConfig);
     const compoundAddress =
       contractAddresses[chainId as keyof typeof contractAddresses]?.compound;
-    const comet = await getEtherContract(compoundAddress, compoundABI);
-
     const proxy = await getUserProxy(address);
 
     const tokenAddress = token?.address;
 
+    const BorrowBal: any = await readContractLib(
+      compoundAddress,
+      compoundABI,
+      "borrowBalanceOf",
+      [proxy]
+    );
+
     //const assetInfo = await comet?.getAssetInfoByAddress(tokenAddress)
-    const BorrowBal = await comet?.borrowBalanceOf(proxy);
+    // const BorrowBal = await comet?.borrowBalanceOf(proxy);
     //  const Bal = await comet?.balanceOf( proxy)
     // const quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
-    const borrowMin = await comet?.baseBorrowMin();
-    const baseTokenPriceFeed = await comet?.baseTokenPriceFeed();
-    const price = await comet?.getPrice(baseTokenPriceFeed);
+    const borrowMin: any = await readContractLib(
+      compoundAddress,
+      compoundABI,
+      "baseBorrowMin",
+      []
+    );
+    const baseTokenPriceFeed: any = await readContractLib(
+      compoundAddress,
+      compoundABI,
+      "baseTokenPriceFeed",
+      []
+    );
+    const price: any = await readContractLib(
+      compoundAddress,
+      compoundABI,
+      "baseTokenPriceFeed",
+      []
+    );
+    // const borrowMin = await comet?.baseBorrowMin();
+    // const baseTokenPriceFeed = await comet?.baseTokenPriceFeed();
+    // const price = await comet?.getPrice(baseTokenPriceFeed);
     const info = {
       ...token,
       // ltv: fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor))*100,
@@ -790,7 +760,7 @@ export const getBorrowTokenData = async (token: any, address: any) => {
       price: Number(fromBigNumber(price)) / 10 ** 8,
       // quote: fixed2Decimals(fromBigNumber(quote))
     };
-
+    console.log("borrow", info);
     return info;
   } catch (error) {
     console.log("Error in getBorrowTokenData ", { error });
@@ -819,20 +789,14 @@ export const handleCompoundSwap = async (
     user,
   });
 
-  const hash = await writeContracts(
-    controllerAddress,
-    controllerABI,
-    "compoundBorrow",
-    [tokenIn, borrowAsset, tokenOut, supplyAmount, borrowAmount, user]
+  const { hash } = await instance?.compoundBorrow(
+    tokenIn,
+    borrowAsset,
+    tokenOut,
+    supplyAmount,
+    borrowAmount,
+    user
   );
-  // const { hash } = await instance?.compoundBorrow(
-  //   tokenIn,
-  //   borrowAsset,
-  //   tokenOut,
-  //   supplyAmount,
-  //   borrowAmount,
-  //   user
-  // );
 
   const receipt = await waitForTransaction(hash);
   return hash;

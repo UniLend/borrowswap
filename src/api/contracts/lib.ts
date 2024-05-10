@@ -1,8 +1,13 @@
-import { readContract, writeContract } from "wagmi/actions";
-
+import {
+  readContract,
+  writeContract,
+  waitForTransactionReceipt,
+  getBlockNumber,
+  getChainId,
+} from "wagmi/actions";
 import { wagmiConfig } from "../../main";
 
-export const readContracts = async (
+export const readContractLib = async (
   address: any,
   abi: any,
   functionName: string,
