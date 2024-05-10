@@ -404,8 +404,6 @@ export const getButtonAction = (
     btn.text = "Pools are loading";
   } else if (isTokenLoading.rangeSlider) {
     btn.text = "Quote data loading";
-  } else if (isLowValueCompound) {
-    btn.text = "Min. $100 borrow required";
   } else if (isLowBal) {
     btn.text = "Low balance";
   } else if (borrow === null) {
@@ -420,6 +418,8 @@ export const getButtonAction = (
     if (lend.collateralBalanceFixed === 0) {
       btn.text = "Enter pay token value";
     }
+  } else if (isLowValueCompound) {
+    btn.text = "Min. $100 borrow required";
   }
 
   // btn.disable = !!(btn.text !== "Borrow");
