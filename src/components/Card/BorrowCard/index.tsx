@@ -10,7 +10,12 @@ import type { UnilendV2State } from "../../../states/store";
 import { useSelector } from "react-redux";
 import "./index.scss";
 import useWalletHook from "../../../api/hooks/useWallet";
-import {AccordionContainer, TokenListModal, AmountContainer, ButtonWithDropdown } from "../../Common"
+import {
+  AccordionContainer,
+  TokenListModal,
+  AmountContainer,
+  ButtonWithDropdown,
+} from "../../Common";
 import BorrowLoader from "../../Loader/BorrowLoader";
 import {
   checkLiquidity,
@@ -22,16 +27,15 @@ import {
   handleTokenSelection,
 } from "./utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { CompoundBaseTokens, compoundCollateralTokens } from "../../../helpers/constants";
+import {
+  CompoundBaseTokens,
+  compoundCollateralTokens,
+} from "../../../helpers/constants";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
   REPAY = "Swap_Repay",
 }
-
-
-
-
 
 export default function BorrowCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
@@ -75,13 +79,10 @@ export default function BorrowCard({ uniSwapTokens }: any) {
   const [uniQuote, setUniQuote] = useState({
     totalFee: 0,
     slippage: 0,
-    path: []
-  })
+    path: [],
+  });
 
-
-  const isLowBal: boolean =
-    +lendAmount >
-    selectedTokens?.lend?.balanceFixed;
+  const isLowBal: boolean = +lendAmount > selectedTokens?.lend?.balanceFixed;
   const connectWallet = isConnected;
 
   const borrowBtn = getButtonAction(
@@ -278,10 +279,9 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     checkLoading(isTokenLoading);
   }, [isTokenLoading]);
 
-  useEffect(()=> {
-console.log("selectedTokens", selectedTokens);
-
-  }, [selectedTokens])
+  useEffect(() => {
+    console.log("selectedTokens", selectedTokens);
+  }, [selectedTokens]);
 
   return (
     <>
@@ -297,14 +297,9 @@ console.log("selectedTokens", selectedTokens);
           onMaxClick={() => setLendAmount(selectedTokens?.lend?.balanceFixed)}
           buttonText={selectedTokens?.lend?.symbol}
           // onClick={() => handleOpenTokenList("lend")}
-          onClick={isConnected 
-                ? () => handleOpenTokenList("lend")
-                : () => {}}
-          
+          onClick={isConnected ? () => handleOpenTokenList("lend") : () => {}}
           isShowMaxBtn
-           btnClass={
-             !isConnected ?  "disable_btn newbtn" :"visible"
-          }
+          btnClass={!isConnected ? "disable_btn newbtn" : "visible"}
         />
         <div className='swap_route'>
           <p className='paragraph06 '>You borrow</p>
@@ -315,13 +310,13 @@ console.log("selectedTokens", selectedTokens);
                 ? () => handleOpenTokenList("borrow")
                 : () => {}
             }
-            className={ selectedTokens?.borrow === null ?  "transparent_btn" : ""}
+            className={selectedTokens?.borrow === null ? "transparent_btn" : ""}
             title={
               selectedTokens?.lend === null ? "please select you pay token" : ""
             }
-             btnClass={
-             selectedTokens?.lend === null ?  "disable_btn newbtn" :"visible"
-          }
+            btnClass={
+              selectedTokens?.lend === null ? "disable_btn newbtn" : "visible"
+            }
           />
         </div>
         <p className='paragraph06 label'>You Receive</p>
@@ -335,7 +330,7 @@ console.log("selectedTokens", selectedTokens);
           onMaxClick={() => console.log("Max Clicked")}
           buttonText={selectedTokens?.receive?.symbol}
           onClick={
-            selectedTokens?.borrow !== null && !isTokenLoading.pools 
+            selectedTokens?.borrow !== null && !isTokenLoading.pools
               ? () => handleOpenTokenList("receive")
               : () => {}
           }
@@ -345,7 +340,7 @@ console.log("selectedTokens", selectedTokens);
               : ""
           }
           btnClass={
-             selectedTokens?.borrow === null ?  "disable_btn newbtn" :"visible"
+            selectedTokens?.borrow === null ? "disable_btn newbtn" : "visible"
           }
         />
         <div className='range_container'>
@@ -372,18 +367,28 @@ console.log("selectedTokens", selectedTokens);
             }
           />
         </div>
-        {isConnected ?  
-        <Button
-          disabled={borrowBtn.disable}
-          className='primary_btn'
-          onClick={handleBorrowSwapTransaction}
-          title='please select you pay token'
-          loading={isTokenLoading.pools || isTokenLoading.rangeSlider}
-        >
-          {borrowBtn.text}
-        </Button> : <div className="connect-btn"><ConnectButton/></div>}
-        <AccordionContainer selectedTokens={selectedTokens} b2rRatio = {b2rRatio} fee={uniQuote.totalFee} slippage={uniQuote.slippage} lendAmount={lendAmount} />
-
+        {isConnected ? (
+          <Button
+            disabled={borrowBtn.disable}
+            className='primary_btn'
+            onClick={handleBorrowSwapTransaction}
+            title='please select you pay token'
+            loading={isTokenLoading.pools || isTokenLoading.rangeSlider}
+          >
+            {borrowBtn.text}
+          </Button>
+        ) : (
+          <div className='connect-btn'>
+            <ConnectButton />
+          </div>
+        )}
+        <AccordionContainer
+          selectedTokens={selectedTokens}
+          b2rRatio={b2rRatio}
+          fee={uniQuote.totalFee}
+          slippage={uniQuote.slippage}
+          lendAmount={lendAmount}
+        />
       </div>
       <Modal
         className='antd_modal_overlay'
@@ -402,8 +407,8 @@ console.log("selectedTokens", selectedTokens);
           lendTokenSymbol={selectedTokens?.lend?.symbol}
         />
       </Modal>
-     
-        <Modal
+
+      <Modal
         className='antd_popover_content'
         centered
         onCancel={() => handleBorrowModal(false)}
@@ -413,7 +418,6 @@ console.log("selectedTokens", selectedTokens);
       >
         <BorrowLoader msg={modalMsg} progress={operationProgress} />
       </Modal>
-    
     </>
   );
 }

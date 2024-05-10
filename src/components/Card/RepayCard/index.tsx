@@ -7,7 +7,12 @@ import type { UnilendV2State } from "../../../states/store";
 import { useSelector } from "react-redux";
 import "./index.scss";
 import useWalletHook from "../../../api/hooks/useWallet";
-import { TokenListModal, AmountContainer, ButtonWithDropdown } from "../../Common"
+import {
+  TokenListModal,
+  AmountContainer,
+  ButtonWithDropdown,
+  AccordionContainer,
+} from "../../Common";
 import BorrowLoader from "../../Loader/BorrowLoader";
 import {
   handleQuote,
@@ -53,15 +58,14 @@ const compoundTempPosition = [
   },
 ];
 
-
-const compoundCollateralTokens  = [
-    {
+const compoundCollateralTokens = [
+  {
     address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
     symbol: "WETH",
     name: "Wrapped ETH",
     decimals: 18,
     source: "Compound",
-    logo: "https://assets.coingecko.com/coins/images/17238/small/aWETH_2x.png?1626940782"
+    logo: "https://assets.coingecko.com/coins/images/17238/small/aWETH_2x.png?1626940782",
   },
   {
     address: "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
@@ -69,25 +73,25 @@ const compoundCollateralTokens  = [
     name: "Wrapped BTC",
     decimals: 8,
     source: "Compound",
-    logo: "https://assets.coingecko.com/coins/images/7598/small/wrapped_bitcoin_wbtc.png?1548822744"
+    logo: "https://assets.coingecko.com/coins/images/7598/small/wrapped_bitcoin_wbtc.png?1548822744",
   },
-    {
+  {
     address: "0x3A58a54C066FdC0f2D55FC9C89F0415C92eBf3C4",
     symbol: "stMATIC",
     name: "Staked Matic",
     decimals: 18,
     source: "Compound",
-    logo: "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912"
+    logo: "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912",
   },
-    {
+  {
     address: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
     symbol: "WMATIC",
     name: "Wrapped Matic",
     decimals: 18,
     source: "Compound",
-    logo: "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912"
+    logo: "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912",
   },
-]
+];
 
 export default function RepayCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
@@ -122,15 +126,14 @@ export default function RepayCard({ uniSwapTokens }: any) {
     lend: false,
     receive: false,
     quotation: false,
-    
   });
   const [unilendPool, setUnilendPool] = useState(null as any | null);
   const [operationProgress, setOperationProgress] = useState(0);
   const [uniQuote, setUniQuote] = useState({
     totalFee: 0,
     slippage: 0,
-    path: []
-  })
+    path: [],
+  });
 
   const handleLendAmount = (amount: string) => {
     setLendAmount(amount);
@@ -152,15 +155,14 @@ export default function RepayCard({ uniSwapTokens }: any) {
   //   }
   // }, [unilendV2Data]);
 
-
-    useEffect(() => {
+  useEffect(() => {
     const poolsArray = Object.values(poolList);
     setPools(poolsArray);
     if (Object.keys(unilendV2Data.poolList).length > 0) {
       setIsTokenLoading({ ...isTokenLoading, pool: false });
     }
   }, [unilendV2Data]);
-  
+
   const repayButton = getRepayBtnActions(
     selectedData,
     isTokenLoading,
@@ -171,7 +173,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
   const getOprationToken = () => {
     if (tokenListStatus.operation === "pool") {
       console.log("poos", pools);
-      
+
       return [...pools, ...CompoundBaseTokens];
     } else if (tokenListStatus.operation === "lend") {
       return uniSwapTokens;
@@ -219,10 +221,9 @@ export default function RepayCard({ uniSwapTokens }: any) {
       setUniQuote
     );
   };
-  useEffect(()=> {
-   console.log("selectedData", selectedData);
-   
-  },[selectedData]);
+  useEffect(() => {
+    console.log("selectedData", selectedData);
+  }, [selectedData]);
 
   const handleRepayToken = async (poolData: any) => {
     await handleSelectRepayToken(
@@ -236,20 +237,19 @@ export default function RepayCard({ uniSwapTokens }: any) {
       setSelectedData
     );
   };
-  const handleReceiveToken =async (data:any) =>{
+  const handleReceiveToken = async (data: any) => {
     await handleSelectReceiveToken(
       data,
-       address,
+      address,
       isTokenLoading,
       selectedData,
       setIsTokenLoading,
-      setSelectedData,
-    )
-  }
-  
+      setSelectedData
+    );
+  };
 
   const handleSwapRepayTransaction = async () => {
-   await handleRepayTransaction(
+    await handleRepayTransaction(
       selectedData,
       address,
       lendAmount,
@@ -260,19 +260,19 @@ export default function RepayCard({ uniSwapTokens }: any) {
       setIsBorrowProgressModal,
       setModalMsg,
       handleClear,
-      uniQuote.path,
+      uniQuote.path
     );
   };
 
   const handleTokenSelection = async (data: any) => {
     console.log("handletokendata", data);
-     setTokenListStatus({ isOpen: false, operation: "" });
+    setTokenListStatus({ isOpen: false, operation: "" });
     setSelectedData({
       ...selectedData,
       [tokenListStatus.operation]: { ...data, map: true },
     });
     if (tokenListStatus.operation == "pool") {
-      handleRepayToken(data);  
+      handleRepayToken(data);
       setReceiveAmount("");
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
@@ -285,17 +285,16 @@ export default function RepayCard({ uniSwapTokens }: any) {
         [tokenListStatus.operation]: { ...data, ...tokenBal },
       });
     } else if (tokenListStatus.operation == "receive") {
-      handleReceiveToken(data)
-    //    setSelectedData({
-    //   ...selectedData,
-    //   ["lend"]: null,
-    //   ["receive"]: {
-    //     ...data.otherToken, ...borrowedToken 
-    //   },
-    //   ["borrow"]: { ...data.otherToken, ...borrowedToken },
-    // });
+      handleReceiveToken(data);
+      //    setSelectedData({
+      //   ...selectedData,
+      //   ["lend"]: null,
+      //   ["receive"]: {
+      //     ...data.otherToken, ...borrowedToken
+      //   },
+      //   ["borrow"]: { ...data.otherToken, ...borrowedToken },
+      // });
     }
-   
   };
 
   const checkLoading = (isTokenLoading: object) => {
@@ -305,30 +304,25 @@ export default function RepayCard({ uniSwapTokens }: any) {
   // Loading Quote Data based on lend State
   useEffect(() => {
     if (selectedData?.pool && selectedData?.lend && !tokenListStatus.isOpen) {
-      console.log("lendChnage")
+      console.log("lendChnage");
       setIsTokenLoading({ ...isTokenLoading, quotation: true });
       setLendAmount("");
       handleQuoteValue();
     }
   }, [selectedData?.lend]);
 
-
-
   useEffect(() => {
-      if(selectedData?.pool?.source === 'compound'){
-          setReceiveAmount(
-          (selectedData?.receive?.collateralBalanceFixed || 0)
-      )
-      setBorrowAmount(selectedData?.borrow?.borrowBalanceFixed || 0)
-      }else{
-          setReceiveAmount(
-          (selectedData?.receive?.collateralBalanceFixed || 0) +
+    if (selectedData?.pool?.source === "compound") {
+      setReceiveAmount(selectedData?.receive?.collateralBalanceFixed || 0);
+      setBorrowAmount(selectedData?.borrow?.borrowBalanceFixed || 0);
+    } else {
+      setReceiveAmount(
+        (selectedData?.receive?.collateralBalanceFixed || 0) +
           (selectedData?.receive?.redeemBalanceFixed || 0)
-        )
-        setBorrowAmount(selectedData?.borrow?.borrowBalanceFixed || 0)
-      }
+      );
+      setBorrowAmount(selectedData?.borrow?.borrowBalanceFixed || 0);
+    }
   }, [selectedData?.receive, selectedData.borrow]);
-  
 
   // loading state
   useEffect(() => {
@@ -346,12 +340,9 @@ export default function RepayCard({ uniSwapTokens }: any) {
                 ? `${selectedData.pool.borrowToken.symbol}`
                 : "Select"
             }
-            onClick={isConnected 
-                ? () => handleOpenTokenList("pool")
-                : () => {}}
-            className={ selectedData?.pool === null ?  "transparent_btn" : ""}
-            btnClass={ !isConnected ?  "disable_btn newbtn" :"visible"
-          }
+            onClick={isConnected ? () => handleOpenTokenList("pool") : () => {}}
+            className={selectedData?.pool === null ? "transparent_btn" : ""}
+            btnClass={!isConnected ? "disable_btn newbtn" : "visible"}
           />
         </div>
         <p className='paragraph06 label'>You Pay</p>
@@ -362,21 +353,25 @@ export default function RepayCard({ uniSwapTokens }: any) {
           ).toString()}
           value={Number(lendAmount) > 0 ? lendAmount : "0"}
           onChange={(e: any) => handleLendAmount(e.target.value)}
-         
           isShowMaxBtn
           buttonText={selectedData?.lend?.symbol}
           onMaxClick={() => {
-            setLendAmount((selectedData?.borrow?.borrowBalanceFixed * b2rRatio).toString())
-           
+            setLendAmount(
+              (selectedData?.borrow?.borrowBalanceFixed * b2rRatio).toString()
+            );
           }}
           onClick={
-           selectedData?.borrow?.borrowBalanceFixed > 0
+            selectedData?.borrow?.borrowBalanceFixed > 0
               ? () => handleOpenTokenList("lend")
               : () => {}
           }
           // readonly
           btnClass={
-            selectedData?.pool === null || selectedData?.receive?.collateralBalanceFixed === 0 || selectedData?.receive === null   ? "disable_btn" : "visible"
+            selectedData?.pool === null ||
+            selectedData?.receive?.collateralBalanceFixed === 0 ||
+            selectedData?.receive === null
+              ? "disable_btn"
+              : "visible"
           }
         />
         <p className='paragraph06 label'>You Borrowed</p>
@@ -385,16 +380,20 @@ export default function RepayCard({ uniSwapTokens }: any) {
           value={Number(borrowAmount) > 0 ? borrowAmount : "0"}
           onChange={(e: any) => handleReceiveAmount(e.target.value)}
           onMaxClick={() => {
-            setLendAmount((selectedData?.borrow?.borrowBalanceFixed * b2rRatio).toString())
-           
+            setLendAmount(
+              (selectedData?.borrow?.borrowBalanceFixed * b2rRatio).toString()
+            );
           }}
           // buttonText={selectedData?.pool?.otherToken?.symbol}
           buttonText={
-            selectedData?.pool?.source === "Compound" ? selectedData?.receive?.symbol : selectedData?.pool?.otherToken?.symbol
+            selectedData?.pool?.source === "Compound"
+              ? selectedData?.receive?.symbol
+              : selectedData?.pool?.otherToken?.symbol
           }
           // isShowMaxBtn
           onClick={
-            selectedData?.pool !== null && selectedData.pool.source ==="Compound"
+            selectedData?.pool !== null &&
+            selectedData.pool.source === "Compound"
               ? () => handleOpenTokenList("receive")
               : () => {}
           }
@@ -404,18 +403,28 @@ export default function RepayCard({ uniSwapTokens }: any) {
           }
         />
 
-  
-        {isConnected ?  
-        <Button
-          disabled={repayButton.disable}
-          className='primary_btn'
-          onClick={handleSwapRepayTransaction}
-          title='please slect you pay token'
-          loading={isTokenLoading.pool || isTokenLoading.quotation}
-        >
-          {repayButton.text}
-        </Button> : <div className="connect-btn"><ConnectButton/></div>}
-
+        {isConnected ? (
+          <Button
+            disabled={repayButton.disable}
+            className='primary_btn'
+            onClick={handleSwapRepayTransaction}
+            title='please slect you pay token'
+            loading={isTokenLoading.pool || isTokenLoading.quotation}
+          >
+            {repayButton.text}
+          </Button>
+        ) : (
+          <div className='connect-btn'>
+            <ConnectButton />
+          </div>
+        )}
+        <AccordionContainer
+          selectedTokens={selectedData}
+          b2rRatio={b2rRatio}
+          fee={uniQuote.totalFee}
+          slippage={uniQuote.slippage}
+          lendAmount={lendAmount}
+        />
       </div>
 
       <Modal
@@ -433,9 +442,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
           // isTokenListLoading={isTokenLoading.positions}
           isTokenListLoading={isTokenLoading.pool}
           showPoolData={tokenListStatus.operation == "pool" ? true : false}
-          positionData={[
-            ...Object.values(positions),
-          ].filter(
+          positionData={[...Object.values(positions)].filter(
             (item) =>
               item.borrowBalance0 !== 0 || item.token1.borrowBalance1 !== 0
           )}

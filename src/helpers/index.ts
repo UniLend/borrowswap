@@ -18,10 +18,10 @@ export const isZeroAddress = (address: any) => {
 };
 
 export const abiEncode = (path: Array<String>) => {
-  const abiencode = ethers.utils.defaultAbiCoder 
-  const type = new Array(path.length).fill("string")
-  return abiencode.encode( type ,path)
-}
+  const abiencode = ethers.utils.defaultAbiCoder;
+  const type = new Array(path.length).fill("string");
+  return abiencode.encode(type, path);
+};
 
 export const findBorrowToken = (poolList: any, token: any) => {
   console.log("tokenPools", poolList);
@@ -103,22 +103,23 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
   if (true) {
     const proxy = await getUserProxy(address);
     console.log("PROXY", proxy);
-    const query = getPoolCreatedGraphQuery('0x84c6d5Df8a5e3ab9859708dA7645cC58176a26C0');
+    const query = getPoolCreatedGraphQuery(
+      "0x84c6d5Df8a5e3ab9859708dA7645cC58176a26C0"
+    );
     const data = await fetchGraphQlData(chain?.id, query);
+    console.log("data", data);
     // const allPositions = data?.positions;
     const allPositions = data?.positions?.map((item: any) => ({
       ...item,
       source: "Unilend",
-      type: 'position'
+      type: "position",
     }));
-    
+
     const poolData: any = {};
     const tokenList: any = {};
 
     const poolsData = Array.isArray(data.pools) && data.pools;
     const tokenPrice = await getTokenPrice(data, chain);
-   
-
 
     for (const pool of poolsData) {
       const openPosiions = allPositions.filter(
@@ -274,7 +275,7 @@ export const getCompoundCurrentLTV = (
   priceRatio: string
 ) => {
   const ltv =
-   ( Number(borrowBal) > 0 && (Number(collteralBal) > 0 ))
+    Number(borrowBal) > 0 && Number(collteralBal) > 0
       ? Number(borrowBal) / (Number(collteralBal) * Number(priceRatio))
       : 0;
 
@@ -308,7 +309,7 @@ export const getCompoundBorrowAmount = (
       Number(priceRatio) *
       (ltv / 100) -
     Number(borrowBalanceFixed);
- 
+
   return borrowAmount > 0 ? borrowAmount : 0;
 };
 
@@ -374,7 +375,7 @@ export const getButtonAction = (
   quoteError: boolean,
   isLowLiquidity: boolean,
   isLowBal: boolean,
-  connectWallet:any
+  connectWallet: any
 ) => {
   let btn = {
     text: "Borrow",
@@ -382,16 +383,29 @@ export const getButtonAction = (
   };
 
   const { lend, borrow, receive } = selectedTokens;
-  if (!connectWallet ) {
-    btn.text = 'Connect Wallet';
+
+  let isLowValueCompound: boolean = false;
+
+  if (selectedTokens?.lend?.source === "Compound") {
+    const borrowValueInUsd =
+      selectedTokens?.borrow?.borrowBalanceFixed *
+      selectedTokens?.borrow?.price;
+    const borrowMin = selectedTokens?.borrow?.borrowMinFixed - borrowValueInUsd;
+    const lendValueInUsd =
+      Number(lendAmount ?? 1) * selectedTokens?.lend?.price;
+    isLowValueCompound = lendValueInUsd <= borrowMin;
   }
-   else if (lend === null ) {
+
+  if (!connectWallet) {
+    btn.text = "Connect Wallet";
+  } else if (lend === null) {
     btn.text = "Select pay token";
-  }
-  else if (isTokenLoading.pools === true) {
+  } else if (isTokenLoading.pools === true) {
     btn.text = "Pools are loading";
   } else if (isTokenLoading.rangeSlider) {
     btn.text = "Quote data loading";
+  } else if (isLowValueCompound) {
+    btn.text = "Min. $100 borrow required";
   } else if (isLowBal) {
     btn.text = "Low balance";
   } else if (borrow === null) {
@@ -418,7 +432,7 @@ export const getRepayBtnActions = (
   selectedData: any,
   isTokenLoading: any,
   quoteError: boolean,
-  lendAmount:any
+  lendAmount: any
 ) => {
   let btn = {
     text: "Repay",
@@ -427,28 +441,25 @@ export const getRepayBtnActions = (
 
   const { pool, lend, borrow, receive } = selectedData;
   const isLowBal: boolean =
-    +lendAmount >
-    truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
+    +lendAmount > truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
 
   // const isLowBalRedeem: boolean = selectedData?.receive?.redeemBalanceFixed < lendAmount
-  const noBorrowedToken: boolean = selectedData?.borrow?.borrowBalance == "0"
+  const noBorrowedToken: boolean = selectedData?.borrow?.borrowBalance == "0";
 
   const { quotation } = isTokenLoading;
-  if (pool == null ) {
+  if (pool == null) {
     btn.text = "Select Pool";
   } else if (isTokenLoading.pool) {
     btn.text = "Pools data loading";
-  }  else if ( receive === null) {
+  } else if (receive === null) {
     btn.text = "Select Receive Token";
   } else if (borrow === null) {
     btn.text = "Pools data loading";
   } else if (noBorrowedToken) {
     btn.text = "Token not Borrowed";
-  }
-   else if (isLowBal) {
+  } else if (isLowBal) {
     btn.text = "Low balance";
-  } 
-   else if (lend === null) {
+  } else if (lend === null) {
     btn.text = "Select lend token";
   } else if (quotation) {
     btn.text = "Quote data loading";
@@ -461,55 +472,50 @@ export const getRepayBtnActions = (
   return btn;
 };
 
-
-
 export const getRepayBtnActionsRedeem = (
   selectedData: any,
   isTokenLoading: any,
   quoteError: boolean,
-  lendAmount:any
+  lendAmount: any
 ) => {
-
   let btn = {
     text: "Redeem",
     disable: false,
   };
 
   const { pool, lend, receive } = selectedData;
-    const isLowBal: boolean =
-  +lendAmount >
-  truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
+  const isLowBal: boolean =
+    +lendAmount > truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
 
-  const exceedRedeemBalace:boolean = lendAmount > selectedData?.lend?.redeemBalanceFixed
-  const isLowLiquidity:boolean = lendAmount > decimal2Fixed( selectedData?.lend?.liquidityFixed )
-  const noReceiveToken: boolean = selectedData?.lend?.collateralBalanceFixed == 0
+  const exceedRedeemBalace: boolean =
+    lendAmount > selectedData?.lend?.redeemBalanceFixed;
+  const isLowLiquidity: boolean =
+    lendAmount > decimal2Fixed(selectedData?.lend?.liquidityFixed);
+  const noReceiveToken: boolean =
+    selectedData?.lend?.collateralBalanceFixed == 0;
 
   const { quotation } = isTokenLoading;
-  if (pool == null ) {
+  if (pool == null) {
     btn.text = "Select Pool";
   } else if (isTokenLoading.pool) {
     btn.text = "Pools data loading";
-  }  else if (quotation) {
+  } else if (quotation) {
     btn.text = "Quote data loading";
-  }
-  else if (quoteError) {
+  } else if (quoteError) {
     btn.text = "Swap not available";
   } else if (noReceiveToken) {
     btn.text = "Token not Borrowed";
-  }
-   else if ( receive === null) {
+  } else if (receive === null) {
     btn.text = "Select Receive Token";
-  } 
-   else if (isLowBal) {
+  } else if (isLowBal) {
     btn.text = "Low balance";
-  }
-   else if (lend === null) {
+  } else if (lend === null) {
     btn.text = "Select lend token";
-  } else if(exceedRedeemBalace){
-    console.log("exceed balance")
-    btn.text = "Exceeds Redeemable Amount"
-  } else if(isLowLiquidity){
-    btn.text = "Not Enough Liquidity"
+  } else if (exceedRedeemBalace) {
+    console.log("exceed balance");
+    btn.text = "Exceeds Redeemable Amount";
+  } else if (isLowLiquidity) {
+    btn.text = "Not Enough Liquidity";
   }
 
   btn.disable = !!(btn.text !== "Redeem" && btn.text !== "Connect Wallet");

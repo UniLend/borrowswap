@@ -1,11 +1,9 @@
-import { abiEncode } from './../../helpers/index';
+import { abiEncode } from "./../../helpers/index";
 import axios from "axios";
 import { ethers } from "ethers";
 import { aggregatorV3InterfaceABI } from "../contracts/abi";
 import { getEthersProvider } from "../contracts/ethers";
-import {
-  fixed2Decimals,
-} from "../../helpers/index";
+import { fixed2Decimals } from "../../helpers/index";
 export const fetchGraphQlData = async (chainId: number, FILMS_QUERY: any) => {
   const graphURL = {
     80001: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/my_unilend",
@@ -114,19 +112,25 @@ export const getTokenPrice = async (data: any, chain: any) => {
 const CancelToken = axios.CancelToken;
 let cancelPreviousRequest: any;
 
-
-const findQuoteAmount = (quote: any): { quoteValue: string, quoteDecimals: number, totalFee:number, decode: any } => {
+const findQuoteAmount = (
+  quote: any
+): {
+  quoteValue: string;
+  quoteDecimals: number;
+  totalFee: number;
+  decode: any;
+} => {
   let quoteValue = quote.quoteGasAndPortionAdjusted;
   let quoteDecimals = quote.quoteGasAndPortionAdjustedDecimals;
   let totalFee = 0;
 
   const route = quote?.route?.[quote.route.length - 1];
-  const decode = []
+  const decode = [];
   if (route.length > 0) {
     totalFee = route.reduce((acc: any, pool: any) => {
-    const fee = Number(pool.fee);
-    acc += fee;
-    return acc;
+      const fee = Number(pool.fee);
+      acc += fee;
+      return acc;
     }, 0);
 
     // const { amountOut, tokenOut: { decimals } } = route[route.length - 1];
@@ -136,18 +140,12 @@ const findQuoteAmount = (quote: any): { quoteValue: string, quoteDecimals: numbe
     //   quoteDecimals = scaledAmountOut;
     // }
 
-  
-
     for (const path of route) {
-      
-       decode.push(path.fee)
-      
-       
+      decode.push(path.fee);
     }
-
   }
 
-console.log("decode", decode);
+  console.log("decode", decode);
 
   return { quoteValue, quoteDecimals, totalFee, decode };
 };
@@ -196,28 +194,25 @@ export const getQuote = async (
       },
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json, text/plain, */*",
-        "Referer": "http://localhost:5005/",
-        "Origin":"https://app.uniswap.org",
-      
-        
+        Accept: "application/json, text/plain, */*",
+        Referer: "http://localhost:5005/",
+        Origin: "https://app.uniswap.org",
       },
       cancelToken: new CancelToken(function executor(c) {
         cancelPreviousRequest = c;
       }),
     });
 
-
-
-  const { quoteValue, quoteDecimals, totalFee, decode } = findQuoteAmount(response.data.quote);
-  return {
-    quoteDecimals: quoteDecimals,
-    quote: quoteValue,
-    slippage: response.data.quote.slippage,
-    fee: totalFee,
-    path: decode
-  };
-
+    const { quoteValue, quoteDecimals, totalFee, decode } = findQuoteAmount(
+      response.data.quote
+    );
+    return {
+      quoteDecimals: quoteDecimals,
+      quote: quoteValue,
+      slippage: response.data.quote.slippage,
+      fee: totalFee,
+      path: decode,
+    };
   } catch (error) {
     if (axios.isCancel(error)) {
       console.log("Previous request cancelled", error);

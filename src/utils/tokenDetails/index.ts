@@ -1,7 +1,8 @@
 import tokensbysymbol from "./tokensbysymbol.json";
-import ETH from "../../assets/eth-new.svg"
-import ARB from "../../assets/arbitrum-logo.svg"
-import MATIC from "../../assets/matic.svg"
+import ETH from "../../assets/eth-new.svg";
+import ARB from "../../assets/arbitrum-logo.svg";
+import MATIC from "../../assets/matic.svg";
+
 interface Token {
   address?: string;
   chainId?: number;
@@ -172,8 +173,27 @@ export const tokensBYSymbol: { [key: string]: Token } = {
     symbol: "CRV",
     logo: "https://assets.coingecko.com/coins/images/12124/large/Curve.png?1597369484",
   },
+  "USDC (PoS)": {
+    address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    symbol: "USDC (PoS",
+    logo: "https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png?1547042389",
+  },
+  stMATIC: {
+    address: "0x3A58a54C066FdC0f2D55FC9C89F0415C92eBf3C4",
+    symbol: "stMATIC",
+    logo: "https://app.compound.finance/images/assets/asset_STMATIC.svg",
+  },
+  WMATIC: {
+    address: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+    symbol: "WMATIC",
+    logo: "https://assets.coingecko.com/coins/images/14073/standard/matic.png?1696513797",
+  },
+  // MATICX: {
+  //   address: "0x11cdb42b0eb46d95f990bedd4695a6e3fa034978",
+  //   symbol: "MATICX",
+  //   logo: "https://app.compound.finance/images/assets/asset_MATICX.svg",
+  // },
 };
-
 
 export const chainsBySymbol: { [key: number]: Token } = {
   1: {
@@ -181,24 +201,24 @@ export const chainsBySymbol: { [key: number]: Token } = {
     symbol: "ETH",
     logo: ETH,
   },
-    42161: {
+  42161: {
     address: "",
     symbol: "ARB",
     logo: ARB,
   },
-    80001: {
+  80001: {
     address: "",
     symbol: "MATIC",
     logo: MATIC,
   },
-    137: {
+  137: {
     address: "",
     symbol: "MATIC",
     logo: MATIC,
   },
-    16715: {
+  16715: {
     address: "",
     symbol: "MATIC",
     logo: MATIC,
   },
-}
+};
