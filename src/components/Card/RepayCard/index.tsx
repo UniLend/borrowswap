@@ -357,7 +357,9 @@ export default function RepayCard({ uniSwapTokens }: any) {
           buttonText={selectedData?.lend?.symbol}
           onMaxClick={() => {
             setLendAmount(
-              (selectedData?.borrow?.borrowBalanceFixed * b2rRatio).toString()
+              (selectedData?.borrow?.borrowBalanceFixed * b2rRatio).toFixed(
+                selectedData?.borrow.decimals
+              )
             );
           }}
           onClick={
@@ -376,7 +378,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
         />
         <p className='paragraph06 label'>You Borrowed</p>
         <AmountContainer
-          balance={selectedData?.receive?.balanceFixed}
+          balance={selectedData?.borrow?.balanceFixed}
           value={Number(borrowAmount) > 0 ? borrowAmount : "0"}
           onChange={(e: any) => handleReceiveAmount(e.target.value)}
           onMaxClick={() => {
@@ -388,7 +390,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
           buttonText={
             selectedData?.pool?.source === "Compound"
               ? selectedData?.receive?.symbol
-              : selectedData?.pool?.otherToken?.symbol
+              : selectedData?.pool?.borrowToken?.symbol
           }
           // isShowMaxBtn
           onClick={

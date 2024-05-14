@@ -250,11 +250,11 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     }
   }, [lendAmount, selectedLTV]);
 
-  useEffect(() => {
-    if (selectedTokens?.lend?.priceRatio) {
-      handleLTVSliderWithValue(5);
-    }
-  }, [lendAmount, selectedTokens?.receive]);
+  // useEffect(() => {
+  //   if (selectedTokens?.lend?.priceRatio) {
+  //     handleLTVSliderWithValue(5);
+  //   }
+  // }, [lendAmount, selectedTokens?.receive]);
 
   useEffect(() => {
     const tokensArray = Object.values(tokenList);
