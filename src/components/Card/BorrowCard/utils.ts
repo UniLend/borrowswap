@@ -94,9 +94,6 @@ export const handleLTVSlider = (
   }
 };
 
-
-
-
 export const handleQuote = async (
   selectedTokensRef: any,
   address: string,
@@ -117,17 +114,16 @@ export const handleQuote = async (
       selectedTokensRef.current.receive.address,
       chain?.id == 16715 ? 137 : chain?.id
     );
-    console.log("quote", value)
-  
+    console.log("quote", value);
+
     if (value?.quoteDecimals) {
       setb2rRatio(value?.quoteDecimals);
-  
+
       setUniQuote({
         totalFee: value?.fee,
         slipage: value?.slippage,
         path: value?.path,
-      })
-
+      });
     }
     setQuoteError(false);
     setSelectedLTV(5); // TODO check
@@ -158,8 +154,13 @@ export const handleSwapTransaction = async (
     const lendToken = await getAllowance(selectedTokens?.lend, address);
     // const borrowToken = await getAllowance(selectedTokens?.borrow, address);
     setIsBorrowProgressModal(true);
-    console.log("approval",Number(lendAmount) , Number(lendToken.allowanceFixed),Number(lendAmount) > Number(lendToken.allowanceFixed));
-    
+    console.log(
+      "approval",
+      Number(lendAmount),
+      Number(lendToken.allowanceFixed),
+      Number(lendAmount) > Number(lendToken.allowanceFixed)
+    );
+
     if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
       setModalMsg("Spend Aprroval for " + selectedTokens.lend.symbol);
       await handleApproval(selectedTokens?.lend.address, address, lendAmount);
@@ -175,7 +176,7 @@ export const handleSwapTransaction = async (
         setOperationProgress,
         handleClear
       );
-    }  else {
+    } else {
       setOperationProgress(2);
       setModalMsg(
         selectedTokens.lend.symbol +
@@ -194,6 +195,9 @@ export const handleSwapTransaction = async (
           borrowAmount,
           path
         );
+        if (hash.error) {
+          throw new Error(hash.error.data.message);
+        }
       } else {
         hash = await handleCompoundSwap(
           selectedTokens.lend.address,
@@ -218,8 +222,15 @@ export const handleSwapTransaction = async (
         }, 1000);
       }
     }
-  } catch (error) {
-    console.log("handleSwap", { error });
+  } catch (error: any) {
+    setIsBorrowProgressModal(false);
+    handleClear();
+    if (error.reason) {
+      NotificationMessage("error", `${error.reason}`);
+    } else {
+      NotificationMessage("error", `${error}`);
+    }
+    console.log("Error1", { error });
   }
 };
 
@@ -302,7 +313,7 @@ export const getOprationToken = (
         };
       }
     }
-  
+
     return Object.values(common);
   } else if (tokenListStatus.operation === "borrow") {
     const tokensAvailableIn =
