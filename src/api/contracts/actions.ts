@@ -190,16 +190,7 @@ export const handleRedeem = async (
       Amount = selectedTokens.lend.liquidity;
     }
 
-    if (isMax && !(Number(selectedTokens.borrow.borrowBalance) > 0)) {
-      if (
-        Number(selectedTokens.lend.lendShare) >
-        Number(selectedTokens.lend.liquidity)
-      ) {
-        Amount = selectedTokens.lend.liquidity;
-      } else {
-        Amount = selectedTokens.lend.lendShare;
-      }
-    }
+        if(isMax && !(Number(selectedTokens.lend.collateralBalance) > 0) ){
 
     if (selectedTokens.lend.token == 0) {
       Amount = mul(Amount, -1);
@@ -448,7 +439,7 @@ export const getPoolBasicData = async (
                 Number(fromBigNumber(data._borrowBalance1)),
                 Number(token1Price)
               )
-            ) / poolData.maxLTV,
+            ) / (poolData.maxLTV-0.05),
             100
           ),
           10 ** poolData.token1.decimals
@@ -463,7 +454,7 @@ export const getPoolBasicData = async (
                 Number(fromBigNumber(data._borrowBalance0)),
                 Number(token0Price)
               )
-            ) / poolData.maxLTV,
+            ) / (poolData.maxLTV-0.05),
             100
           ),
           10 ** poolData.token0.decimals

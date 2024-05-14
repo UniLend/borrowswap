@@ -109,6 +109,7 @@ export const handleQuote = async (
           value.quoteDecimals
         );
         setReceiveAmount(payLendAmount.toString());
+        setLendAmount(selectedData?.lend?.redeemBalanceFixed);
         flag = true;
       }
     }
@@ -158,24 +159,29 @@ export const handleSelectRepayToken = async (
       address
     );
 
+    console.log("data", data, poolData);
+
     if (data.token0.address === poolData.borrowToken.id) {
-      setSelectedData({
-        ...selectedData,
-        ["pool"]: poolData,
-        ["lend"]: data.token1,
-        ["receive"]: null,
-        ["borrow"]: data.token0,
-      });
-      setLendAmount(data.token1.redeemBalanceFixed);
-    } else if (data.token1.address === poolData.borrowToken.id) {
       setSelectedData({
         ...selectedData,
         ["pool"]: poolData,
         ["lend"]: data.token0,
         ["receive"]: null,
+        ["borrow"]: data.token0,
+      });
+      setLendAmount(data.token1.redeemBalanceFixed);
+      console.log("if");
+    } else if (data.token1.address === poolData.borrowToken.id) {
+      setSelectedData({
+        ...selectedData,
+        ["pool"]: poolData,
+        ["lend"]: data.token1,
+        ["receive"]: null,
         ["borrow"]: data.token1,
       });
-      setLendAmount(data.token0.redeemBalanceFixed);
+      console.log("else");
+
+      //setLendAmount(data.token0.redeemBalanceFixed)
     }
   } else {
     const { redeemBalanceInUSD } = await getCollateralValue(address);

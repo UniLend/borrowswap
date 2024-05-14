@@ -195,8 +195,6 @@ export const getQuote = async (
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json, text/plain, */*",
-        Referer: "http://localhost:5005/",
-        Origin: "https://app.uniswap.org",
       },
       cancelToken: new CancelToken(function executor(c) {
         cancelPreviousRequest = c;
