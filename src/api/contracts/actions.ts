@@ -153,8 +153,7 @@ export const handleSwap = async (
     return "";
   } catch (error) {
     console.log("Error", { error });
-    return error;
-    // throw error;
+    throw error;
   }
 };
 
@@ -221,7 +220,7 @@ export const handleRedeem = async (
     console.log("transaction after", hash);
     return hash;
   } catch (error) {
-    return error;
+    throw error;
   }
 };
 
@@ -263,8 +262,7 @@ export const handleRepay = async (
     return hash;
   } catch (error) {
     console.log("Error", { error });
-    return error;
-    // throw error;
+    throw error;
   }
 };
 
