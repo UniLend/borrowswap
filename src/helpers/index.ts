@@ -484,8 +484,6 @@ export const getRepayBtnActionsRedeem = (
   };
 
   const { pool, lend, receive } = selectedData;
-  console.log("selectedData", selectedData);
-
   const isLowBal: boolean =
     +lendAmount > truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
 
@@ -493,7 +491,8 @@ export const getRepayBtnActionsRedeem = (
     lendAmount > selectedData?.lend?.redeemBalanceFixed;
   const isLowLiquidity: boolean =
     lendAmount > decimal2Fixed(selectedData?.lend?.liquidityFixed);
-  const noReceiveToken: boolean = selectedData?.lend?.redeemBalanceFixed == 0;
+  const noReceiveToken: boolean =
+    selectedData?.lend?.collateralBalanceFixed == 0;
 
   const { quotation } = isTokenLoading;
   if (pool == null) {
@@ -505,7 +504,7 @@ export const getRepayBtnActionsRedeem = (
   } else if (quoteError) {
     btn.text = "Swap not available";
   } else if (noReceiveToken) {
-    btn.text = "Nothing to redeem";
+    btn.text = "Token not Borrowed";
   } else if (receive === null) {
     btn.text = "Select Receive Token";
   } else if (isLowBal) {

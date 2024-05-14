@@ -408,14 +408,10 @@ export const handleSelectBorrowToken = async (
     const borrowedToken = await getBorrowTokenData(token, address);
     setIsTokenLoading({ ...isTokenLoading, pools: false });
     const ltv = getCompoundCurrentLTV(
-      borrowedToken?.borrowBalanceFixed,
+      borrowedToken?.BorrowBalanceFixed,
       collateralToken?.collateralBalanceFixed,
       collateralToken?.price
     );
-    console.log("LTV", ltv,   borrowedToken?.borrowBalanceFixed,
-    collateralToken?.collateralBalanceFixed,
-    collateralToken?.price, );
-    
     setCurrentLTV(ltv);
     setSelectedTokens({
       ...selectedTokens,
