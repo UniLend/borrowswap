@@ -470,7 +470,7 @@ export const getPoolBasicData = async (
                 Number(fromBigNumber(data._borrowBalance1)),
                 Number(token1Price)
               )
-            ) / poolData.maxLTV,
+            ) / (poolData.maxLTV-0.05),
             100
           ),
           10 ** poolData.token1.decimals
@@ -485,7 +485,7 @@ export const getPoolBasicData = async (
                 Number(fromBigNumber(data._borrowBalance0)),
                 Number(token0Price)
               )
-            ) / poolData.maxLTV,
+            ) / (poolData.maxLTV-0.05),
             100
           ),
           10 ** poolData.token0.decimals
