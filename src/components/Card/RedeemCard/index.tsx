@@ -348,18 +348,18 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     
    },[receiveAmount]);
 
-  useEffect(() => {
-      if(selectedData?.pool?.source === 'compound'){
-          setReceiveAmount(
-          (selectedData?.receive?.collateralBalanceFixed || 0)
-      )
-      }else{
-          setReceiveAmount(
-          (selectedData?.receive?.collateralBalanceFixed || 0) +
-          (selectedData?.receive?.redeemBalanceFixed || 0)
-        )
-      }
-  }, [selectedData?.receive]);
+  // useEffect(() => {
+  //     if(selectedData?.pool?.source === 'compound'){
+  //         setReceiveAmount(
+  //         (selectedData?.receive?.collateralBalanceFixed || 0)
+  //     )
+  //     }else{
+  //         setReceiveAmount(
+  //         (selectedData?.receive?.collateralBalanceFixed || 0) +
+  //         (selectedData?.receive?.redeemBalanceFixed || 0)
+  //       )
+  //     }
+  // }, [selectedData?.receive]);
   
 
   // loading state

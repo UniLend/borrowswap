@@ -95,6 +95,7 @@ export const handleQuote = async (
         value.quoteDecimals * (selectedData?.lend?.redeemBalanceFixed  || 0);
         console.log("pay amount", selectedData, payLendAmount, selectedData?.lend?.redeemBalanceFixed , value.quoteDecimals);
         setReceiveAmount(payLendAmount.toString());
+        setLendAmount((selectedData?.lend?.redeemBalanceFixed))
         flag = true;
       }
     }
