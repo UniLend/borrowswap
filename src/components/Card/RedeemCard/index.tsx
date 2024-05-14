@@ -399,7 +399,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           }}
           // buttonText={selectedData?.pool?.otherToken?.symbol}
           buttonText={
-            selectedData?.pool?.source === "Compound" ? selectedData?.lend?.symbol : selectedData?.pool?.otherToken?.symbol
+            selectedData?.pool?.source === "Compound" ? selectedData?.lend?.symbol : selectedData?.pool?.borrowToken?.symbol
           }
           isShowMaxBtn
           onClick={

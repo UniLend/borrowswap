@@ -56,7 +56,7 @@ export const handleQuote = async (
         const payLendAmount =
         value.quoteDecimals * (selectedData?.borrow?.borrowBalanceFixed  || 0);
       console.log("pay amount", selectedData, payLendAmount.toFixed(selectedData?.lend.decimals), selectedData?.borrow?.borrowBalanceFixed, value.quoteDecimals);
-      setLendAmount(payLendAmount.toFixed(selectedData?.lend.decimals));
+      setLendAmount(payLendAmount.toFixed(selectedData?.borrow.decimals));
       flag = true;
       }
     }

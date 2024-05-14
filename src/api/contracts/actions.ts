@@ -192,8 +192,7 @@ export const handleRedeem =  async (
           Amount = selectedTokens.lend.liquidity
         }
 
-      
-        if(isMax && !(Number(selectedTokens.borrow.borrowBalance) > 0) ){
+        if(isMax && !(Number(selectedTokens.lend.collateralBalance) > 0) ){
 
         if (Number(selectedTokens.lend.lendShare) > Number(selectedTokens.lend.liquidity)) {
           Amount = selectedTokens.lend.liquidity;
