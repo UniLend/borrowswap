@@ -110,6 +110,12 @@ export const handleQuote = async (
   setUniQuote: (quoteData: any) => void
 ) => {
   try {
+    if( String(selectedTokensRef.current.borrow.address).toLowerCase() === String(selectedTokensRef.current.receive.address).toLowerCase()){
+      setb2rRatio(1)
+     
+      setQuoteError(false);
+      setSelectedLTV(5)
+    } else {
     const value = await getQuote(
       decimal2Fixed(1, selectedTokensRef.current.borrow.decimals),
       address,
@@ -131,6 +137,7 @@ export const handleQuote = async (
     }
     setQuoteError(false);
     setSelectedLTV(5); // TODO check
+  }
   } catch (error: any) {
     setQuoteError(true);
     NotificationMessage(
