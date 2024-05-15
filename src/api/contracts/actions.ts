@@ -709,21 +709,15 @@ export const getCollateralValue = async (address: any) => {
 
   for (let i = 0; i < collateralTokens.length; i++) {
     const ltv = fixed2Decimals(fromBigNumber(assets[i].borrowCollateralFactor));
-    console.log("LTV", ltv);
 
     totalCollateral = totalCollateral + values[i] * prices[i] * ltv;
   }
 
   const redeemBalanceInUSD = totalCollateral - totalBorrow;
 
-  console.log(
-    "getCollateralValue",
-    totalCollateral,
-    totalBorrow,
-    redeemBalanceInUSD
-  );
-
   return { totalCollateral, totalBorrow, redeemBalanceInUSD };
+
+  // return { totalCollateral, totalBorrow, redeemBalanceInUSD };
 };
 
 export const getCollateralTokenData = async (token: any, address: any) => {

@@ -170,7 +170,6 @@ export const handleSelectRepayToken = async (
         ["borrow"]: data.token0,
       });
       setLendAmount(data.token1.redeemBalanceFixed);
-      console.log("if");
     } else if (data.token1.address === poolData.borrowToken.id) {
       setSelectedData({
         ...selectedData,
@@ -189,18 +188,32 @@ export const handleSelectRepayToken = async (
       poolData.borrowToken,
       address
     );
-    console.log("selectedData", poolData, tokenData);
+
+    let minValue = Math.min(
+      Number(tokenData?.collateralBalance),
+      Number(
+        decimal2Fixed(
+          Number(redeemBalanceInUSD / tokenData.price),
+          Number(tokenData.decimals)
+        )
+      )
+    );
+    if (minValue != Number(tokenData?.collateralBalance)) {
+      minValue = minValue * (tokenData.ltv / 100);
+    }
+
     setSelectedData({
       ...selectedData,
       ["pool"]: poolData,
       ["lend"]: {
         ...tokenData,
-        redeemBalanceFixed: redeemBalanceInUSD / tokenData.price,
+        redeemBalance: minValue,
+        redeemBalanceFixed: fixed2Decimals(minValue, tokenData.decimals),
       },
       ["receive"]: null,
       ["borrow"]: tokenData,
     });
-    setLendAmount(redeemBalanceInUSD / tokenData.price);
+    setLendAmount(fixed2Decimals(minValue, tokenData.decimals));
   }
   setIsTokenLoading({ ...isTokenLoading, pool: false });
 };
