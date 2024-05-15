@@ -49,12 +49,12 @@ export const getEthToUsd = async () => {
 
 export const fetchEthRateForAddresses = async (
   addresses: Array<any>,
-  chainId: any
+  chainId?: any
 ) => {
   const provider = getEthersProvider();
   try {
     const tokensObject = await Promise.all(
-      addresses?.map(async (addr: any) => {
+      addresses?.map(async (addr: any, i: any) => {
         const priceFeed = new ethers.Contract(
           addr.source,
           aggregatorV3InterfaceABI,
@@ -65,7 +65,7 @@ export const fetchEthRateForAddresses = async (
           const roundData = await priceFeed.latestRoundData();
           // return ETH price of each token
           return {
-            [addr.id]: roundData.answer.toString(),
+            [addr?.id??i]: roundData.answer.toString(),
           };
         } catch (error) {
           console.error(`Error fetching round data for address ${addr}: `);
@@ -87,6 +87,8 @@ export const fetchEthRateForAddresses = async (
 
 export const getTokenPrice = async (data: any, chain: any) => {
   const usdPrice = await getEthToUsd();
+  console.log("getTokenPrice", data?.assetOracles);
+  
   const temp: any = await fetchEthRateForAddresses(
     data?.assetOracles,
     chain?.id
@@ -120,9 +122,9 @@ const findQuoteAmount = (quote: any): { quoteValue: string, quoteDecimals: numbe
   let quoteDecimals = quote.quoteGasAndPortionAdjustedDecimals;
   let totalFee = 0;
 
-  const route = quote?.route?.[quote.route.length - 1];
+  const route = quote?.route?.[quote?.route?.length - 1];
   const decode = []
-  if (route.length > 0) {
+  if (route?.length > 0) {
     totalFee = route.reduce((acc: any, pool: any) => {
     const fee = Number(pool.fee);
     acc += fee;
@@ -138,11 +140,8 @@ const findQuoteAmount = (quote: any): { quoteValue: string, quoteDecimals: numbe
 
   
 
-    for (const path of route) {
-      
+    for (const path of route) {  
        decode.push(path.fee)
-      
-       
     }
 
   }
