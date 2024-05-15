@@ -214,12 +214,10 @@ export const handleSwapTransaction = async (
 
       if (hash) {
         setOperationProgress(3);
+        setModalMsg("Transaction is Success!");
         handleClear();
         //TODO: check message
         NotificationMessage("success", `Swap and Borrow is successful`);
-        setTimeout(() => {
-          setIsBorrowProgressModal(false);
-        }, 1000);
       }
     }
   } catch (error: any) {
@@ -412,10 +410,14 @@ export const handleSelectBorrowToken = async (
       collateralToken?.collateralBalanceFixed,
       collateralToken?.price
     );
-    console.log("LTV", ltv,   borrowedToken?.borrowBalanceFixed,
-    collateralToken?.collateralBalanceFixed,
-    collateralToken?.price, );
-    
+    console.log(
+      "LTV",
+      ltv,
+      borrowedToken?.borrowBalanceFixed,
+      collateralToken?.collateralBalanceFixed,
+      collateralToken?.price
+    );
+
     setCurrentLTV(ltv);
     setSelectedTokens({
       ...selectedTokens,

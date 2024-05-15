@@ -257,13 +257,11 @@ export const handleRepayTransaction = async (
       }
       if (hash) {
         setOperationProgress(3);
+        setModalMsg("Transaction is Success!");
         handleClear();
         NotificationMessage("success", `Repay is successful`);
         // checkTxnStatus(hash, txnData, setIsBorrowProgressModal)
         console.log("reciept", hash);
-        setTimeout(() => {
-          setIsBorrowProgressModal(false);
-        }, 1000);
       }
     }
   } catch (error: any) {

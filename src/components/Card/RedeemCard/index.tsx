@@ -232,9 +232,11 @@ export default function RedeemCard({ uniSwapTokens }: any) {
       receive: null,
       borrow: null,
     });
-    setIsBorrowProgressModal(false);
-    setOperationProgress(0);
     setb2rRatio(0);
+    setTimeout(() => {
+      setIsBorrowProgressModal(false);
+      setOperationProgress(0);
+    }, 3000);
   };
 
   //handle quote for Uniswap

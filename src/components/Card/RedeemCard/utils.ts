@@ -318,11 +318,12 @@ export const handleRepayTransaction = async (
     }
     if (hash) {
       setOperationProgress(3);
+      setModalMsg("Transaction is Success!");
       handleClear();
-      NotificationMessage("success", `Redeem is successful`);
-      setTimeout(() => {
-        setIsBorrowProgressModal(false);
-      }, 1000);
+      NotificationMessage("success", `Redeem is Successful`);
+      // setTimeout(() => {
+      //   setIsBorrowProgressModal(false);
+      // }, 1000);
     }
   } catch (error: any) {
     setIsBorrowProgressModal(false);
