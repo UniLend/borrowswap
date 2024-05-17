@@ -202,7 +202,7 @@ export const getQuote = async (
         cancelPreviousRequest = c;
       }),
     });
-
+    console.log("QUOTE_API_DATA", response.data.quote);
     const { quoteValue, quoteDecimals, totalFee, decode } = findQuoteAmount(
       response.data.quote
     );

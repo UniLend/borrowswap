@@ -9,6 +9,9 @@ import {
   handleSwap,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
+import { checkQuote } from "../../../api/uniswap/test";
+import { quoteWithSdk } from "../../../api/uniswap/test1";
+import { quoteWithSdk2 } from "../../../api/uniswap/test2";
 import {
   decimal2Fixed,
   fixed2Decimals,
@@ -107,33 +110,62 @@ export const handleQuote = async (
   setUniQuote: (quoteData: any) => void
 ) => {
   try {
-    if( String(selectedTokensRef.current.borrow.address).toLowerCase() === String(selectedTokensRef.current.receive.address).toLowerCase()){
-      setb2rRatio(1)
-     
+    if (
+      String(selectedTokensRef.current.borrow.address).toLowerCase() ===
+      String(selectedTokensRef.current.receive.address).toLowerCase()
+    ) {
+      setb2rRatio(1);
+
       setQuoteError(false);
-      setSelectedLTV(5)
+      setSelectedLTV(5);
     } else {
-    const value = await getQuote(
-      decimal2Fixed(1, selectedTokensRef.current.borrow.decimals),
-      address,
-      selectedTokensRef.current.borrow.address,
-      selectedTokensRef.current.receive.address,
-      chain?.id == 16715 ? 137 : chain?.id
-    );
-    console.log("quote", value);
+      // const checkValue = await checkQuote(
+      //   decimal2Fixed(1, selectedTokensRef.current.borrow.decimals)
+      // );
+      // console.log("CHECKING_QUOTE_VALUE", checkValue);
+      const tokenIn = {
+        chainId: chain?.id == 16715 ? 137 : chain?.id,
+        address: selectedTokensRef.current.borrow.address,
+        decimals: selectedTokensRef.current.borrow.decimals,
+        symbol: selectedTokensRef.current.borrow.symbol,
+        name: selectedTokensRef.current.borrow.name,
+      };
 
-    if (value?.quoteDecimals) {
-      setb2rRatio(value?.quoteDecimals);
+      const tokenOut = {
+        chainId: chain?.id == 16715 ? 137 : chain?.id,
+        address: selectedTokensRef.current.receive.address,
+        decimals: selectedTokensRef.current.receive.decimals,
+        symbol: selectedTokensRef.current.receive.symbol,
+        name: selectedTokensRef.current.receive.name,
+      };
 
-      setUniQuote({
-        totalFee: value?.fee,
-        slipage: value?.slippage,
-        path: value?.path,
-      });
+      console.log("API_QUOTE_PARAMS", tokenIn, tokenOut);
+
+      // const sdkQuote2 = await quoteWithSdk2();
+      // console.log("SDK_QUOTE2", sdkQuote2);
+      const value = await getQuote(
+        decimal2Fixed(1, selectedTokensRef.current.borrow.decimals),
+        address,
+        selectedTokensRef.current.borrow.address,
+        selectedTokensRef.current.receive.address,
+        chain?.id == 16715 ? 137 : chain?.id
+      );
+      console.log("QUOTE_VALUE", value);
+
+      const sdkQuote = await quoteWithSdk(tokenIn, tokenOut);
+      console.log("SDK_QUOTE", sdkQuote);
+      if (value?.quoteDecimals) {
+        setb2rRatio(value?.quoteDecimals);
+
+        setUniQuote({
+          totalFee: value?.fee,
+          slipage: value?.slippage,
+          path: value?.path,
+        });
+      }
+      setQuoteError(false);
+      setSelectedLTV(5); // TODO check
     }
-    setQuoteError(false);
-    setSelectedLTV(5); // TODO check
-  }
   } catch (error: any) {
     setQuoteError(true);
     NotificationMessage(
@@ -419,10 +451,14 @@ export const handleSelectBorrowToken = async (
       collateralToken?.collateralBalanceFixed,
       collateralToken?.price
     );
-    console.log("LTV", ltv,   borrowedToken?.borrowBalanceFixed,
-    collateralToken?.collateralBalanceFixed,
-    collateralToken?.price, );
-    
+    console.log(
+      "LTV",
+      ltv,
+      borrowedToken?.borrowBalanceFixed,
+      collateralToken?.collateralBalanceFixed,
+      collateralToken?.price
+    );
+
     setCurrentLTV(ltv);
     setSelectedTokens({
       ...selectedTokens,

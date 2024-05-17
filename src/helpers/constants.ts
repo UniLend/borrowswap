@@ -3,29 +3,46 @@
 import { Token, SUPPORTED_CHAINS } from "@uniswap/sdk-core";
 
 // Addresses
-
+// mainnet = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
+// polygon = "0x1F98431c8aD98523631AE4a59f267346ea31F984"
 export const POOL_FACTORY_CONTRACT_ADDRESS =
   "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+
+// mainNet = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6";
+// polygon = "0x7b2d9632A44cB0553BbCfCf89BdBc847Ab1f74d4"
 export const QUOTER_CONTRACT_ADDRESS =
   "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6";
 
 // Currencies and Tokens
-
 export const WETH_TOKEN = new Token(
   137,
   "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
-  18
+  18,
+  "WETH",
+  "Wrapped Ether"
 );
 export const CURV_TOKEN = new Token(
   137,
   "0x172370d5Cd63279eFa6d502DAB29171933a610AF",
-  18
+  18,
+  "CRV",
+  "CRV"
 );
 
 export const USDT_TOKEN = new Token(
   137,
   "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-  6
+  6,
+  "USDT",
+  "USDT"
+);
+
+export const USDC_TOKEN = new Token(
+  137,
+  "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+  6,
+  "USDC",
+  "USDC"
 );
 
 export const CompoundBaseTokens: any = [
