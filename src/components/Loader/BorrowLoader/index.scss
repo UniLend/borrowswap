@@ -10,12 +10,12 @@
   justify-content: center;
 
   .loader_animation {
-    width: 242px;
-    height: 152px !important;
+    width: 260px;
+    height: 232px !important;
 
     img {
       width: 100%;
-      aspect-ratio: 1.59/1;
+      // aspect-ratio: 1.59/1;
     }
   }
 
@@ -23,9 +23,17 @@
     max-width: 260px;
     width: 100%;
     margin: 36px 0 0;
-
+    .exec_text {
+      font-size: 16px;
+      text-align: center;
+      color: var(--always-white);
+      margin-bottom: 15px;
+    }
+    :nth-child(2) {
+      margin-bottom: 20px;
+    }
     :nth-child(1) {
-      margin-bottom: 12px;
+      margin-bottom: 15px;
     }
   }
 
@@ -40,9 +48,8 @@
   }
 }
 
-
-.ant-modal-wrap{
-  background-color: rgba(241, 235, 255, .6) !important;
+.ant-modal-wrap {
+  background-color: rgba(0, 0, 0, 0.6) !important;
 }
 .antd_popover_content {
   max-width: 360px !important;
@@ -60,4 +67,3 @@
     }
   }
 }
-

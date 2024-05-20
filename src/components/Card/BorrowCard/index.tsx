@@ -230,11 +230,13 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       borrow: null,
       receive: null,
     });
-    setIsBorrowProgressModal(false);
-    setOperationProgress(0);
     setCurrentLTV("0");
     setb2rRatio(0);
     setSelectedLTV(5);
+    setTimeout(() => {
+      setIsBorrowProgressModal(false);
+      setOperationProgress(0);
+    }, 3000);
   };
 
   useEffect(() => {
