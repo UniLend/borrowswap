@@ -124,7 +124,6 @@ export const handleQuote = async (
         selectedTokensRef.current.receive.address,
         chain?.id == 16715 ? 137 : chain?.id
       );
-      console.log("quote", value);
       setSelectedLTV(5);
 
       if (value?.quoteDecimals) {

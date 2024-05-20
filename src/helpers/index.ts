@@ -484,8 +484,6 @@ export const getRepayBtnActionsRedeem = (
   };
 
   const { pool, lend, receive } = selectedData;
-  console.log("selectedData", selectedData);
-
   const isLowBal: boolean =
     +lendAmount > truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
 
@@ -513,7 +511,6 @@ export const getRepayBtnActionsRedeem = (
   } else if (lend === null) {
     btn.text = "Select lend token";
   } else if (exceedRedeemBalace) {
-    console.log("exceed balance");
     btn.text = "Exceeds Redeemable Amount";
   } else if (isLowLiquidity) {
     btn.text = "Not Enough Liquidity";

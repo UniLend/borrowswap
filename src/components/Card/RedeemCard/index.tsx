@@ -169,13 +169,13 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   function arraysEqual(a: any, b: any) {
     return JSON.stringify(a) === JSON.stringify(b);
   }
-  console.log("lend", lendAmount);
+
   const handleLendAmount = (amount: string) => {
     const TrunAmount = truncateToDecimals(
       Number(amount),
       selectedData?.lend?.decimals
     );
-    console.log("truncate", TrunAmount);
+
     // setLendAmount(TrunAmount);
 
     setReceiveAmount((Number(TrunAmount) * b2rRatio).toString());
@@ -183,7 +183,6 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   };
 
   const handleReceiveAmount = (amount: string) => {
-    console.log(amount);
     // const amountConvert = decimal2Fixed(amount, selectedData.receive.decimals);
     // console.log("amountConverted", amountConvert);
     setReceiveAmount(amount);
@@ -210,8 +209,6 @@ export default function RedeemCard({ uniSwapTokens }: any) {
 
   const getOprationToken = () => {
     if (tokenListStatus.operation === "pool") {
-      console.log("pools", pools);
-
       return [...pools, ...CompoundBaseTokens];
     } else if (tokenListStatus.operation === "receive") {
       return tokens;
@@ -230,8 +227,6 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   };
 
   const handleClear = () => {
-    console.log("handleClaer");
-
     setLendAmount("");
     setBorrowAmount("");
     setReceiveAmount("");
@@ -416,11 +411,10 @@ export default function RedeemCard({ uniSwapTokens }: any) {
 
             setReceiveAmount(
               truncateToDecimals(
-                mul(Number(selectedData?.lend?.redeemBalanceFixed), b2rRatio),
+                Number(mul(selectedData?.lend?.redeemBalanceFixed, b2rRatio)),
                 Number(selectedData?.lend?.decimals)
               )
             );
-
             setIsMax(true);
           }}
           // buttonText={selectedData?.pool?.otherToken?.symbol}

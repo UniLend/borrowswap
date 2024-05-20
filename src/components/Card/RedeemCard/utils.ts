@@ -101,12 +101,6 @@ export const handleQuote = async (
           path: value?.path,
         });
 
-        const trunc = truncateToDecimals(
-          selectedData?.lend?.redeemBalanceFixed,
-          selectedData?.lend.decimals
-        );
-        console.log("trun", trunc);
-
         const payLendAmount = mul(
           value.quoteDecimals,
           selectedData?.lend?.redeemBalanceFixed || 0
