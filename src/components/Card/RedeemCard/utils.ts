@@ -18,6 +18,7 @@ import { contractAddresses } from "../../../api/contracts/address";
 import {
   decimal2Fixed,
   fixed2Decimals,
+  mul,
   truncateToDecimals,
 } from "../../../helpers";
 import NotificationMessage from "../../Common/NotificationMessage";
@@ -96,11 +97,15 @@ export const handleQuote = async (
         setb2rRatio(value.quoteDecimals);
         setUniQuote({
           totalFee: value?.fee,
-          slipage: value?.slippage,
+          slippage: value?.slippage,
           path: value?.path,
         });
-        const payLendAmount =
-          value.quoteDecimals * (selectedData?.lend?.redeemBalanceFixed || 0);
+
+        const payLendAmount = mul(
+          value.quoteDecimals,
+          selectedData?.lend?.redeemBalanceFixed || 0
+        );
+
         console.log(
           "pay amount",
           selectedData,
@@ -169,7 +174,13 @@ export const handleSelectRepayToken = async (
         ["receive"]: null,
         ["borrow"]: data.token0,
       });
-      setLendAmount(data.token1.redeemBalanceFixed);
+
+      setLendAmount(
+        truncateToDecimals(
+          data?.token0?.redeemBalanceFixed,
+          data?.token0?.decimals
+        )
+      );
     } else if (data.token1.address === poolData.borrowToken.id) {
       setSelectedData({
         ...selectedData,
@@ -180,7 +191,12 @@ export const handleSelectRepayToken = async (
       });
       console.log("else");
 
-      //setLendAmount(data.token0.redeemBalanceFixed)
+      setLendAmount(
+        truncateToDecimals(
+          data?.token1?.redeemBalanceFixed,
+          data?.token1?.decimals
+        )
+      );
     }
   } else {
     const { redeemBalanceInUSD } = await getCollateralValue(address);

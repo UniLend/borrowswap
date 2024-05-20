@@ -5,6 +5,8 @@ import {
   truncateToDecimals,
   getRepayBtnActionsRedeem,
   decimal2Fixed,
+  fixed2Decimals,
+  mul,
 } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
 
@@ -103,9 +105,9 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
   const { tokenList, poolList, positions } = unilendV2Data;
   const { address, isConnected, chain } = useWalletHook();
-  const [lendAmount, setLendAmount] = useState<string>("");
+  const [lendAmount, setLendAmount] = useState<any>("");
   const [borrowAmount, setBorrowAmount] = useState("");
-  const [receiveAmount, setReceiveAmount] = useState("");
+  const [receiveAmount, setReceiveAmount] = useState<any>("");
   const [b2rRatio, setb2rRatio] = useState(1);
   const [tokens, setTokens] = useState(uniSwapTokens);
   const [isBorrowProgressModal, setIsBorrowProgressModal] =
@@ -169,14 +171,20 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   }
 
   const handleLendAmount = (amount: string) => {
-    setLendAmount(amount);
-    setReceiveAmount((Number(amount) * b2rRatio).toString());
+    const TrunAmount = truncateToDecimals(
+      Number(amount),
+      selectedData?.lend?.decimals
+    );
+
+    // setLendAmount(TrunAmount);
+
+    setReceiveAmount((Number(TrunAmount) * b2rRatio).toString());
     setIsMax(false);
   };
 
   const handleReceiveAmount = (amount: string) => {
-    console.log(amount);
-
+    // const amountConvert = decimal2Fixed(amount, selectedData.receive.decimals);
+    // console.log("amountConverted", amountConvert);
     setReceiveAmount(amount);
   };
 
@@ -201,8 +209,6 @@ export default function RedeemCard({ uniSwapTokens }: any) {
 
   const getOprationToken = () => {
     if (tokenListStatus.operation === "pool") {
-      console.log("pools", pools);
-
       return [...pools, ...CompoundBaseTokens];
     } else if (tokenListStatus.operation === "receive") {
       return tokens;
@@ -221,8 +227,6 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   };
 
   const handleClear = () => {
-    console.log("handleClaer");
-
     setLendAmount("");
     setBorrowAmount("");
     setReceiveAmount("");
@@ -232,11 +236,12 @@ export default function RedeemCard({ uniSwapTokens }: any) {
       receive: null,
       borrow: null,
     });
-    setb2rRatio(0);
+
     setTimeout(() => {
       setIsBorrowProgressModal(false);
       setOperationProgress(0);
     }, 3000);
+    setb2rRatio(0);
   };
 
   //handle quote for Uniswap
@@ -397,11 +402,18 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           onChange={(e: any) => handleLendAmount(e.target.value)}
           onMaxClick={() => {
             // console.log(selectedData);
-            setLendAmount((selectedData?.lend?.redeemBalanceFixed).toString());
+            setLendAmount(
+              truncateToDecimals(
+                Number(selectedData?.lend?.redeemBalanceFixed),
+                selectedData?.lend?.decimals
+              )
+            );
+
             setReceiveAmount(
-              (
-                Number(selectedData?.lend?.redeemBalanceFixed) * b2rRatio
-              ).toString()
+              truncateToDecimals(
+                Number(mul(selectedData?.lend?.redeemBalanceFixed, b2rRatio)),
+                Number(selectedData?.lend?.decimals)
+              )
             );
             setIsMax(true);
           }}
@@ -443,6 +455,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           buttonText={selectedData?.receive?.symbol}
           onClick={
             selectedData?.pool !== null &&
+            lendAmount != "0" &&
             selectedData?.lend?.collateralBalanceFixed > 0
               ? () => handleOpenTokenList("receive")
               : () => {}
@@ -450,6 +463,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           readonly
           btnClass={
             selectedData?.pool === null ||
+            lendAmount == "0" ||
             selectedData?.lend?.collateralBalanceFixed <= 0
               ? "disable_btn"
               : "visible"

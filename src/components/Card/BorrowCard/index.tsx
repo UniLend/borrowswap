@@ -202,10 +202,12 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       setSelectedTokens,
       setTokenListStatus,
       setReceiveAmount,
+      setLendAmount,
       setIsTokenLoading,
       handleQuoteValue,
       handleSelectLendToken,
-      handleBorrowToken
+      handleBorrowToken,
+      setSelectedLTV
     );
   };
 
