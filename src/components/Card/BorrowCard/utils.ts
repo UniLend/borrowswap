@@ -27,6 +27,7 @@ export const checkLiquidity = (
   selectedTokens: any,
   borrowAmount: number,
   setIsLowLiquidity: (value: boolean) => void
+  // receiveAmount: string,
 ) => {
   const lendAmountNumber = parseFloat(lendAmount);
 
@@ -107,38 +108,42 @@ export const handleQuote = async (
   setUniQuote: (quoteData: any) => void
 ) => {
   try {
-    if( String(selectedTokensRef.current.borrow.address).toLowerCase() === String(selectedTokensRef.current.receive.address).toLowerCase()){
-      setb2rRatio(1)
-     
+    if (
+      String(selectedTokensRef.current.borrow.address).toLowerCase() ===
+      String(selectedTokensRef.current.receive.address).toLowerCase()
+    ) {
+      setb2rRatio(1);
+
       setQuoteError(false);
-      setSelectedLTV(5)
+      setSelectedLTV(5);
     } else {
-    const value = await getQuote(
-      decimal2Fixed(1, selectedTokensRef.current.borrow.decimals),
-      address,
-      selectedTokensRef.current.borrow.address,
-      selectedTokensRef.current.receive.address,
-      chain?.id == 16715 ? 137 : chain?.id
-    );
-    console.log("quote", value);
+      const value = await getQuote(
+        decimal2Fixed(1, selectedTokensRef.current.borrow.decimals),
+        address,
+        selectedTokensRef.current.borrow.address,
+        selectedTokensRef.current.receive.address,
+        chain?.id == 16715 ? 137 : chain?.id
+      );
+      console.log("quote", value);
+      setSelectedLTV(5);
 
-    if (value?.quoteDecimals) {
-      setb2rRatio(value?.quoteDecimals);
+      if (value?.quoteDecimals) {
+        setb2rRatio(value?.quoteDecimals);
 
-      setUniQuote({
-        totalFee: value?.fee,
-        slipage: value?.slippage,
-        path: value?.path,
-      });
+        setUniQuote({
+          totalFee: value?.fee,
+          slippage: value?.slippage,
+          path: value?.path,
+        });
+      }
+      setQuoteError(false);
+      // TODO check
     }
-    setQuoteError(false);
-    setSelectedLTV(5); // TODO check
-  }
   } catch (error: any) {
     setQuoteError(true);
     NotificationMessage(
       "error",
-      `Swap is not available for ${selectedTokens.receive.symbol}, please select different receive token.`
+      `Swap is not available for ${selectedTokensRef.current.receive.symbol}, please select different receive token.`
     );
   } finally {
     setIsTokenLoading({ ...isTokenLoading, rangeSlider: false });
@@ -248,10 +253,12 @@ export const handleTokenSelection = async (
   setSelectedTokens: (value: any) => void,
   setTokenListStatus: (value: any) => void,
   setReceiveAmount: (value: any) => void,
+  setLendAmount: (value: any) => void,
   setIsTokenLoading: (value: any) => void,
   handleQuoteValue: () => void,
   handleSelectLendToken: (value: any) => void,
-  handleSelectBorrowToken: (value: any) => void
+  handleSelectBorrowToken: (value: any) => void,
+  setSelectedLTV: (value: any) => void
 ) => {
   setSelectedTokens({
     ...selectedTokens,
@@ -267,6 +274,8 @@ export const handleTokenSelection = async (
       ["receive"]: null,
     });
     setReceiveAmount("");
+    setLendAmount("");
+    setSelectedLTV("");
   } else if (tokenListStatus.operation == "borrow") {
     console.log(token.address);
     handleSelectBorrowToken(token);

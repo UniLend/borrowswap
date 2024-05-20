@@ -52,7 +52,7 @@ export const handleQuote = async (
         setb2rRatio(value.quoteDecimals);
         setUniQuote({
           totalFee: value?.fee,
-          slipage: value?.slippage,
+          slippage: value?.slippage,
           path: value?.path,
         });
         const payLendAmount =

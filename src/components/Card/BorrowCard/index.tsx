@@ -134,6 +134,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
   };
 
   const handleLTVSliderWithValue = (value: number) => {
+    console.log("value", value);
     handleLTVSlider(
       value,
       lendAmount,
@@ -202,10 +203,12 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       setSelectedTokens,
       setTokenListStatus,
       setReceiveAmount,
+      setLendAmount,
       setIsTokenLoading,
       handleQuoteValue,
       handleSelectLendToken,
-      handleBorrowToken
+      handleBorrowToken,
+      setSelectedLTV
     );
   };
 

@@ -493,7 +493,7 @@ export const getRepayBtnActionsRedeem = (
     lendAmount > selectedData?.lend?.redeemBalanceFixed;
   const isLowLiquidity: boolean =
     lendAmount > decimal2Fixed(selectedData?.lend?.liquidityFixed);
-  const noReceiveToken: boolean = selectedData?.lend?.redeemBalanceFixed == 0;
+  const noReceiveToken: boolean = lendAmount === 0;
 
   const { quotation } = isTokenLoading;
   if (pool == null) {
