@@ -160,8 +160,6 @@ export async function quoteWithSdk(tokenIn: any, tokenOut: any) {
         )
       );
 
-      console.log("res2", res2);
-
       res2 = res2
         .map((res: any, i: any) => ({ ...res, fee: FEE_TIERS[i] }))
         .filter((res: any) => res.status == "fulfilled")
@@ -207,11 +205,6 @@ function quoteWithFee(
     amountIn,
     0
   );
-  // .then((quote: any) => ({ quote, fee }));
-  // .catch((err: any) => {
-  //   console.log("Quote Call", err, fee);
-
-  // });
 }
 
 export function getProvider(rpc: any) {
