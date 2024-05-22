@@ -424,12 +424,14 @@ export default function RedeemCard({ uniSwapTokens }: any) {
               : selectedData?.pool?.borrowToken?.symbol
           }
           isShowMaxBtn
-          onClick={
-            selectedData?.pool !== null &&
-            selectedData.pool.source === "Compound"
-              ? () => handleOpenTokenList("receive")
-              : () => {}
-          }
+          // onClick={
+          //   selectedData?.pool !== null &&
+          //   selectedData.pool.source !== "Compound" &&
+          //   selectedData.pool.source !== "Unilend"
+          //     ? () => handleOpenTokenList("receive")
+          //     : () => {}
+          // }
+          onClick={() => {}}
           btnClass={
             selectedData?.pool === null ||
             selectedData?.receive?.collateralBalanceFixed === 0 ||
