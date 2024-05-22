@@ -83,7 +83,13 @@ export const handleQuote = async (
       String(borrowAddress).toLowerCase() === String(lendAddress).toLowerCase()
     ) {
       setb2rRatio(1);
-      setReceiveAmount(selectedData?.lend?.redeemBalanceFixed);
+      setReceiveAmount(
+        truncateToDecimals(
+          Number(selectedData?.lend?.redeemBalanceFixed),
+          selectedData?.lend?.decimals
+        ).toString()
+      );
+      // setReceiveAmount(selectedData?.lend?.redeemBalanceFixed);
       flag = true;
     } else {
       const tokenIn = {
@@ -129,6 +135,12 @@ export const handleQuote = async (
           selectedData?.lend?.redeemBalanceFixed,
           quoteValue
         );
+        // setReceiveAmount(
+        //   truncateToDecimals(
+        //     Number(payLendAmount),
+        //     selectedData?.receive?.decimals
+        //   ).toString()
+        // );
         setReceiveAmount(payLendAmount.toString());
         setLendAmount(selectedData?.lend?.redeemBalanceFixed);
         flag = true;

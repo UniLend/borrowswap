@@ -395,15 +395,20 @@ export default function RepayCard({ uniSwapTokens }: any) {
               : selectedData?.pool?.borrowToken?.symbol
           }
           // isShowMaxBtn
-          onClick={
-            selectedData?.pool !== null &&
-            selectedData.pool.source === "Compound"
-              ? () => handleOpenTokenList("receive")
-              : () => {}
-          }
+          // onClick={
+          //   selectedData?.pool !== null &&
+          //   selectedData.pool.source !== "Compound" &&
+          //   selectedData.pool.source !== "Unilend"
+          //     ? () => handleOpenTokenList("receive")
+          //     : () => {}
+          // }
+          onClick={() => {}}
           readonly
           btnClass={
-            selectedData?.pool?.source === "Compound" ? "" : "disable_btn"
+            selectedData?.pool?.source === "Compound" &&
+            selectedData?.pool?.source === "Unilend"
+              ? ""
+              : "disable_btn"
           }
         />
 
