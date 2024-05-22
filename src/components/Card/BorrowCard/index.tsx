@@ -64,7 +64,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
   const [unilendPool, setUnilendPool] = useState(null as any | null);
   const [currentLTV, setCurrentLTV] = useState("0");
   const [b2rRatio, setb2rRatio] = useState(1);
-  const [userProxy, setUserProxy] = useState(address);
+  const [userProxy, setUserProxy] = useState<any>(address);
   const [quoteError, setQuoteError] = useState<boolean>(false);
   const [isLowLiquidity, setIsLowLiquidity] = useState(false);
   const [isTokenLoading, setIsTokenLoading] = useState({

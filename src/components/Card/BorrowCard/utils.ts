@@ -193,29 +193,32 @@ export const handleSwapTransaction = async (
     const lendToken = await getAllowance(selectedTokens?.lend, address);
     // const borrowToken = await getAllowance(selectedTokens?.borrow, address);
     setIsBorrowProgressModal(true);
-    console.log(
-      "approval",
-      Number(lendAmount),
-      Number(lendToken.allowanceFixed),
-      Number(lendAmount) > Number(lendToken.allowanceFixed)
-    );
-
     if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
       setModalMsg("Spend Aprroval for " + selectedTokens.lend.symbol);
-      await handleApproval(selectedTokens?.lend.address, address, lendAmount);
-
-      handleSwapTransaction(
-        selectedTokens,
+      console.log("runnn ");
+      const checkApproval = await handleApproval(
+        selectedTokens?.lend.address,
+        selectedTokens?.lend.decimals,
         address,
-        lendAmount,
-        unilendPool,
-        borrowAmount,
-        path,
-        setIsBorrowProgressModal,
-        setModalMsg,
-        setOperationProgress,
-        handleClear
+        lendAmount
       );
+      const allow = await getAllowance(selectedTokens?.lend, address);
+      console.log("allow", allow);
+      console.log("checkApproval", checkApproval);
+      setTimeout(async () => {
+        await handleSwapTransaction(
+          selectedTokens,
+          address,
+          lendAmount,
+          unilendPool,
+          borrowAmount,
+          path,
+          setIsBorrowProgressModal,
+          setModalMsg,
+          setOperationProgress,
+          handleClear
+        );
+      }, 3000);
     } else {
       setOperationProgress(2);
       setModalMsg(
@@ -225,6 +228,7 @@ export const handleSwapTransaction = async (
           "-" +
           selectedTokens?.receive?.symbol
       );
+
       let hash;
       if (selectedTokens.borrow.source == "Unilend") {
         hash = await handleSwap(
