@@ -81,7 +81,6 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     slippage: 0,
     path: [],
   });
-
   const isLowBal: boolean = +lendAmount > selectedTokens?.lend?.balanceFixed;
   const connectWallet = isConnected;
 
