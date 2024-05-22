@@ -221,7 +221,7 @@ export const handleRepayTransaction = async (
   handleClear: () => void,
   path: any
 ) => {
-  setOperationProgress(0);
+  // setOperationProgress(1);
   try {
     const lendToken = await getAllowance(selectedData?.lend, address);
     // const borrowToken = await getAllowance(selectedData?.borrow, address);
@@ -236,7 +236,7 @@ export const handleRepayTransaction = async (
     if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
       setModalMsg("Spend Aprroval for " + selectedData.lend.symbol);
       await handleApproval(selectedData?.lend.address, address, lendAmount);
-      setOperationProgress(1);
+      // setOperationProgress(1);
 
       await handleRepayTransaction(
         selectedData,
@@ -277,13 +277,11 @@ export const handleRepayTransaction = async (
       }
       if (hash) {
         setOperationProgress(3);
+        setModalMsg("Transaction is Success!");
         handleClear();
         NotificationMessage("success", `Repay is successful`);
         // checkTxnStatus(hash, txnData, setIsBorrowProgressModal)
         console.log("reciept", hash);
-        setTimeout(() => {
-          setIsBorrowProgressModal(false);
-        }, 1000);
       }
     }
   } catch (error: any) {

@@ -18,6 +18,7 @@ import { contractAddresses } from "../../../api/contracts/address";
 import {
   decimal2Fixed,
   fixed2Decimals,
+  mul,
   truncateToDecimals,
 } from "../../../helpers";
 import NotificationMessage from "../../Common/NotificationMessage";
@@ -189,7 +190,13 @@ export const handleSelectRepayToken = async (
         ["receive"]: null,
         ["borrow"]: data.token0,
       });
-      setLendAmount(data.token1.redeemBalanceFixed);
+
+      setLendAmount(
+        truncateToDecimals(
+          data?.token0?.redeemBalanceFixed,
+          data?.token0?.decimals
+        )
+      );
     } else if (data.token1.address === poolData.borrowToken.id) {
       setSelectedData({
         ...selectedData,
@@ -200,7 +207,12 @@ export const handleSelectRepayToken = async (
       });
       console.log("else");
 
-      //setLendAmount(data.token0.redeemBalanceFixed)
+      setLendAmount(
+        truncateToDecimals(
+          data?.token1?.redeemBalanceFixed,
+          data?.token1?.decimals
+        )
+      );
     }
   } else {
     const { redeemBalanceInUSD } = await getCollateralValue(address);
@@ -338,11 +350,12 @@ export const handleRepayTransaction = async (
     }
     if (hash) {
       setOperationProgress(3);
+      setModalMsg("Transaction is Success!");
       handleClear();
-      NotificationMessage("success", `Redeem is successful`);
-      setTimeout(() => {
-        setIsBorrowProgressModal(false);
-      }, 1000);
+      NotificationMessage("success", `Redeem is Successful`);
+      // setTimeout(() => {
+      //   setIsBorrowProgressModal(false);
+      // }, 1000);
     }
   } catch (error: any) {
     setIsBorrowProgressModal(false);

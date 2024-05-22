@@ -19,6 +19,7 @@ import {
   getCompoundCurrentLTV,
   getCurrentLTV,
   truncateToDecimals,
+  mul,
 } from "../../../helpers";
 import NotificationMessage from "../../Common/NotificationMessage";
 
@@ -29,6 +30,7 @@ export const checkLiquidity = (
   selectedTokens: any,
   borrowAmount: number,
   setIsLowLiquidity: (value: boolean) => void
+  // receiveAmount: string,
 ) => {
   const lendAmountNumber = parseFloat(lendAmount);
 
@@ -88,11 +90,18 @@ export const handleLTVSlider = (
   setBorrowAmount(borrowAmount);
 
   if (selectedTokens.receive) {
+    // let receiveVal = mul(borrowAmount, b2rRatio);
     let receiveVal = borrowAmount * b2rRatio;
     if (isNaN(receiveVal) || receiveVal < 0) {
       receiveVal = 0;
     }
-    setReceiveAmount(receiveVal.toString());
+
+    setReceiveAmount(
+      truncateToDecimals(
+        Number(receiveVal),
+        selectedTokens.receive.decimals
+      ).toString()
+    );
   }
 };
 
@@ -161,7 +170,7 @@ export const handleQuote = async (
     setQuoteError(true);
     NotificationMessage(
       "error",
-      `Swap is not available for ${selectedTokens.receive.symbol}, please select different receive token.`
+      `Swap is not available for ${selectedTokensRef.current.receive.symbol}, please select different receive token.`
     );
   } finally {
     setIsTokenLoading({ ...isTokenLoading, rangeSlider: false });
@@ -194,6 +203,7 @@ export const handleSwapTransaction = async (
     if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
       setModalMsg("Spend Aprroval for " + selectedTokens.lend.symbol);
       await handleApproval(selectedTokens?.lend.address, address, lendAmount);
+
       handleSwapTransaction(
         selectedTokens,
         address,
@@ -244,12 +254,10 @@ export const handleSwapTransaction = async (
 
       if (hash) {
         setOperationProgress(3);
+        setModalMsg("Transaction is Success!");
         handleClear();
         //TODO: check message
         NotificationMessage("success", `Swap and Borrow is successful`);
-        setTimeout(() => {
-          setIsBorrowProgressModal(false);
-        }, 1000);
       }
     }
   } catch (error: any) {
@@ -273,10 +281,12 @@ export const handleTokenSelection = async (
   setSelectedTokens: (value: any) => void,
   setTokenListStatus: (value: any) => void,
   setReceiveAmount: (value: any) => void,
+  setLendAmount: (value: any) => void,
   setIsTokenLoading: (value: any) => void,
   handleQuoteValue: () => void,
   handleSelectLendToken: (value: any) => void,
-  handleSelectBorrowToken: (value: any) => void
+  handleSelectBorrowToken: (value: any) => void,
+  setSelectedLTV: (value: any) => void
 ) => {
   setSelectedTokens({
     ...selectedTokens,
@@ -292,6 +302,8 @@ export const handleTokenSelection = async (
       ["receive"]: null,
     });
     setReceiveAmount("");
+    setLendAmount("");
+    setSelectedLTV(5);
   } else if (tokenListStatus.operation == "borrow") {
     console.log(token.address);
     handleSelectBorrowToken(token);

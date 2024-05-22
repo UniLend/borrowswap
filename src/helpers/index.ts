@@ -375,7 +375,8 @@ export const getButtonAction = (
   quoteError: boolean,
   isLowLiquidity: boolean,
   isLowBal: boolean,
-  connectWallet: any
+  connectWallet: any,
+  receiveAmount: string
 ) => {
   let btn = {
     text: "Borrow",
@@ -385,7 +386,6 @@ export const getButtonAction = (
   const { lend, borrow, receive } = selectedTokens;
 
   let isLowValueCompound: boolean = false;
-
   if (selectedTokens?.lend?.source === "Compound") {
     const borrowValueInUsd =
       selectedTokens?.borrow?.borrowBalanceFixed *
@@ -410,6 +410,8 @@ export const getButtonAction = (
     btn.text = "Select borrow token";
   } else if (receive === null) {
     btn.text = "Select receive token";
+  } else if (receiveAmount === "0") {
+    btn.text = "Receive Amount must not 0";
   } else if (quoteError) {
     btn.text = "Swap not available";
   } else if (isLowLiquidity) {
@@ -484,8 +486,6 @@ export const getRepayBtnActionsRedeem = (
   };
 
   const { pool, lend, receive } = selectedData;
-  console.log("selectedData", selectedData);
-
   const isLowBal: boolean =
     +lendAmount > truncateToDecimals(selectedData?.lend?.balanceFixed || 0, 4);
 
@@ -493,7 +493,7 @@ export const getRepayBtnActionsRedeem = (
     lendAmount > selectedData?.lend?.redeemBalanceFixed;
   const isLowLiquidity: boolean =
     lendAmount > decimal2Fixed(selectedData?.lend?.liquidityFixed);
-  const noReceiveToken: boolean = selectedData?.lend?.redeemBalanceFixed == 0;
+  const noReceiveToken: boolean = lendAmount === 0;
 
   const { quotation } = isTokenLoading;
   if (pool == null) {
@@ -513,7 +513,6 @@ export const getRepayBtnActionsRedeem = (
   } else if (lend === null) {
     btn.text = "Select lend token";
   } else if (exceedRedeemBalace) {
-    console.log("exceed balance");
     btn.text = "Exceeds Redeemable Amount";
   } else if (isLowLiquidity) {
     btn.text = "Not Enough Liquidity";
