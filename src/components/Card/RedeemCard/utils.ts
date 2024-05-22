@@ -22,6 +22,7 @@ import {
   truncateToDecimals,
 } from "../../../helpers";
 import NotificationMessage from "../../Common/NotificationMessage";
+import { quoteWithSdk } from "../../../api/uniswap/quotes";
 
 // export const checkLiquidity = (
 //   lendAmount: string,
@@ -85,33 +86,48 @@ export const handleQuote = async (
       setReceiveAmount(selectedData?.lend?.redeemBalanceFixed);
       flag = true;
     } else {
-      const value = await getQuote(
-        decimal2Fixed(1, borrowDecimals),
-        address,
-        lendAddress,
-        borrowAddress,
-        chainId
+      const tokenIn = {
+        chainId: chain?.id == 16715 ? 137 : chain?.id,
+        address: selectedData?.lend?.address,
+        decimals: selectedData?.lend?.decimals,
+        symbol: selectedData?.lend?.symbol,
+        name: selectedData?.lend?.name,
+      };
+
+      const tokenOut = {
+        chainId: chain?.id == 16715 ? 137 : chain?.id,
+        address: selectedData?.receive?.address,
+        decimals: selectedData?.receive?.decimals,
+        symbol: selectedData?.receive?.symbol,
+        name: selectedData?.receive?.name,
+      };
+      //   const value = await getQuote(
+      //     decimal2Fixed(1, borrowDecimals),
+      //     address,
+      //     lendAddress,
+      //     borrowAddress,
+      //     chainId
+      //   );
+      const { quoteValue, quoteFee, quotePath }: any = await quoteWithSdk(
+        tokenIn,
+        tokenOut
       );
 
-      if (value?.quoteDecimals) {
-        setb2rRatio(value.quoteDecimals);
+      if (quoteValue) {
+        setb2rRatio(Number(quoteValue));
         setUniQuote({
-          totalFee: value?.fee,
-          slippage: value?.slippage,
-          path: value?.path,
+          totalFee: quoteFee,
+          slippage: 0.5,
+          path: quotePath,
         });
-
-        const payLendAmount = mul(
-          value.quoteDecimals,
-          selectedData?.lend?.redeemBalanceFixed || 0
-        );
-
+        const payLendAmount =
+          quoteValue * (selectedData?.lend?.redeemBalanceFixed || 0);
         console.log(
           "pay amount",
           selectedData,
           payLendAmount,
           selectedData?.lend?.redeemBalanceFixed,
-          value.quoteDecimals
+          quoteValue
         );
         setReceiveAmount(payLendAmount.toString());
         setLendAmount(selectedData?.lend?.redeemBalanceFixed);

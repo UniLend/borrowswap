@@ -9,6 +9,8 @@ import {
   handleSwap,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
+import { quoteWithSdk } from "../../../api/uniswap/quotes";
+
 import {
   decimal2Fixed,
   fixed2Decimals,
@@ -125,26 +127,44 @@ export const handleQuote = async (
       setQuoteError(false);
       setSelectedLTV(5);
     } else {
-      const value = await getQuote(
-        decimal2Fixed(1, selectedTokensRef.current.borrow.decimals),
-        address,
-        selectedTokensRef.current.borrow.address,
-        selectedTokensRef.current.receive.address,
-        chain?.id == 16715 ? 137 : chain?.id
-      );
-      setSelectedLTV(5);
+      const tokenIn = {
+        chainId: chain?.id == 16715 ? 137 : chain?.id,
+        address: selectedTokensRef.current.borrow.address,
+        decimals: selectedTokensRef.current.borrow.decimals,
+        symbol: selectedTokensRef.current.borrow.symbol,
+        name: selectedTokensRef.current.borrow.name,
+      };
 
-      if (value?.quoteDecimals) {
-        setb2rRatio(value?.quoteDecimals);
+      const tokenOut = {
+        chainId: chain?.id == 16715 ? 137 : chain?.id,
+        address: selectedTokensRef.current.receive.address,
+        decimals: selectedTokensRef.current.receive.decimals,
+        symbol: selectedTokensRef.current.receive.symbol,
+        name: selectedTokensRef.current.receive.name,
+      };
+      // const value = await getQuote(
+      //   decimal2Fixed(1, selectedTokensRef.current.borrow.decimals),
+      //   address,
+      //   selectedTokensRef.current.borrow.address,
+      //   selectedTokensRef.current.receive.address,
+      //   chain?.id == 16715 ? 137 : chain?.id
+      // );
+      const { quoteValue, quoteFee, quotePath }: any = await quoteWithSdk(
+        tokenIn,
+        tokenOut
+      );
+
+      if (quoteValue) {
+        setb2rRatio(Number(quoteValue));
 
         setUniQuote({
-          totalFee: value?.fee,
-          slippage: value?.slippage,
-          path: value?.path,
+          totalFee: quoteFee,
+          slippage: 0.5,
+          path: quotePath,
         });
       }
       setQuoteError(false);
-      // TODO check
+      setSelectedLTV(5);
     }
   } catch (error: any) {
     setQuoteError(true);

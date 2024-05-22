@@ -17,7 +17,7 @@ const LiquidityFactors: React.FC<LiquidityFactorsProps> = ({
     </p>
     <p>
       <span>Max. Slippage</span>
-      <span>{slippage}%</span>
+      <span>{slippage}% (auto)</span>
     </p>
     <p>
       <span>Order Routing</span>
