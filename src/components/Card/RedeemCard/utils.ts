@@ -236,7 +236,7 @@ export const handleRepayTransaction = async (
 
     // if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
     //   setModalMsg("Spend Aprroval for " + selectedData.lend.symbol);
-    //   await handleApproval(selectedData?.lend.address, address, lendAmount);
+    //   await handleApproval(selectedData?.lend.address, selectedData?.lend.decimals, address, lendAmount);
     //   setOperationProgress(1);
     // setTimeout(async () => {
       //  await handleRepayTransaction(
