@@ -6,7 +6,13 @@ import Quoter from "@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Qu
 // import IUniswapV3PoolABI from "@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json";
 import { getEtherContract, getEthersProvider } from "../contracts/ethers";
 import { supportedNetworks } from "../networks/networks";
-import { fromReadableAmount, toReadableAmount } from "../../helpers";
+import {
+  decimal2Fixed,
+  fixed2Decimals,
+  fromBigNumber,
+  fromReadableAmount,
+  toReadableAmount,
+} from "../../helpers";
 
 export interface ExampleConfig {
   rpc: {
@@ -61,20 +67,20 @@ export async function quoteWithSdk(tokenIn: any, tokenOut: any) {
     const FEE_TIERS = [500, 3000, 10000];
 
     if (isWeth) {
-      const quoteCalls1 = FEE_TIERS.map((fee) =>
-        quoteWithFee(
-          CurrentConfig.tokens.in.address,
-          CurrentConfig.tokens.out.address,
-          fee,
-          fromReadableAmount(
-            CurrentConfig.tokens.amountIn,
-            CurrentConfig.tokens.in.decimals
-          ).toString(),
-          quoterContract
+      const res = await Promise.any(
+        FEE_TIERS.map((fee) =>
+          quoteWithFee(
+            CurrentConfig.tokens.in.address,
+            CurrentConfig.tokens.out.address,
+            fee,
+            fromReadableAmount(
+              CurrentConfig.tokens.amountIn,
+              CurrentConfig.tokens.in.decimals
+            ).toString(),
+            quoterContract
+          )
         )
-      );
-
-      const res = await Promise.any(quoteCalls1).catch((err) => {
+      ).catch((err) => {
         console.error("Quote Error: ", err);
       });
 
@@ -87,43 +93,77 @@ export async function quoteWithSdk(tokenIn: any, tokenOut: any) {
         quotePath: [fee],
       };
     } else {
-      const quoteCalls1 = FEE_TIERS.map((fee) =>
-        quoteWithFee(
-          CurrentConfig.tokens.in.address,
-          WETH,
-          fee,
-          fromReadableAmount(
-            CurrentConfig.tokens.amountIn,
-            CurrentConfig.tokens.in.decimals
-          ).toString(),
-          quoterContract
+      let res1: any = await Promise.allSettled(
+        FEE_TIERS.map((fee) =>
+          quoteWithFee(
+            CurrentConfig.tokens.in.address,
+            WETH,
+            fee,
+            fromReadableAmount(
+              CurrentConfig.tokens.amountIn,
+              CurrentConfig.tokens.in.decimals
+            ).toString(),
+            quoterContract
+          )
         )
-      );
-
-      const res1 = await Promise.any(quoteCalls1).catch((err) => {
+      ).catch((err) => {
         console.error("Quote1 Error: ", err);
       });
-      const quote1 = res1.quote;
-      const fee1 = res1.fee;
 
-      const quoteCalls2 = FEE_TIERS.map((fee) =>
-        quoteWithFee(
-          WETH,
-          CurrentConfig.tokens.out.address,
-          fee,
-          ethers.utils.formatUnits(quote1, 0).toString(),
-          quoterContract
+      res1 = res1
+        .map((res: any, i: any) => ({ ...res, fee: FEE_TIERS[i] }))
+        .filter((res: any) => res.status == "fulfilled")
+        .map((res: any) => ({
+          fee: res.fee,
+          quote: fromBigNumber(res.value),
+        }));
+
+      let quote1 = fromBigNumber(res1[0].quote).toString();
+      let fee1 = res1[0].fee;
+
+      for (const res of res1) {
+        const currentquote = fromBigNumber(res.quote).toString();
+
+        if (Number(quote1) < Number(currentquote)) {
+          quote1 = currentquote;
+          fee1 = res.fee;
+        }
+      }
+
+      let res2: any = await Promise.allSettled(
+        FEE_TIERS.map((fee) =>
+          quoteWithFee(
+            WETH,
+            CurrentConfig.tokens.out.address,
+            fee,
+            quote1,
+            quoterContract
+          )
         )
       );
 
-      const res2 = await Promise.any(quoteCalls2).catch((err) => {
-        console.error("Quote2 Error: ", err);
-      });
-      const quote2 = res2?.quote;
-      const fee2 = res2.fee;
+      res2 = res2
+        .map((res: any, i: any) => ({ ...res, fee: FEE_TIERS[i] }))
+        .filter((res: any) => res.status == "fulfilled")
+        .map((res: any) => ({
+          fee: res.fee,
+          quote: fromBigNumber(res.value),
+        }));
+
+      let quote2 = fromBigNumber(res2[0].quote).toString();
+      let fee2 = res2[0].fee;
+
+      for (const res of res2) {
+        const currentquote = fromBigNumber(res.quote).toString();
+
+        if (Number(quote2) < Number(currentquote)) {
+          quote2 = currentquote;
+          fee2 = res.fee;
+        }
+      }
 
       return {
-        quoteValue: toReadableAmount(quote2, CurrentConfig.tokens.out.decimals),
+        quoteValue: fixed2Decimals(quote2, CurrentConfig.tokens.out.decimals),
         quoteFee: fee1 + fee2,
         quotePath: [fee1, fee2],
       };
@@ -140,11 +180,16 @@ function quoteWithFee(
   amountIn: string,
   quoterContract: any
 ) {
-  return quoterContract.callStatic
-    .quoteExactInputSingle(tokenIn, tokenOut, fee, amountIn, 0)
-    .then((quote: any) => ({ quote, fee }))
-    .catch((err: any) => {
-      console.log("Quote Call", err);
-      return Promise.reject(err);
-    });
+  return quoterContract.callStatic.quoteExactInputSingle(
+    tokenIn,
+    tokenOut,
+    fee,
+    amountIn,
+    0
+  );
+  // .then((quote: any) => ({ quote, fee }));
+  // .catch((err: any) => {
+  //   console.log("Quote Call", err, fee);
+
+  // });
 }

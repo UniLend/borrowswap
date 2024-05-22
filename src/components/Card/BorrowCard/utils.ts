@@ -158,7 +158,7 @@ export const handleQuote = async (
       }
       setQuoteError(false);
       setSelectedLTV(5);
-      console.log("SDK_QUOTE", quoteValue);
+      console.log("SDK_QUOTE", quoteValue, quoteFee, quotePath);
     }
   } catch (error: any) {
     setQuoteError(true);
