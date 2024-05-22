@@ -136,7 +136,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     quotation: false,
   });
   const [unilendPool, setUnilendPool] = useState(null as any | null);
-  const [operationProgress, setOperationProgress] = useState(0);
+  const [operationProgress, setOperationProgress] = useState(1);
   const [uniQuote, setUniQuote] = useState({
     totalFee: 0,
     slippage: 0,
@@ -239,7 +239,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
 
     setTimeout(() => {
       setIsBorrowProgressModal(false);
-      setOperationProgress(0);
+      setOperationProgress(1);
     }, 3000);
     setb2rRatio(0);
   };

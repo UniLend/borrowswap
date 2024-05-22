@@ -375,7 +375,8 @@ export const getButtonAction = (
   quoteError: boolean,
   isLowLiquidity: boolean,
   isLowBal: boolean,
-  connectWallet: any
+  connectWallet: any,
+  receiveAmount: string
 ) => {
   let btn = {
     text: "Borrow",
@@ -385,7 +386,6 @@ export const getButtonAction = (
   const { lend, borrow, receive } = selectedTokens;
 
   let isLowValueCompound: boolean = false;
-
   if (selectedTokens?.lend?.source === "Compound") {
     const borrowValueInUsd =
       selectedTokens?.borrow?.borrowBalanceFixed *
@@ -410,6 +410,8 @@ export const getButtonAction = (
     btn.text = "Select borrow token";
   } else if (receive === null) {
     btn.text = "Select receive token";
+  } else if (receiveAmount === "0") {
+    btn.text = "Receive Amount must not 0";
   } else if (quoteError) {
     btn.text = "Swap not available";
   } else if (isLowLiquidity) {

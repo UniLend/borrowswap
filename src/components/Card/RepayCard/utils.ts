@@ -201,7 +201,7 @@ export const handleRepayTransaction = async (
   handleClear: () => void,
   path: any
 ) => {
-  setOperationProgress(0);
+  // setOperationProgress(1);
   try {
     const lendToken = await getAllowance(selectedData?.lend, address);
     // const borrowToken = await getAllowance(selectedData?.borrow, address);
@@ -216,7 +216,7 @@ export const handleRepayTransaction = async (
     if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
       setModalMsg("Spend Aprroval for " + selectedData.lend.symbol);
       await handleApproval(selectedData?.lend.address, address, lendAmount);
-      setOperationProgress(1);
+      // setOperationProgress(1);
 
       await handleRepayTransaction(
         selectedData,
