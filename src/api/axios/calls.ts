@@ -1,11 +1,9 @@
-import { abiEncode } from './../../helpers/index';
+import { abiEncode } from "./../../helpers/index";
 import axios from "axios";
 import { ethers } from "ethers";
 import { aggregatorV3InterfaceABI } from "../contracts/abi";
 import { getEthersProvider } from "../contracts/ethers";
-import {
-  fixed2Decimals,
-} from "../../helpers/index";
+import { fixed2Decimals } from "../../helpers/index";
 export const fetchGraphQlData = async (chainId: number, FILMS_QUERY: any) => {
   const graphURL = {
     80001: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/my_unilend",
@@ -49,12 +47,12 @@ export const getEthToUsd = async () => {
 
 export const fetchEthRateForAddresses = async (
   addresses: Array<any>,
-  chainId: any
+  chainId?: any
 ) => {
   const provider = getEthersProvider();
   try {
     const tokensObject = await Promise.all(
-      addresses?.map(async (addr: any) => {
+      addresses?.map(async (addr: any, i: any) => {
         const priceFeed = new ethers.Contract(
           addr.source,
           aggregatorV3InterfaceABI,
@@ -65,7 +63,7 @@ export const fetchEthRateForAddresses = async (
           const roundData = await priceFeed.latestRoundData();
           // return ETH price of each token
           return {
-            [addr.id]: roundData.answer.toString(),
+            [addr?.id ?? i]: roundData.answer.toString(),
           };
         } catch (error) {
           console.error(`Error fetching round data for address ${addr}: `);
@@ -87,6 +85,8 @@ export const fetchEthRateForAddresses = async (
 
 export const getTokenPrice = async (data: any, chain: any) => {
   const usdPrice = await getEthToUsd();
+  console.log("getTokenPrice", data?.assetOracles);
+
   const temp: any = await fetchEthRateForAddresses(
     data?.assetOracles,
     chain?.id
@@ -114,40 +114,40 @@ export const getTokenPrice = async (data: any, chain: any) => {
 const CancelToken = axios.CancelToken;
 let cancelPreviousRequest: any;
 
-
-const findQuoteAmount = (quote: any): { quoteValue: string, quoteDecimals: number, totalFee:number, decode: any } => {
-  let quoteValue = "";
-  let quoteDecimals = 0;
+const findQuoteAmount = (
+  quote: any
+): {
+  quoteValue: string;
+  quoteDecimals: number;
+  totalFee: number;
+  decode: any;
+} => {
+  let quoteValue = quote.quoteGasAndPortionAdjusted;
+  let quoteDecimals = quote.quoteGasAndPortionAdjustedDecimals;
   let totalFee = 0;
 
-  const route = quote?.route?.[quote.route.length - 1];
-  const decode = route
-  if (route.length > 0) {
+  const route = quote?.route?.[quote?.route?.length - 1];
+  const decode = [];
+  if (route?.length > 0) {
     totalFee = route.reduce((acc: any, pool: any) => {
-    const fee = Number(pool.fee);
-    acc += fee;
-    return acc;
+      const fee = Number(pool.fee);
+      acc += fee;
+      return acc;
     }, 0);
 
-    const { amountOut, tokenOut: { decimals } } = route[route.length - 1];
-    if (amountOut && decimals) {
-      const scaledAmountOut = fixed2Decimals(amountOut, Number(decimals));
-      quoteValue = amountOut.toString();
-      quoteDecimals = scaledAmountOut;
-    }
-
-    // decode.push(route[0].tokenIn.address)
-
-    // for (const path of route) {
-    //    console.log("QuotePath", path);
-    //    decode.push(path.fee)
-    //    decode.push(path.tokenOut.address)
-       
+    // const { amountOut, tokenOut: { decimals } } = route[route.length - 1];
+    // if (amountOut && decimals) {
+    //   const scaledAmountOut = fixed2Decimals(amountOut, Number(decimals));
+    //   quoteValue = amountOut.toString();
+    //   quoteDecimals = scaledAmountOut;
     // }
 
+    for (const path of route) {
+      decode.push(path.fee);
+    }
   }
 
-console.log("decode", decode);
+  console.log("decode", decode);
 
   return { quoteValue, quoteDecimals, totalFee, decode };
 };
@@ -160,9 +160,9 @@ export const getQuote = async (
   chainId = 1
 ) => {
   // Cancel the previous request if it exists
-  if (cancelPreviousRequest) {
-    cancelPreviousRequest();
-  }
+  // if (cancelPreviousRequest) {
+  //   cancelPreviousRequest();
+  // }
 
   console.log("QuoteData", { amountIn, user, tokenIn, tokenOut, chainId });
   try {
@@ -202,18 +202,17 @@ export const getQuote = async (
         cancelPreviousRequest = c;
       }),
     });
-
-
-
-  const { quoteValue, quoteDecimals, totalFee, decode } = findQuoteAmount(response.data.quote);
-  return {
-    quoteDecimals: quoteDecimals,
-    quote: quoteValue,
-    slippage: response.data.quote.slippage,
-    fee: totalFee,
-    path: decode
-  };
-
+    console.log("QUOTE_API_DATA", response.data.quote);
+    const { quoteValue, quoteDecimals, totalFee, decode } = findQuoteAmount(
+      response.data.quote
+    );
+    return {
+      quoteDecimals: quoteDecimals,
+      quote: quoteValue,
+      slippage: response.data.quote.slippage,
+      fee: totalFee,
+      path: decode,
+    };
   } catch (error) {
     if (axios.isCancel(error)) {
       console.log("Previous request cancelled", error);

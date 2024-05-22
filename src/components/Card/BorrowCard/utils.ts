@@ -9,6 +9,8 @@ import {
   handleSwap,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
+import { quoteWithSdk } from "../../../api/uniswap/quotes";
+
 import {
   decimal2Fixed,
   fixed2Decimals,
@@ -17,6 +19,7 @@ import {
   getCompoundCurrentLTV,
   getCurrentLTV,
   truncateToDecimals,
+  mul,
 } from "../../../helpers";
 import NotificationMessage from "../../Common/NotificationMessage";
 
@@ -27,6 +30,7 @@ export const checkLiquidity = (
   selectedTokens: any,
   borrowAmount: number,
   setIsLowLiquidity: (value: boolean) => void
+  // receiveAmount: string,
 ) => {
   const lendAmountNumber = parseFloat(lendAmount);
 
@@ -78,7 +82,7 @@ export const handleLTVSlider = (
       lendAmount,
       value,
       selectedTokens.lend.collateralBalanceFixed,
-      selectedTokens.borrow.BorrowBalanceFixed,
+      selectedTokens.borrow.borrowBalanceFixed,
       selectedTokens.lend.price
     );
   }
@@ -86,16 +90,20 @@ export const handleLTVSlider = (
   setBorrowAmount(borrowAmount);
 
   if (selectedTokens.receive) {
+    // let receiveVal = mul(borrowAmount, b2rRatio);
     let receiveVal = borrowAmount * b2rRatio;
     if (isNaN(receiveVal) || receiveVal < 0) {
       receiveVal = 0;
     }
-    setReceiveAmount(receiveVal.toString());
+
+    setReceiveAmount(
+      truncateToDecimals(
+        Number(receiveVal),
+        selectedTokens.receive.decimals
+      ).toString()
+    );
   }
 };
-
-
-
 
 export const handleQuote = async (
   selectedTokensRef: any,
@@ -110,32 +118,59 @@ export const handleQuote = async (
   setUniQuote: (quoteData: any) => void
 ) => {
   try {
-    const value = await getQuote(
-      decimal2Fixed(1, selectedTokensRef.current.borrow.decimals),
-      address,
-      selectedTokensRef.current.borrow.address,
-      selectedTokensRef.current.receive.address,
-      chain?.id == 16715 ? 137 : chain?.id
-    );
-    console.log("quote", value)
-  
-    if (value?.quoteDecimals) {
-      setb2rRatio(value?.quoteDecimals);
-  
-      setUniQuote({
-        totalFee: value?.fee,
-        slipage: value?.slippage,
-        path: value?.path,
-      })
+    if (
+      String(selectedTokensRef.current.borrow.address).toLowerCase() ===
+      String(selectedTokensRef.current.receive.address).toLowerCase()
+    ) {
+      setb2rRatio(1);
 
+      setQuoteError(false);
+      setSelectedLTV(5);
+    } else {
+      const tokenIn = {
+        chainId: chain?.id == 16715 ? 137 : chain?.id,
+        address: selectedTokensRef.current.borrow.address,
+        decimals: selectedTokensRef.current.borrow.decimals,
+        symbol: selectedTokensRef.current.borrow.symbol,
+        name: selectedTokensRef.current.borrow.name,
+      };
+
+      const tokenOut = {
+        chainId: chain?.id == 16715 ? 137 : chain?.id,
+        address: selectedTokensRef.current.receive.address,
+        decimals: selectedTokensRef.current.receive.decimals,
+        symbol: selectedTokensRef.current.receive.symbol,
+        name: selectedTokensRef.current.receive.name,
+      };
+      // const value = await getQuote(
+      //   decimal2Fixed(1, selectedTokensRef.current.borrow.decimals),
+      //   address,
+      //   selectedTokensRef.current.borrow.address,
+      //   selectedTokensRef.current.receive.address,
+      //   chain?.id == 16715 ? 137 : chain?.id
+      // );
+      const { quoteValue, quoteFee, quotePath }: any = await quoteWithSdk(
+        tokenIn,
+        tokenOut
+      );
+
+      if (quoteValue) {
+        setb2rRatio(Number(quoteValue));
+
+        setUniQuote({
+          totalFee: quoteFee,
+          slippage: 0.5,
+          path: quotePath,
+        });
+      }
+      setQuoteError(false);
+      setSelectedLTV(5);
     }
-    setQuoteError(false);
-    setSelectedLTV(5); // TODO check
   } catch (error: any) {
     setQuoteError(true);
     NotificationMessage(
       "error",
-      `Swap is not available for ${selectedTokens.receive.symbol}, please select different receive token.`
+      `Swap is not available for ${selectedTokensRef.current.receive.symbol}, please select different receive token.`
     );
   } finally {
     setIsTokenLoading({ ...isTokenLoading, rangeSlider: false });
@@ -158,29 +193,33 @@ export const handleSwapTransaction = async (
     const lendToken = await getAllowance(selectedTokens?.lend, address);
     // const borrowToken = await getAllowance(selectedTokens?.borrow, address);
     setIsBorrowProgressModal(true);
-    if (Number(lendAmount) > Number(lendToken.allowanceFixed) ) {
+    if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
       setModalMsg("Spend Aprroval for " + selectedTokens.lend.symbol);
-      console.log("runnn ")
-    const checkApproval =  await handleApproval(selectedTokens?.lend.address, selectedTokens?.lend.decimals,  address, lendAmount);
-    const allow = await getAllowance(selectedTokens?.lend, address);
-      console.log("allow", allow );
-      console.log("checkApproval", checkApproval );
-    setTimeout(async () => {
-      await handleSwapTransaction(
-        selectedTokens,
+      console.log("runnn ");
+      const checkApproval = await handleApproval(
+        selectedTokens?.lend.address,
+        selectedTokens?.lend.decimals,
         address,
-        lendAmount,
-        unilendPool,
-        borrowAmount,
-        path,
-        setIsBorrowProgressModal,
-        setModalMsg,
-        setOperationProgress,
-        handleClear
+        lendAmount
       );
+      const allow = await getAllowance(selectedTokens?.lend, address);
+      console.log("allow", allow);
+      console.log("checkApproval", checkApproval);
+      setTimeout(async () => {
+        await handleSwapTransaction(
+          selectedTokens,
+          address,
+          lendAmount,
+          unilendPool,
+          borrowAmount,
+          path,
+          setIsBorrowProgressModal,
+          setModalMsg,
+          setOperationProgress,
+          handleClear
+        );
       }, 3000);
-  
-    }  else {
+    } else {
       setOperationProgress(2);
       setModalMsg(
         selectedTokens.lend.symbol +
@@ -200,6 +239,9 @@ export const handleSwapTransaction = async (
           borrowAmount,
           path
         );
+        if (hash.error) {
+          throw new Error(hash.error.data.message);
+        }
       } else {
         hash = await handleCompoundSwap(
           selectedTokens.lend.address,
@@ -207,7 +249,8 @@ export const handleSwapTransaction = async (
           selectedTokens.receive.address,
           decimal2Fixed(lendAmount, selectedTokens.lend.decimals),
           decimal2Fixed(borrowAmount, selectedTokens.borrow.decimals),
-          address
+          address,
+          path
         );
       }
 
@@ -215,16 +258,21 @@ export const handleSwapTransaction = async (
 
       if (hash) {
         setOperationProgress(3);
+        setModalMsg("Transaction is Success!");
         handleClear();
         //TODO: check message
         NotificationMessage("success", `Swap and Borrow is successful`);
-        setTimeout(() => {
-          setIsBorrowProgressModal(false);
-        }, 1000);
       }
     }
-  } catch (error) {
-    console.log("handleSwap", { error });
+  } catch (error: any) {
+    setIsBorrowProgressModal(false);
+    handleClear();
+    if (error.reason) {
+      NotificationMessage("error", `${error.reason}`);
+    } else {
+      NotificationMessage("error", `${error}`);
+    }
+    console.log("Error1", { error });
   }
 };
 
@@ -237,10 +285,12 @@ export const handleTokenSelection = async (
   setSelectedTokens: (value: any) => void,
   setTokenListStatus: (value: any) => void,
   setReceiveAmount: (value: any) => void,
+  setLendAmount: (value: any) => void,
   setIsTokenLoading: (value: any) => void,
   handleQuoteValue: () => void,
   handleSelectLendToken: (value: any) => void,
-  handleSelectBorrowToken: (value: any) => void
+  handleSelectBorrowToken: (value: any) => void,
+  setSelectedLTV: (value: any) => void
 ) => {
   setSelectedTokens({
     ...selectedTokens,
@@ -256,6 +306,8 @@ export const handleTokenSelection = async (
       ["receive"]: null,
     });
     setReceiveAmount("");
+    setLendAmount("");
+    setSelectedLTV(5);
   } else if (tokenListStatus.operation == "borrow") {
     console.log(token.address);
     handleSelectBorrowToken(token);
@@ -307,7 +359,7 @@ export const getOprationToken = (
         };
       }
     }
-  
+
     return Object.values(common);
   } else if (tokenListStatus.operation === "borrow") {
     const tokensAvailableIn =
@@ -402,10 +454,18 @@ export const handleSelectBorrowToken = async (
     const borrowedToken = await getBorrowTokenData(token, address);
     setIsTokenLoading({ ...isTokenLoading, pools: false });
     const ltv = getCompoundCurrentLTV(
-      borrowedToken?.BorrowBalanceFixed,
+      borrowedToken?.borrowBalanceFixed,
       collateralToken?.collateralBalanceFixed,
       collateralToken?.price
     );
+    console.log(
+      "LTV",
+      ltv,
+      borrowedToken?.borrowBalanceFixed,
+      collateralToken?.collateralBalanceFixed,
+      collateralToken?.price
+    );
+
     setCurrentLTV(ltv);
     setSelectedTokens({
       ...selectedTokens,

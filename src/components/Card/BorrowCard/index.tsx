@@ -27,40 +27,15 @@ import {
   handleTokenSelection,
 } from "./utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import {
+  CompoundBaseTokens,
+  compoundCollateralTokens,
+} from "../../../helpers/constants";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
   REPAY = "Swap_Repay",
 }
-
-const compoundCollateralTokens = [
-  {
-    address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
-    symbol: "WETH",
-    name: "wrap eth",
-    decimals: 18,
-    source: "Compound",
-    // logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
-  },
-  {
-    address: "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
-    symbol: "WBTC",
-    name: "Wrapped BTC",
-    decimals: 8,
-    source: "Compound",
-    // logo: "https://assets.coingecko.com/coins/images/14243/small/aUSDT.78f5faae.png?1615528400"
-  },
-];
-
-const baseTokens = [
-  {
-    address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-    symbol: "USDC (PoS)",
-    name: "USD Coin (PoS) ",
-    decimals: 6,
-    source: "Compound",
-  },
-];
 
 export default function BorrowCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
@@ -99,14 +74,13 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     pools: false,
     rangeSlider: false,
   });
-  const [operationProgress, setOperationProgress] = useState(0);
+  const [operationProgress, setOperationProgress] = useState(1);
 
   const [uniQuote, setUniQuote] = useState({
     totalFee: 0,
     slippage: 0,
     path: [],
   });
-
   const isLowBal: boolean = +lendAmount > selectedTokens?.lend?.balanceFixed;
   const connectWallet = isConnected;
 
@@ -117,7 +91,8 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     quoteError,
     isLowLiquidity,
     isLowBal,
-    connectWallet
+    connectWallet,
+    receiveAmount
   );
 
   const handleLendAmount = (amount: string) => {
@@ -227,10 +202,12 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       setSelectedTokens,
       setTokenListStatus,
       setReceiveAmount,
+      setLendAmount,
       setIsTokenLoading,
       handleQuoteValue,
       handleSelectLendToken,
-      handleBorrowToken
+      handleBorrowToken,
+      setSelectedLTV
     );
   };
 
@@ -241,7 +218,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       compoundCollateralTokens,
       selectedTokens,
       borrowingTokens,
-      baseTokens,
+      CompoundBaseTokens,
       uniSwapTokens
     );
   };
@@ -255,11 +232,13 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       borrow: null,
       receive: null,
     });
-    setIsBorrowProgressModal(false);
-    setOperationProgress(0);
     setCurrentLTV("0");
     setb2rRatio(0);
     setSelectedLTV(5);
+    setTimeout(() => {
+      setIsBorrowProgressModal(false);
+      setOperationProgress(1);
+    }, 3000);
   };
 
   useEffect(() => {
@@ -273,13 +252,18 @@ export default function BorrowCard({ uniSwapTokens }: any) {
         setIsLowLiquidity
       );
     }
-  }, [lendAmount, selectedLTV]);
-
-  useEffect(() => {
     if (selectedTokens?.lend?.priceRatio) {
-      handleLTVSliderWithValue(5);
+      handleLTVSlider(
+        selectedLTV,
+        lendAmount,
+        selectedTokens,
+        b2rRatio,
+        setSelectedLTV,
+        setBorrowAmount,
+        setReceiveAmount
+      );
     }
-  }, [lendAmount, selectedTokens?.receive]);
+  }, [lendAmount, selectedLTV]);
 
   useEffect(() => {
     const tokensArray = Object.values(tokenList);
@@ -303,6 +287,10 @@ export default function BorrowCard({ uniSwapTokens }: any) {
   useEffect(() => {
     checkLoading(isTokenLoading);
   }, [isTokenLoading]);
+
+  useEffect(() => {
+    console.log("selectedTokens", selectedTokens);
+  }, [selectedTokens]);
 
   return (
     <>

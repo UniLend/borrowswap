@@ -18,6 +18,7 @@ interface Token {
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
   REPAY = "Swap_Repay",
+  REDEEM= "Redeem_Swap"
 }
 
 interface TokenCardProps {

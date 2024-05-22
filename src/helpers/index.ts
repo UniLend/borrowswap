@@ -7,7 +7,7 @@ import { getTokenLogo } from "../utils";
 import { getPoolCreatedGraphQuery } from "../api/axios/query";
 import { getUserProxy } from "../api/contracts/actions";
 
-const READABLE_FORM_LEN = 4;
+const READABLE_FORM_LEN = 8;
 
 export const isZeroAddress = (address: any) => {
   if (address == "0x0000000000000000000000000000000000000000") {
@@ -107,6 +107,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
       "0x84c6d5Df8a5e3ab9859708dA7645cC58176a26C0"
     );
     const data = await fetchGraphQlData(chain?.id, query);
+    console.log("data", data);
     // const allPositions = data?.positions;
     const allPositions = data?.positions?.map((item: any) => ({
       ...item,
@@ -127,7 +128,7 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
       const poolInfo = {
         ...pool,
         poolAddress: pool?.pool,
-
+        source: "Unilend",
         totalLiquidity:
           fixed2Decimals(pool.liquidity0, pool.token0.decimals) *
             tokenPrice[pool?.token0?.id] +
@@ -374,7 +375,8 @@ export const getButtonAction = (
   quoteError: boolean,
   isLowLiquidity: boolean,
   isLowBal: boolean,
-  connectWallet: any
+  connectWallet: any,
+  receiveAmount: string
 ) => {
   let btn = {
     text: "Borrow",
@@ -382,6 +384,18 @@ export const getButtonAction = (
   };
 
   const { lend, borrow, receive } = selectedTokens;
+
+  let isLowValueCompound: boolean = false;
+  if (selectedTokens?.lend?.source === "Compound") {
+    const borrowValueInUsd =
+      selectedTokens?.borrow?.borrowBalanceFixed *
+      selectedTokens?.borrow?.price;
+    const borrowMin = selectedTokens?.borrow?.borrowMinFixed - borrowValueInUsd;
+    const lendValueInUsd =
+      Number(lendAmount ?? 1) * selectedTokens?.lend?.price;
+    isLowValueCompound = lendValueInUsd <= borrowMin;
+  }
+
   if (!connectWallet) {
     btn.text = "Connect Wallet";
   } else if (lend === null) {
@@ -396,6 +410,8 @@ export const getButtonAction = (
     btn.text = "Select borrow token";
   } else if (receive === null) {
     btn.text = "Select receive token";
+  } else if (receiveAmount === "0") {
+    btn.text = "Receive Amount must not 0";
   } else if (quoteError) {
     btn.text = "Swap not available";
   } else if (isLowLiquidity) {
@@ -404,6 +420,8 @@ export const getButtonAction = (
     if (lend.collateralBalanceFixed === 0) {
       btn.text = "Enter pay token value";
     }
+  } else if (isLowValueCompound) {
+    btn.text = "Min. $100 borrow required";
   }
 
   // btn.disable = !!(btn.text !== "Borrow");
@@ -475,7 +493,7 @@ export const getRepayBtnActionsRedeem = (
     lendAmount > selectedData?.lend?.redeemBalanceFixed;
   const isLowLiquidity: boolean =
     lendAmount > decimal2Fixed(selectedData?.lend?.liquidityFixed);
-  const noReceiveToken: boolean = selectedData?.lend?.lendBalanceFixed == 0;
+  const noReceiveToken: boolean = lendAmount === 0;
 
   const { quotation } = isTokenLoading;
   if (pool == null) {
@@ -487,7 +505,7 @@ export const getRepayBtnActionsRedeem = (
   } else if (quoteError) {
     btn.text = "Swap not available";
   } else if (noReceiveToken) {
-    btn.text = "Token not Redeemed";
+    btn.text = "Nothing to redeem";
   } else if (receive === null) {
     btn.text = "Select Receive Token";
   } else if (isLowBal) {
@@ -495,7 +513,6 @@ export const getRepayBtnActionsRedeem = (
   } else if (lend === null) {
     btn.text = "Select lend token";
   } else if (exceedRedeemBalace) {
-    console.log("exceed balance");
     btn.text = "Exceeds Redeemable Amount";
   } else if (isLowLiquidity) {
     btn.text = "Not Enough Liquidity";

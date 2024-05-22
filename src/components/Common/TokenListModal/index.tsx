@@ -3,6 +3,7 @@ import { FiSearch } from "react-icons/fi";
 import TokenCard from "../TokenCard";
 import "./index.scss";
 import UnilendLoader from "../../Loader/UnilendLoader";
+import { CompoundBaseTokens } from "../../../helpers/constants";
 
 interface Token {
   type: string;
@@ -18,6 +19,9 @@ interface Token {
   pool: any;
   source: string;
   address:string;
+  token0?: any
+  token1?:any
+  compoundCollateralTokens?: any
 }
 interface PositionData {
   borrowBalance0: number;
@@ -34,6 +38,7 @@ interface PositionData {
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
   REPAY = "Swap_Repay",
+  REDEEM= "Redeem_Swap"
 }
 
 interface TokenListModalProps {
@@ -67,12 +72,13 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
   const [borrowedPosition, setBorrowedposition] = useState([])
    const [poolsData, setPoolsData] = useState([])
   const handleTokensList = (token: Token) => {
+    console.log("token", token);
+    
     onSelectToken(token);
     setSearchQuery("");
   };
 
-  console.log("positionData", positionData)
-    console.log("tokenList", tokenList)
+    // console.log("tokenList", tokenList)
   const findBorrowPosition = () => {
     let list: any = [];
   for (let i = 0; i < positionData!.length; i++) {
@@ -117,36 +123,58 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
     }
   }
   setBorrowedposition(list)
-  console.log("Position List", list);
+  // console.log("Position List", list);
   
   }
 
   const findPoolData = () => {
     let list: any = [];
   for (let i = 0; i < tokenList!.length; i++) {
+    
     if (
-      positionData[i]
+      tokenList[i].source == "Unilend"
     ) {
       let temp0 = {
-        borrowToken: positionData[i].pool.token0,
-        otherToken: positionData[i].pool.token1,
-        pool: positionData[i].pool.pool,
-        positionId: positionData[i].id,
-        source: positionData[i].source,
+        borrowToken: tokenList[i].token0,
+        otherToken: tokenList[i].token1,
+        pool: tokenList[i].pool,
+        positionId: 1,
+        source: tokenList[i].source,
       };
       list.push(temp0);
       let temp1 = {
-        borrowToken: positionData[i].pool.token1,
-        otherToken: positionData[i].pool.token0,
-        pool: positionData[i].pool.pool,
-        positionId: positionData[i].id,
-        source: positionData[i].source,
+        borrowToken: tokenList[i].token1,
+        otherToken: tokenList[i].token0,
+        pool: tokenList[i].pool,
+        positionId: 1,
+        source: tokenList[i].source,
       };
       list.push(temp1);
-    } 
+    } else if(tokenList[i].source == "Compound") {
+
+      if( operation == "Redeem_Swap" && tokenList[i]?.compoundCollateralTokens?.length){
+        for (const tkn of tokenList[i]?.compoundCollateralTokens) {
+          list.push({
+            borrowToken: tkn,
+            otherToken: tokenList[i],
+            pool: null,
+            positionId: 1,
+            source: tokenList[i].source,
+          })
+        }
+      }
+      list.push({
+        borrowToken: tokenList[i],
+        otherToken: tokenList[i],
+        pool: null,
+        positionId: 1,
+        source: tokenList[i].source,
+      })
+    }
   }
+
   setPoolsData(list)
-  console.log("pool List", list);
+  console.log("pool List", operation, list);
   }
    
   // useEffect(()=> {
@@ -162,8 +190,8 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
   useEffect(()=> {
       
     if(tokenList.length){
-      console.log("TokenList", tokenList);
-      findBorrowPosition()
+      // console.log("TokenList", tokenList);
+     // findBorrowPosition()
       findPoolData()
     }
       
@@ -171,7 +199,7 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
 
   useEffect(()=> {
     handleSearch('')
-  },[page, tokenList, borrowedPosition])
+  },[page, tokenList, poolsData])
 
 
   const handleSearch = (searched: string) => {
@@ -183,6 +211,8 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
       filtered = poolsData.filter((token: Token) =>
         token.borrowToken.name.toLowerCase().includes(searchQueryLower.toLowerCase())
       );
+      console.log("filtered", filtered);
+      
     setFilteredTokenList(filtered);
     } else {
       filtered = tokenList.filter(
