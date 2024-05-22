@@ -6,6 +6,7 @@ import Quoter from "@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Qu
 // import IUniswapV3PoolABI from "@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json";
 import { getEtherContract, getEthersProvider } from "../contracts/ethers";
 import { supportedNetworks } from "../networks/networks";
+import { fromReadableAmount, toReadableAmount } from "../../helpers";
 
 export interface ExampleConfig {
   rpc: {
@@ -20,7 +21,7 @@ export interface ExampleConfig {
   };
 }
 
-export async function quoteWithSdk(tokenIn: any, tokenOut: any, chainId: any) {
+export async function quoteWithSdk(tokenIn: any, tokenOut: any) {
   const TOKEN_IN = new Token(
     tokenIn.chainId,
     tokenIn.address,
@@ -146,15 +147,4 @@ function quoteWithFee(
       console.log("Quote Call", err);
       return Promise.reject(err);
     });
-}
-
-const READABLE_FORM_LEN = 8;
-function fromReadableAmount(amount: number, decimals: number) {
-  return ethers.utils.parseUnits(amount.toString(), decimals);
-}
-
-function toReadableAmount(rawAmount: number, decimals: number) {
-  return ethers.utils
-    .formatUnits(rawAmount, decimals)
-    .slice(0, READABLE_FORM_LEN);
 }

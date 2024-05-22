@@ -144,8 +144,7 @@ export const handleQuote = async (
 
       const { quoteValue, quoteFee, quotePath }: any = await quoteWithSdk(
         tokenIn,
-        tokenOut,
-        chain?.id == 16715 ? 137 : chain?.id
+        tokenOut
       );
 
       if (quoteValue) {

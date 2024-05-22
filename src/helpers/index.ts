@@ -7,7 +7,7 @@ import { getTokenLogo } from "../utils";
 import { getPoolCreatedGraphQuery } from "../api/axios/query";
 import { getUserProxy } from "../api/contracts/actions";
 
-const READABLE_FORM_LEN = 4;
+const READABLE_FORM_LEN = 8;
 
 export const isZeroAddress = (address: any) => {
   if (address == "0x0000000000000000000000000000000000000000") {
