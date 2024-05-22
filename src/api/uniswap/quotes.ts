@@ -56,18 +56,20 @@ export async function quoteWithSdk(tokenIn: any, tokenOut: any) {
       poolFee: FeeAmount.MEDIUM,
     },
   };
-  const WETH = supportedNetworks[tokenIn.chainId]?.weth;
-  const isWeth = WETH === tokenIn.address || WETH === tokenOut.address;
+  const WETH = supportedNetworks[tokenIn.chainId]?.weth.toLowerCase();
+  const isWeth =
+    WETH === tokenIn.address.toLowerCase() ||
+    WETH === tokenOut.address.toLowerCase();
 
   try {
-    const quoterContract = await getEtherContract(
-      supportedNetworks[tokenIn.chainId]?.quoterContractAddress,
-      Quoter.abi
-    );
     const FEE_TIERS = [500, 3000, 10000];
-
+    const quoterContract = new ethers.Contract(
+      supportedNetworks[tokenIn.chainId]?.quoterContractAddress,
+      Quoter.abi,
+      getProvider(CurrentConfig.rpc.mainnet)
+    );
     if (isWeth) {
-      const res = await Promise.any(
+      let response: any = await Promise.allSettled(
         FEE_TIERS.map((fee) =>
           quoteWithFee(
             CurrentConfig.tokens.in.address,
@@ -83,12 +85,28 @@ export async function quoteWithSdk(tokenIn: any, tokenOut: any) {
       ).catch((err) => {
         console.error("Quote Error: ", err);
       });
+      response = response
+        ?.map((res: any, i: any) => ({ ...res, fee: FEE_TIERS[i] }))
+        .filter((res: any) => res.status == "fulfilled")
+        .map((res: any) => ({
+          fee: res.fee,
+          quote: fromBigNumber(res.value),
+        }));
 
-      const quote = res.quote;
-      const fee = res.fee;
+      let quote = fromBigNumber(response[0].quote).toString();
+      let fee = response[0].fee;
+
+      for (const res of response) {
+        const currentquote = fromBigNumber(res.quote).toString();
+
+        if (Number(quote) < Number(currentquote)) {
+          quote = currentquote;
+          fee = res.fee;
+        }
+      }
 
       return {
-        quoteValue: toReadableAmount(quote, CurrentConfig.tokens.out.decimals),
+        quoteValue: fixed2Decimals(quote, CurrentConfig.tokens.out.decimals),
         quoteFee: fee,
         quotePath: [fee],
       };
@@ -142,6 +160,8 @@ export async function quoteWithSdk(tokenIn: any, tokenOut: any) {
         )
       );
 
+      console.log("res2", res2);
+
       res2 = res2
         .map((res: any, i: any) => ({ ...res, fee: FEE_TIERS[i] }))
         .filter((res: any) => res.status == "fulfilled")
@@ -192,4 +212,8 @@ function quoteWithFee(
   //   console.log("Quote Call", err, fee);
 
   // });
+}
+
+export function getProvider(rpc: any) {
+  return new ethers.providers.JsonRpcProvider(rpc);
 }

@@ -140,8 +140,6 @@ export const handleQuote = async (
       //   selectedTokensRef.current.receive.address,
       //   chain?.id == 16715 ? 137 : chain?.id
       // );
-      // console.log("QUOTE_VALUE", value);
-
       const { quoteValue, quoteFee, quotePath }: any = await quoteWithSdk(
         tokenIn,
         tokenOut
@@ -158,7 +156,6 @@ export const handleQuote = async (
       }
       setQuoteError(false);
       setSelectedLTV(5);
-      console.log("SDK_QUOTE", quoteValue, quoteFee, quotePath);
     }
   } catch (error: any) {
     setQuoteError(true);

@@ -161,6 +161,8 @@ export const supportedNetworks: any = {
     blockExplorerUrls: ["https://etherscan.io"],
     graphAvailable: true,
     baseCurrency: "ETH",
+    weth: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+    quoterContractAddress: "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6",
   },
   42161: {
     chainId: 42161,
@@ -175,6 +177,8 @@ export const supportedNetworks: any = {
     blockExplorerUrls: ["https://arbiscan.io"],
     graphAvailable: true,
     baseCurrency: "USD",
+    weth: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+    quoterContractAddress: "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6",
   },
 
   137: {
@@ -207,6 +211,8 @@ export const supportedNetworks: any = {
     blockExplorerUrls: ["https://polygonscan.com/"],
     graphAvailable: true,
     baseCurrency: "eth",
+    weth: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+    quoterContractAddress: "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6",
   },
 
   // 11155111: {
