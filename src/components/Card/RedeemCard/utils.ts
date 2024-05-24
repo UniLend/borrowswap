@@ -126,8 +126,14 @@ export const handleQuote = async (
           slippage: 0.5,
           path: quotePath,
         });
-        const payLendAmount =
-          quoteValue * (selectedData?.lend?.redeemBalanceFixed || 0);
+        // const payLendAmount =
+        //   quoteValue * (selectedData?.lend?.redeemBalanceFixed || 0);
+        const payLendAmount = mul(
+          quoteValue,
+          selectedData?.lend?.redeemBalanceFixed || 0
+        );
+        // quoteValue * (selectedData?.lend?.redeemBalanceFixed || 0);
+
         console.log(
           "pay amount",
           selectedData,
@@ -317,7 +323,7 @@ export const handleRepayTransaction = async (
     //   await handleApproval(selectedData?.lend.address, selectedData?.lend.decimals, address, lendAmount);
     //   setOperationProgress(1);
     // setTimeout(async () => {
-      //  await handleRepayTransaction(
+    //  await handleRepayTransaction(
     //     selectedData,
     //     address,
     //     lendAmount,
@@ -329,8 +335,8 @@ export const handleRepayTransaction = async (
     //     setModalMsg,
     //     handleClear
     //   );
-      // }, 3000);
-   
+    // }, 3000);
+
     // }  else
 
     // setModalMsg(
