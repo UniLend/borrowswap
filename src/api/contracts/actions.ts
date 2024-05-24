@@ -811,7 +811,6 @@ export const getCollateralTokenData = async (token: any, address: any) => {
     "getPrice",
     [assetInfo.priceFeed]
   );
-  console.log("price", price);
   const collateralBal: any = await readContractLib(
     compoundAddress,
     compoundABI,
