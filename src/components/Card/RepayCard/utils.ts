@@ -69,19 +69,21 @@ export const handleQuote = async (
         tokenOut
       );
       if (quoteValue) {
-        setb2rRatio(Number(quoteValue));
+        const coveredValue = Number(quoteValue) + 0.05;
+        setb2rRatio(Number(coveredValue));
         setUniQuote({
           totalFee: quoteFee,
           slippage: 0.5,
           path: quotePath,
         });
         const payLendAmount =
-          quoteValue * (selectedData?.borrow?.borrowBalanceFixed || 0);
+          coveredValue * (selectedData?.borrow?.borrowBalanceFixed || 0);
         console.log(
           "pay amount",
           selectedData,
           payLendAmount.toFixed(selectedData?.lend.decimals),
           selectedData?.borrow?.borrowBalanceFixed,
+          coveredValue,
           quoteValue
         );
         setLendAmount(payLendAmount.toFixed(selectedData?.borrow.decimals));
