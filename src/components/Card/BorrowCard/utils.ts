@@ -1,4 +1,4 @@
-import { getQuote } from "../../../api/axios/calls";
+import { getQuote, getTokenPrice } from "../../../api/axios/calls";
 import {
   getAllowance,
   getBorrowTokenData,
@@ -220,7 +220,7 @@ export const handleSwapTransaction = async (
         );
       }, 3000);
     } else {
-      setOperationProgress(2);
+      setOperationProgress(1);
       setModalMsg(
         selectedTokens.lend.symbol +
           "-" +
@@ -290,7 +290,8 @@ export const handleTokenSelection = async (
   handleQuoteValue: () => void,
   handleSelectLendToken: (value: any) => void,
   handleSelectBorrowToken: (value: any) => void,
-  setSelectedLTV: (value: any) => void
+  setSelectedLTV: (value: any) => void,
+  chain: any
 ) => {
   setSelectedTokens({
     ...selectedTokens,

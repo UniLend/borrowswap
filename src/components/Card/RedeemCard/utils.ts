@@ -346,7 +346,7 @@ export const handleRepayTransaction = async (
     //     "-" +
     //     selectedData.receive.symbol
     // );
-    setOperationProgress(2);
+    setOperationProgress(1);
     let hash;
     if (selectedData.borrow.source == "Unilend") {
       hash = await handleRedeem(

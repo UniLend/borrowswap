@@ -6,7 +6,6 @@ import { setPools, setTokens, setPositions } from "../states/unilendV2Reducer";
 import { getTokenLogo } from "../utils";
 import { getPoolCreatedGraphQuery } from "../api/axios/query";
 import { getUserProxy } from "../api/contracts/actions";
-
 const READABLE_FORM_LEN = 8;
 
 export const isZeroAddress = (address: any) => {
@@ -376,7 +375,8 @@ export const getButtonAction = (
   isLowLiquidity: boolean,
   isLowBal: boolean,
   connectWallet: any,
-  receiveAmount: string
+  receiveAmount: string,
+  borrowAmount: any
 ) => {
   let btn = {
     text: "Borrow",
@@ -390,16 +390,10 @@ export const getButtonAction = (
     const borrowValueInUsd =
       selectedTokens?.borrow?.borrowBalanceFixed *
       selectedTokens?.borrow?.price;
-    // const receiveAmountInUSd =  selectedTokens?.Receive?.borrowBalanceFixed *
-    // selectedTokens?.borrow?.price;
+    const borrowValue = borrowAmount;
     const borrowMin = selectedTokens?.borrow?.borrowMinFixed - borrowValueInUsd;
-    const lendValueInUsd =
-      Number(lendAmount ?? 1) * selectedTokens?.lend?.price;
-    console.log("lendValueInUsd", lendValueInUsd);
-    console.log("borrowValue", borrowValueInUsd);
-    console.log("borrowMin", borrowMin);
-    console.log("receiveAmount", receiveAmount);
-    isLowValueCompound = lendValueInUsd <= borrowMin;
+
+    isLowValueCompound = borrowValue <= borrowMin;
   }
 
   if (!connectWallet) {
@@ -422,15 +416,14 @@ export const getButtonAction = (
     btn.text = "Swap not available";
   } else if (isLowLiquidity) {
     btn.text = "Low liquidity";
+  } else if (isLowValueCompound) {
+    btn.text = "Min. $100 borrow required";
   } else if (lendAmount === "" || +lendAmount == 0) {
     if (lend.collateralBalanceFixed === 0) {
       btn.text = "Enter pay token value";
     }
-  } else if (isLowValueCompound) {
-    btn.text = "Min. $100 borrow required";
   }
 
-  // btn.disable = !!(btn.text !== "Borrow");
   btn.disable = !!(btn.text !== "Borrow" && btn.text !== "Connect Wallet");
 
   return btn;

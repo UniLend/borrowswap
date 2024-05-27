@@ -241,7 +241,7 @@ export const handleRepayTransaction = async (
         address,
         lendAmount
       );
-      setOperationProgress(1);
+      // setOperationProgress(1);
       setTimeout(async () => {
         await handleRepayTransaction(
           selectedData,
@@ -258,6 +258,7 @@ export const handleRepayTransaction = async (
         );
       }, 3000);
     } else {
+      setOperationProgress(1);
       setModalMsg(
         selectedData.lend.symbol +
           "-" +
@@ -265,7 +266,7 @@ export const handleRepayTransaction = async (
           "-" +
           selectedData.receive.symbol
       );
-      setOperationProgress(2);
+
       let hash;
       if (selectedData.borrow.source == "Unilend") {
         hash = await handleRepay(lendAmount, selectedData, address, path);

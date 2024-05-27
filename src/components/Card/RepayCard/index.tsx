@@ -128,7 +128,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
     quotation: false,
   });
   const [unilendPool, setUnilendPool] = useState(null as any | null);
-  const [operationProgress, setOperationProgress] = useState(1);
+  const [operationProgress, setOperationProgress] = useState(0);
   const [uniQuote, setUniQuote] = useState({
     totalFee: 0,
     slippage: 0,
@@ -204,7 +204,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
     setb2rRatio(0);
     setTimeout(() => {
       setIsBorrowProgressModal(false);
-      setOperationProgress(1);
+      setOperationProgress(0);
     }, 3000);
   };
 
