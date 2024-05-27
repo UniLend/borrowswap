@@ -1,0 +1,138 @@
+$primaryText: var(--pure-black);
+
+.heading01 {
+  color: $primaryText;
+  text-align: left;
+  letter-spacing: unset;
+  margin: unset;
+  font-style: normal;
+  font-weight: $font-weight-regular; //400
+  font-size: $font-size-lg-5; // 48px
+  line-height: $line-height-sm;
+}
+
+.heading02 {
+  color: $primaryText;
+  text-align: left;
+  letter-spacing: unset;
+  margin: unset;
+  font-style: normal;
+  font-weight: $font-weight-regular; //400
+  font-size: $font-size-lg-4; //40px
+  line-height: $line-height-sm;
+}
+
+.heading03 {
+  color: $primaryText;
+  text-align: left;
+  letter-spacing: unset;
+  margin: unset;
+  font-style: normal;
+  font-weight: $font-weight-regular; //400
+  font-size: $font-size-lg-3; //36px
+  line-height: $line-height-sm;
+}
+
+.heading04 {
+  color: $primaryText;
+  text-align: left;
+  letter-spacing: unset;
+  margin: unset;
+  font-style: normal;
+  font-weight: $font-weight-regular; //400
+  font-size: $font-size-lg-2; // 32px
+  line-height: $line-height-sm;
+}
+
+.heading05 {
+  color: $primaryText;
+  text-align: left;
+  letter-spacing: unset;
+  margin: unset;
+  font-style: normal;
+  font-weight: $font-weight-regular; //400
+  font-size: $font-size-lg-1; // 28px
+  line-height: $line-height-sm;
+}
+
+.paragraph01 {
+  color: $primaryText;
+  text-align: left;
+  letter-spacing: unset;
+  margin: unset;
+  font-style: normal;
+  font-weight: $font-weight-regular; //400
+  font-size: $font-size-xxlg; // 22px
+  line-height: $line-height-sm;
+}
+
+.paragraph02 {
+  color: $primaryText;
+  text-align: left;
+  letter-spacing: unset;
+  margin: unset;
+  font-style: normal;
+  font-weight: $font-weight-regular; //400
+  font-size: $font-size-xlg; // 20px
+  line-height: $line-height-sm;
+}
+
+.paragraph03 {
+  color: $primaryText;
+  text-align: left;
+  letter-spacing: unset;
+  margin: unset;
+  font-style: normal;
+  font-weight: $font-weight-regular; //400
+  font-size: $font-size-lg; // 18px
+  line-height: $line-height-sm;
+}
+
+.paragraph04 {
+  color: $primaryText;
+  text-align: left;
+  letter-spacing: unset;
+  margin: unset;
+  font-style: normal;
+  font-weight: $font-weight-regular; //400
+  font-size: $font-size-md; //16px
+  line-height: $line-height-sm;
+}
+
+.paragraph05 {
+  color: $primaryText;
+  text-align: left;
+  letter-spacing: unset;
+  margin: unset;
+  font-style: normal;
+  font-weight: $font-weight-regular; //400
+  font-size: $font-size-sm; //14px
+  line-height: $line-height-sm;
+}
+
+.paragraph06 {
+  color: $primaryText;
+  text-align: left;
+  letter-spacing: unset;
+  margin: unset;
+  font-style: normal;
+  font-weight: $font-weight-regular; //400
+  font-size: $font-size-xsm; //12px
+  line-height: $line-height-sm;
+}
+
+.primary-btn {
+  width: 512px;
+  height: 48px;
+  background-color: var(--main);
+  border: none;
+  outline: none;
+}
+
+.secondary-btn {
+  width: 124px;
+  height: 40px;
+  border: 2px solid var(--button-border);
+  background-color: var(--dark-button);
+  color: var(--main-light);
+}

@@ -1,0 +1,69 @@
+@import "/src/theme";
+
+.borrow_loader_container {
+  box-sizing: border-box;
+  height: 452px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  .loader_animation {
+    width: 260px;
+    height: 232px !important;
+
+    img {
+      width: 100%;
+      // aspect-ratio: 1.59/1;
+    }
+  }
+
+  .loader_part {
+    max-width: 260px;
+    width: 100%;
+    margin: 36px 0 0;
+    .exec_text {
+      font-size: 16px;
+      text-align: center;
+      color: var(--always-white);
+      margin-bottom: 15px;
+    }
+    :nth-child(2) {
+      margin-bottom: 20px;
+    }
+    :nth-child(1) {
+      margin-bottom: 15px;
+    }
+  }
+
+  .range {
+    width: 100% !important;
+    height: 10px;
+    border-radius: 4px;
+  }
+
+  p {
+    text-align: center;
+  }
+}
+
+.ant-modal-wrap {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+}
+.antd_popover_content {
+  max-width: 360px !important;
+  max-height: 452px !important;
+  width: 80% !important;
+  height: 70% !important;
+  .ant-modal-content {
+    border-radius: 12px;
+    padding: 24;
+    padding: 0;
+    background: var(--popup-border) !important;
+    border: 1px solid transparent;
+    .ant-modal-body {
+      padding: 0;
+    }
+  }
+}

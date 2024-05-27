@@ -1,0 +1,96 @@
+@import "/src/theme";
+
+@font-face {
+  font-family: "Helvetica Neue LT Pro";
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+  src: url("/src/fonts/HELVETICANEUELTPROEX.OTF") format("opentype");
+  ascent-override: 90%;
+  vertical-align: text-bottom;
+}
+
+.light {
+  @each $name, $color in $light {
+    --#{$name}: #{$color};
+  }
+}
+
+.dark,
+body {
+  @each $name, $color in $dark {
+    --#{$name}: #{$color};
+  }
+}
+
+.light {
+  background-color: var(--bg-color);
+}
+
+html,
+body {
+  margin: 0px;
+  padding: 0px;
+}
+* {
+  font-family: "Helvetica Neue LT Pro" !important;
+  font-stretch: normal !important;
+}
+body {
+  background-color: var(--bg-color);
+}
+
+html,
+body,
+#root {
+  height: max-content;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+}
+
+.logo_loader {
+  height: 100vh;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 5px;
+  border-radius: 50%;
+}
+/* Track */
+::-webkit-scrollbar-track {
+  background: var(--pure-white);
+}
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: var(--main);
+  border-radius: 5px;
+}
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #3a7cff;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  border-radius: 50%;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: var(--pure-white);
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: var(--main);
+  border-radius: 5px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #3a7cff;
+}
