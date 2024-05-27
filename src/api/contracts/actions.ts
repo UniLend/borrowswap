@@ -508,8 +508,14 @@ export const getPoolBasicData = async (
         ),
         10 ** poolData.token1.decimals
       );
-      let redeem0 = sub(fromBigNumber(data._lendBalance0), collateral0);
-      let redeem1 = sub(fromBigNumber(data._lendBalance1), collateral1);
+      let redeem0 = sub(
+        fromBigNumber(data._lendBalance0),
+        Math.floor(Number(collateral0))
+      );
+      let redeem1 = sub(
+        fromBigNumber(data._lendBalance1),
+        Math.floor(Number(collateral1))
+      );
       let redeem0val = decimal2Fixed(redeem0, poolData.token0.decimals);
       let redeem1val = decimal2Fixed(redeem1, poolData.token1.decimals);
 
@@ -594,11 +600,11 @@ export const getPoolBasicData = async (
             collateral0,
             poolData.token0.decimals
           ),
-          redeemBalance: Number(redeem0val) > 0 ? redeem0val : 0,
+          redeemBalance: Number(redeem0) > 0 ? redeem0 : 0,
           redeemBalanceFixed: fixed2Decimals(
             Number(redeem0) > 0 ? redeem0 : 0,
             poolData.token0.decimals
-          ).toFixed(pool.token0.decimals),
+          ),
         },
         token1: {
           ...poolData?.token1,
@@ -682,11 +688,11 @@ export const getPoolBasicData = async (
             collateral1,
             poolData.token1.decimals
           ),
-          redeemBalance: Number(redeem1val) > 0 ? redeem1val : 0,
+          redeemBalance: Number(redeem1) > 0 ? redeem1 : 0,
           redeemBalanceFixed: fixed2Decimals(
             Number(redeem1) > 0 ? redeem1 : 0,
             poolData.token1.decimals
-          ).toFixed(pool.token1.decimals),
+          ),
         },
       };
       console.log("getPoolBasicData", proxy, pool);

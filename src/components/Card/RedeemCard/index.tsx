@@ -259,6 +259,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
       setIsTokenLoading,
       setUniQuote
     );
+    setIsMax(true);
   };
 
   const handleRepayToken = async (poolData: any) => {
@@ -453,17 +454,13 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           // }}
           buttonText={selectedData?.receive?.symbol}
           onClick={
-            selectedData?.pool !== null &&
-            lendAmount != "0" &&
-            selectedData?.lend?.collateralBalanceFixed > 0
+            selectedData?.pool !== null && lendAmount != "0"
               ? () => handleOpenTokenList("receive")
               : () => {}
           }
           readonly
           btnClass={
-            selectedData?.pool === null ||
-            lendAmount == "0" ||
-            selectedData?.lend?.collateralBalanceFixed <= 0
+            selectedData?.pool === null || lendAmount == "0"
               ? "disable_btn"
               : "visible"
           }
