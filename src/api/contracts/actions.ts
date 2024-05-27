@@ -11,6 +11,7 @@ import {
 
 import { getEtherContract } from "./ethers";
 import { readContractLib } from "./lib";
+import { readContracts } from "@wagmi/core";
 import {
   add,
   decimal2Fixed,
@@ -396,7 +397,7 @@ export const getPoolBasicData = async (
       //   contracts.coreAddress,
       //   coreAbi
       // );
-      const [token0, token1, data] = await Promise.all([
+      const [token0, token1, data]: any = await Promise.all([
         getAllowance(pool.token0, userAddress),
         getAllowance(pool.token1, userAddress),
         readContractLib(contracts.helperAddress, helperAbi, "getPoolFullData", [
@@ -763,11 +764,40 @@ export const getCollateralTokenData = async (token: any, address: any) => {
   const chainId = getChainId(wagmiConfig);
   const compoundAddress =
     contractAddresses[chainId as keyof typeof contractAddresses]?.compound;
-  const comet = await getEtherContract(compoundAddress, compoundABI);
+  // const comet = await getEtherContract(compoundAddress, compoundABI);
 
   const proxy = await getUserProxy(address);
 
   const tokenAddress = token?.address;
+
+  // const contracts: any = [
+  //   {
+  //     address: compoundAddress,
+  //     abi: compoundABI,
+  //     functionName: "getAssetInfoByAddress",
+  //     args: [tokenAddress],
+  //   },
+  //   {
+  //     address: compoundAddress,
+  //     abi: compoundABI,
+  //     functionName: "getPrice",
+  //     args: [contracts[0].result.priceFeed],
+  //   },
+  //   {
+  //     address: compoundAddress,
+  //     abi: compoundABI,
+  //     functionName: "userCollateral",
+  //     args: [await getUserProxy(address), tokenAddress],
+  //   },
+  // ];
+
+  // const results = await readContracts(wagmiConfig, { contracts });
+  // const assetInfo = results[0].result;
+  // const price = results[1].result;
+  // const collateralBal = results[2].result;
+
+  // console.log("price", results);
+
   const assetInfo: any = await readContractLib(
     compoundAddress,
     compoundABI,
@@ -781,8 +811,15 @@ export const getCollateralTokenData = async (token: any, address: any) => {
     "getPrice",
     [assetInfo.priceFeed]
   );
+  const collateralBal: any = await readContractLib(
+    compoundAddress,
+    compoundABI,
+    "userCollateral",
+    [proxy, tokenAddress]
+  );
 
-  const collateralBal = await comet?.userCollateral(proxy, tokenAddress);
+  // const collateralBal = await comet?.userCollateral(proxy, tokenAddress);
+  // console.log("collateralBalance", collateralBal);
   //const baseToken = await comet?.getCollateralReserves(tokenAddress)
   // quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
   const data = await getAllowance(token, address);
@@ -795,7 +832,7 @@ export const getCollateralTokenData = async (token: any, address: any) => {
       0.5,
     collateralBalance: fromBigNumber(collateralBal[0]),
     collateralBalanceFixed: fixed2Decimals(
-      fromBigNumber(collateralBal.balance),
+      fromBigNumber(collateralBal[0]),
       token?.decimals || 18
     ),
     // baseToken: fromBigNumber(baseToken),
@@ -825,6 +862,7 @@ export const getBorrowTokenData = async (token: any, address: any) => {
     // const BorrowBal = await comet?.borrowBalanceOf(proxy);
     //  const Bal = await comet?.balanceOf( proxy)
     // const quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
+
     const borrowMin: any = await readContractLib(
       compoundAddress,
       compoundABI,
@@ -840,9 +878,10 @@ export const getBorrowTokenData = async (token: any, address: any) => {
     const price: any = await readContractLib(
       compoundAddress,
       compoundABI,
-      "baseTokenPriceFeed",
-      []
+      "getPrice",
+      [baseTokenPriceFeed]
     );
+
     // const borrowMin = await comet?.baseBorrowMin();
     // const baseTokenPriceFeed = await comet?.baseTokenPriceFeed();
     // const price = await comet?.getPrice(baseTokenPriceFeed);

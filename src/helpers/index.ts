@@ -390,9 +390,15 @@ export const getButtonAction = (
     const borrowValueInUsd =
       selectedTokens?.borrow?.borrowBalanceFixed *
       selectedTokens?.borrow?.price;
+    // const receiveAmountInUSd =  selectedTokens?.Receive?.borrowBalanceFixed *
+    // selectedTokens?.borrow?.price;
     const borrowMin = selectedTokens?.borrow?.borrowMinFixed - borrowValueInUsd;
     const lendValueInUsd =
       Number(lendAmount ?? 1) * selectedTokens?.lend?.price;
+    console.log("lendValueInUsd", lendValueInUsd);
+    console.log("borrowValue", borrowValueInUsd);
+    console.log("borrowMin", borrowMin);
+    console.log("receiveAmount", receiveAmount);
     isLowValueCompound = lendValueInUsd <= borrowMin;
   }
 

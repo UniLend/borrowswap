@@ -178,7 +178,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
 
     // setLendAmount(TrunAmount);
 
-    setReceiveAmount((Number(TrunAmount) * b2rRatio).toString());
+    setReceiveAmount(mul(Number(amount), b2rRatio).toString());
     setIsMax(false);
   };
 
@@ -410,10 +410,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
             );
 
             setReceiveAmount(
-              truncateToDecimals(
-                Number(mul(selectedData?.lend?.redeemBalanceFixed, b2rRatio)),
-                Number(selectedData?.lend?.decimals)
-              )
+              mul(Number(selectedData?.lend?.redeemBalanceFixed), b2rRatio)
             );
             setIsMax(true);
           }}
