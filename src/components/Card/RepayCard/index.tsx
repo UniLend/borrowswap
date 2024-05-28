@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button, Modal } from "antd";
 import { getAllowance } from "../../../api/contracts/actions";
-import { truncateToDecimals, getRepayBtnActions } from "../../../helpers";
+import { truncateToDecimals, getRepayBtnActions, mul } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
 
 import { useSelector } from "react-redux";
