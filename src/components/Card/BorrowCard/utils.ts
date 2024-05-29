@@ -115,9 +115,11 @@ export const handleQuote = async (
   setSelectedLTV: (value: number) => void,
   setQuoteError: (value: boolean) => void,
   setIsTokenLoading: (value: any) => void,
-  setUniQuote: (quoteData: any) => void
+  setUniQuote: (quoteData: any) => void,
+  setAccordionModal: (value: any) => void
 ) => {
   try {
+    setAccordionModal(false);
     if (
       String(selectedTokensRef.current.borrow.address).toLowerCase() ===
       String(selectedTokensRef.current.receive.address).toLowerCase()
@@ -156,7 +158,7 @@ export const handleQuote = async (
 
       if (quoteValue) {
         setb2rRatio(Number(quoteValue));
-
+        setAccordionModal(true);
         setUniQuote({
           totalFee: quoteFee,
           slippage: 0.5,
@@ -291,7 +293,7 @@ export const handleTokenSelection = async (
   handleSelectLendToken: (value: any) => void,
   handleSelectBorrowToken: (value: any) => void,
   setSelectedLTV: (value: any) => void,
-  chain: any
+  setAccordionModal: (value: any) => void
 ) => {
   setSelectedTokens({
     ...selectedTokens,
@@ -306,6 +308,7 @@ export const handleTokenSelection = async (
       ["borrow"]: null,
       ["receive"]: null,
     });
+    setAccordionModal(false);
     setReceiveAmount("");
     setLendAmount("");
     setSelectedLTV(5);
@@ -323,6 +326,7 @@ export const handleTokenSelection = async (
       ...selectedTokens,
       [tokenListStatus.operation]: { ...token, ...tokenBal },
     });
+    setAccordionModal(false);
     setIsTokenLoading({ ...isTokenLoading, rangeSlider: true });
     setReceiveAmount("");
     handleQuoteValue();

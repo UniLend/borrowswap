@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Button, Modal } from "antd";
 import { getAllowance } from "../../../api/contracts/actions";
 import {
@@ -135,6 +135,9 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     receive: false,
     quotation: false,
   });
+  const selectedDataRef = useRef(selectedData);
+  selectedDataRef.current = selectedData;
+  const [accordionModal, setAccordionModal] = useState<boolean>(false);
   const [unilendPool, setUnilendPool] = useState(null as any | null);
   const [operationProgress, setOperationProgress] = useState(1);
   const [uniQuote, setUniQuote] = useState({
@@ -247,6 +250,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   //handle quote for Uniswap
   const handleQuoteValue = async () => {
     await handleQuote(
+      selectedDataRef,
       selectedData,
       chain,
       address,
@@ -257,7 +261,8 @@ export default function RedeemCard({ uniSwapTokens }: any) {
       handleReceiveAmount,
       setQuoteError,
       setIsTokenLoading,
-      setUniQuote
+      setUniQuote,
+      setAccordionModal
     );
     setIsMax(true);
   };
@@ -314,6 +319,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
       handleRepayToken(data);
       setReceiveAmount("");
       setLendAmount("");
+      setAccordionModal(false);
       // if(data.source == 'Compound'){
       //   const tokenBal = await getAllowance(data.borrowToken, address);
       //   setSelectedData({
@@ -338,6 +344,9 @@ export default function RedeemCard({ uniSwapTokens }: any) {
         ...selectedData,
         [tokenListStatus.operation]: { ...data, ...tokenBal },
       });
+      setIsTokenLoading({ ...isTokenLoading, quotation: true });
+      setReceiveAmount("");
+      handleQuoteValue();
     }
   };
 
@@ -346,16 +355,16 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   };
 
   // Loading Quote Data based on lend State
-  useEffect(() => {
-    if (
-      selectedData?.pool &&
-      selectedData?.receive &&
-      !tokenListStatus.isOpen
-    ) {
-      setIsTokenLoading({ ...isTokenLoading, quotation: true });
-      handleQuoteValue();
-    }
-  }, [selectedData?.receive]);
+  // useEffect(() => {
+  //   if (
+  //     selectedData?.pool &&
+  //     selectedData?.receive &&
+  //     !tokenListStatus.isOpen
+  //   ) {
+  //     setIsTokenLoading({ ...isTokenLoading, quotation: true });
+  //     handleQuoteValue();
+  //   }
+  // }, [selectedData?.receive]);
 
   // useEffect(() => {
   //     if(selectedData?.pool?.source === 'compound'){
@@ -398,15 +407,11 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           value={Number(lendAmount) > 0 ? lendAmount : "0"}
           onChange={(e: any) => handleLendAmount(e.target.value)}
           onMaxClick={() => {
-            // console.log(selectedData);
-            setLendAmount(
-              truncateToDecimals(
-                Number(selectedData?.lend?.redeemBalanceFixed),
-                selectedData?.lend?.decimals
-              )
-            );
             setReceiveAmount(
               mul(Number(selectedData?.lend?.redeemBalanceFixed), b2rRatio)
+            );
+            setLendAmount(
+              (selectedData?.borrow?.redeemBalanceFixed).toString()
             );
             setIsMax(true);
           }}
@@ -479,6 +484,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           fee={uniQuote.totalFee}
           slippage={uniQuote.slippage}
           lendAmount={lendAmount}
+          showAccordion={accordionModal}
         />
       </div>
 

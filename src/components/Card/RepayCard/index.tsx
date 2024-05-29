@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Button, Modal } from "antd";
 import { getAllowance } from "../../../api/contracts/actions";
 import { truncateToDecimals, getRepayBtnActions, mul } from "../../../helpers";
@@ -127,6 +127,9 @@ export default function RepayCard({ uniSwapTokens }: any) {
     receive: false,
     quotation: false,
   });
+  const selectedDataRef = useRef(selectedData);
+  selectedDataRef.current = selectedData;
+  const [accordionModal, setAccordionModal] = useState<boolean>(false);
   const [unilendPool, setUnilendPool] = useState(null as any | null);
   const [operationProgress, setOperationProgress] = useState(0);
   const [uniQuote, setUniQuote] = useState({
@@ -211,6 +214,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
   //handle quote for Uniswap
   const handleQuoteValue = async () => {
     await handleQuote(
+      selectedDataRef,
       selectedData,
       chain,
       address,
@@ -220,7 +224,8 @@ export default function RepayCard({ uniSwapTokens }: any) {
       setReceiveAmount,
       setQuoteError,
       setIsTokenLoading,
-      setUniQuote
+      setUniQuote,
+      setAccordionModal
     );
   };
   useEffect(() => {
@@ -275,6 +280,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
     });
     if (tokenListStatus.operation == "pool") {
       handleRepayToken(data);
+      setAccordionModal(false);
       setReceiveAmount("");
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
@@ -286,6 +292,9 @@ export default function RepayCard({ uniSwapTokens }: any) {
         ...selectedData,
         [tokenListStatus.operation]: { ...data, ...tokenBal },
       });
+      setIsTokenLoading({ ...isTokenLoading, quotation: true });
+      setLendAmount("");
+      handleQuoteValue();
     } else if (tokenListStatus.operation == "receive") {
       handleReceiveToken(data);
       //    setSelectedData({
@@ -304,14 +313,14 @@ export default function RepayCard({ uniSwapTokens }: any) {
   };
 
   // Loading Quote Data based on lend State
-  useEffect(() => {
-    if (selectedData?.pool && selectedData?.lend && !tokenListStatus.isOpen) {
-      console.log("lendChnage");
-      setIsTokenLoading({ ...isTokenLoading, quotation: true });
-      setLendAmount("");
-      handleQuoteValue();
-    }
-  }, [selectedData?.lend]);
+  // useEffect(() => {
+  //   if (selectedData?.pool && selectedData?.lend && !tokenListStatus.isOpen) {
+  //     console.log("lendChnage");
+  //     setIsTokenLoading({ ...isTokenLoading, quotation: true });
+  //     setLendAmount("");
+  //     handleQuoteValue();
+  //   }
+  // }, [selectedData?.lend]);
 
   useEffect(() => {
     if (selectedData?.pool?.source === "compound") {
@@ -433,6 +442,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
           fee={uniQuote.totalFee}
           slippage={uniQuote.slippage}
           lendAmount={lendAmount}
+          showAccordion={accordionModal}
         />
       </div>
 
