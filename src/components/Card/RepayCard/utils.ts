@@ -99,12 +99,12 @@ export const handleQuote = async (
     setQuoteError(false);
     if (flag) setIsTokenLoading({ ...isTokenLoading, quotation: false });
   } catch (error: any) {
-    console.error("Error in handleQuote:", error);
+    setQuoteError(true);
+    setIsTokenLoading({ ...isTokenLoading, quotation: false });
     NotificationMessage(
       "error",
-      error?.message || "Error occurred in handleQuote"
+      `Swap is not available for ${selectedData.lend.symbol}, please select different Pay token.`
     );
-    setQuoteError(true);
   } finally {
     // setIsTokenLoading({ ...isTokenLoading, quotation: false });
     // console.log("finally", isTokenLoading)
@@ -243,7 +243,7 @@ export const handleRepayTransaction = async (
         address,
         lendAmount
       );
-      setOperationProgress(1);
+      // setOperationProgress(1);
       setTimeout(async () => {
         await handleRepayTransaction(
           selectedData,
@@ -260,6 +260,7 @@ export const handleRepayTransaction = async (
         );
       }, 3000);
     } else {
+      setOperationProgress(1);
       setModalMsg(
         selectedData.lend.symbol +
           "-" +
@@ -267,7 +268,7 @@ export const handleRepayTransaction = async (
           "-" +
           selectedData.receive.symbol
       );
-      setOperationProgress(2);
+
       let hash;
       if (selectedData.borrow.source == "Unilend") {
         hash = await handleRepay(lendAmount, selectedData, address, path);
@@ -295,11 +296,11 @@ export const handleRepayTransaction = async (
   } catch (error: any) {
     setIsBorrowProgressModal(false);
     handleClear();
-    if (error.reason) {
-      NotificationMessage("error", `${error.reason}`);
-    } else {
-      NotificationMessage("error", `${error}`);
-    }
+    const msg =
+      error?.code === "ACTION_REJECTED"
+        ? "Transaction Denied"
+        : "Something went wrong, Refresh and Try again";
+    NotificationMessage("error", msg);
     console.log("Error1", { error });
   }
 };

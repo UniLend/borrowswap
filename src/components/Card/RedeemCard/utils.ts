@@ -74,10 +74,8 @@ export const handleQuote = async (
   setUniQuote: (value: any) => void
 ) => {
   try {
-    const borrowDecimals = selectedData?.lend?.decimals;
     const lendAddress = selectedData?.lend?.address;
     const borrowAddress = selectedData?.receive?.address;
-    const chainId = 16715 ? 137 : chain?.id;
     let flag = false;
     if (
       String(borrowAddress).toLowerCase() === String(lendAddress).toLowerCase()
@@ -89,7 +87,6 @@ export const handleQuote = async (
           selectedData?.lend?.decimals
         ).toString()
       );
-      // setReceiveAmount(selectedData?.lend?.redeemBalanceFixed);
       flag = true;
     } else {
       const tokenIn = {
@@ -107,13 +104,7 @@ export const handleQuote = async (
         symbol: selectedData?.receive?.symbol,
         name: selectedData?.receive?.name,
       };
-      //   const value = await getQuote(
-      //     decimal2Fixed(1, borrowDecimals),
-      //     address,
-      //     lendAddress,
-      //     borrowAddress,
-      //     chainId
-      //   );
+
       const { quoteValue, quoteFee, quotePath }: any = await quoteWithSdk(
         tokenIn,
         tokenOut
@@ -126,14 +117,10 @@ export const handleQuote = async (
           slippage: 0.5,
           path: quotePath,
         });
-        // const payLendAmount =
-        //   quoteValue * (selectedData?.lend?.redeemBalanceFixed || 0);
         const payLendAmount = mul(
           quoteValue,
           selectedData?.lend?.redeemBalanceFixed || 0
         );
-        // quoteValue * (selectedData?.lend?.redeemBalanceFixed || 0);
-
         console.log(
           "pay amount",
           selectedData,
@@ -141,12 +128,7 @@ export const handleQuote = async (
           selectedData?.lend?.redeemBalanceFixed,
           quoteValue
         );
-        // setReceiveAmount(
-        //   truncateToDecimals(
-        //     Number(payLendAmount),
-        //     selectedData?.receive?.decimals
-        //   ).toString()
-        // );
+
         setReceiveAmount(payLendAmount.toString());
         setLendAmount(selectedData?.lend?.redeemBalanceFixed);
         flag = true;
@@ -158,11 +140,9 @@ export const handleQuote = async (
   } catch (error: any) {
     setQuoteError(true);
     setIsTokenLoading({ ...isTokenLoading, quotation: false });
-    console.error("Error in handleQuote:", error);
-
     NotificationMessage(
       "error",
-      error?.message || "Error occurred in handleQuote"
+      `Swap is not available for ${selectedData.receive.symbol}, please select different receive token.`
     );
   } finally {
     // setIsTokenLoading({ ...isTokenLoading, quotation: false });
@@ -346,7 +326,7 @@ export const handleRepayTransaction = async (
     //     "-" +
     //     selectedData.receive.symbol
     // );
-    setOperationProgress(2);
+    setOperationProgress(1);
     let hash;
     if (selectedData.borrow.source == "Unilend") {
       hash = await handleRedeem(
@@ -373,18 +353,15 @@ export const handleRepayTransaction = async (
       setModalMsg("Transaction is Success!");
       handleClear();
       NotificationMessage("success", `Redeem is Successful`);
-      // setTimeout(() => {
-      //   setIsBorrowProgressModal(false);
-      // }, 1000);
     }
   } catch (error: any) {
     setIsBorrowProgressModal(false);
     handleClear();
-    if (error.reason) {
-      NotificationMessage("error", `${error.reason}`);
-    } else {
-      NotificationMessage("error", `${error}`);
-    }
+    const msg =
+      error?.code === "ACTION_REJECTED"
+        ? "Transaction Denied"
+        : "Something went wrong, Refresh and Try again";
+    NotificationMessage("error", msg);
     console.log("Error1", { error });
   }
 };

@@ -78,7 +78,8 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     pools: false,
     rangeSlider: false,
   });
-  const [operationProgress, setOperationProgress] = useState(1);
+  const [operationProgress, setOperationProgress] = useState(0);
+
   const [uniQuote, setUniQuote] = useState({
     totalFee: 0,
     slippage: 0,
@@ -96,7 +97,8 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     isLowBal,
     connectWallet,
     receiveAmount,
-    ltvError
+    ltvError,
+    borrowAmount
   );
 
   const handleLendAmount = (amount: string) => {
@@ -243,7 +245,8 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       handleSelectLendToken,
       handleBorrowToken,
       setSelectedLTV,
-      setIsLowLiquidity
+      setIsLowLiquidity,
+      chain
     );
   };
 
@@ -273,7 +276,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     setSelectedLTV(5);
     setTimeout(() => {
       setIsBorrowProgressModal(false);
-      setOperationProgress(1);
+      setOperationProgress(0);
     }, 3000);
   };
 
@@ -309,6 +312,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       handleLTVSliderWithValue(currentLTV ? +currentLTV : 5);
       setSelectedLTV(currentLTV ? +currentLTV : 5);
     }
+    console.log("b2rRatio", b2rRatio);
   }, [b2rRatio]);
 
   const checkLoading = (isTokenLoading: object) => {

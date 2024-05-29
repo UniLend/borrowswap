@@ -28,7 +28,7 @@ import {
   // checkLiquidity
 } from "./utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { CompoundBaseTokens } from "../../../helpers/constants";
+// import { compoundCollateralTokens } from "../../../helpers/constants";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -209,7 +209,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
 
   const getOprationToken = () => {
     if (tokenListStatus.operation === "pool") {
-      return [...pools, ...CompoundBaseTokens];
+      return [...pools, ...compoundCollateralTokens];
     } else if (tokenListStatus.operation === "receive") {
       return tokens;
     } else if (tokenListStatus.operation === "lend") {
@@ -357,10 +357,6 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     }
   }, [selectedData?.receive]);
 
-  useEffect(() => {
-    console.log("selectedData", receiveAmount);
-  }, [receiveAmount]);
-
   // useEffect(() => {
   //     if(selectedData?.pool?.source === 'compound'){
   //         setReceiveAmount(
@@ -409,7 +405,6 @@ export default function RedeemCard({ uniSwapTokens }: any) {
                 selectedData?.lend?.decimals
               )
             );
-
             setReceiveAmount(
               mul(Number(selectedData?.lend?.redeemBalanceFixed), b2rRatio)
             );
