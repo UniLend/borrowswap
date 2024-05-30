@@ -318,13 +318,13 @@ export const handleTokenSelection = async (
     setSelectedLTV(5);
     setIsLowLiquidity(false);
   } else if (tokenListStatus.operation == "borrow") {
-    console.log(token.address);
     handleSelectBorrowToken(token);
     setSelectedTokens({
       ...selectedTokens,
       [tokenListStatus.operation]: { ...token, ...tokenBal },
-      ["receive"]: null,
     });
+
+    setAccordionModal(false);
     setReceiveAmount("");
   } else if (tokenListStatus.operation == "receive") {
     setSelectedTokens({
@@ -433,6 +433,7 @@ export const handleSelectBorrowToken = async (
         ...selectedTokens,
         ["lend"]: { ...selectedTokens.lend, ...data.token0 },
         ["borrow"]: data.token1,
+        ["receive"]: null,
       });
       const currentLtv = getCurrentLTV(data.token1, data.token0);
 
@@ -446,6 +447,7 @@ export const handleSelectBorrowToken = async (
         ...selectedTokens,
         ["lend"]: { ...selectedTokens.lend, ...data.token1 },
         ["borrow"]: data.token0,
+        ["receive"]: null,
       });
       const currentLtv = getCurrentLTV(data.token0, data.token1);
       setCurrentLTV(currentLtv);
@@ -481,6 +483,7 @@ export const handleSelectBorrowToken = async (
       ...selectedTokens,
       ["lend"]: { ...selectedTokensRef?.current?.lend, ...collateralToken },
       ["borrow"]: { ...selectedTokens.borrow, ...borrowedToken },
+      ["receive"]: null,
     });
   }
 };

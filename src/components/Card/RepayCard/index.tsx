@@ -272,7 +272,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
   };
 
   const handleTokenSelection = async (data: any) => {
-    console.log("handletokendata", data);
     setTokenListStatus({ isOpen: false, operation: "" });
     setSelectedData({
       ...selectedData,
@@ -285,8 +284,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
       setTokenListStatus({ isOpen: false, operation: "" });
-      console.log("tokenListStatus", tokenListStatus);
-      console.log("quotation", isTokenLoading);
       const tokenBal = await getAllowance(data, address);
       setSelectedData({
         ...selectedData,
@@ -427,7 +424,10 @@ export default function RepayCard({ uniSwapTokens }: any) {
             className='primary_btn'
             onClick={handleSwapRepayTransaction}
             title='please slect you pay token'
-            loading={isTokenLoading.pool || isTokenLoading.quotation}
+            loading={
+              (isTokenLoading.pool && selectedData.pool) ||
+              isTokenLoading.quotation
+            }
           >
             {repayButton.text}
           </Button>

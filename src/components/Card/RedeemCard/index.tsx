@@ -174,12 +174,12 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   }
 
   const handleLendAmount = (amount: string) => {
-    const TrunAmount = truncateToDecimals(
-      Number(amount),
-      selectedData?.lend?.decimals
-    );
+    // const TrunAmount = truncateToDecimals(
+    //   Number(amount),
+    //   selectedData?.lend?.decimals
+    // );
 
-    // setLendAmount(TrunAmount);
+    setLendAmount(amount);
 
     setReceiveAmount(mul(Number(amount), b2rRatio).toString());
     setIsMax(false);
@@ -405,30 +405,23 @@ export default function RedeemCard({ uniSwapTokens }: any) {
         <AmountContainer
           balance={selectedData?.lend?.balanceFixed}
           value={Number(lendAmount) > 0 ? lendAmount : "0"}
-          onChange={(e: any) => handleLendAmount(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            handleLendAmount(e.target.value)
+          }
           onMaxClick={() => {
-            setReceiveAmount(
-              mul(Number(selectedData?.lend?.redeemBalanceFixed), b2rRatio)
-            );
-            setLendAmount(
-              (selectedData?.borrow?.redeemBalanceFixed).toString()
-            );
+            const maxAmount = (
+              selectedData?.borrow?.redeemBalanceFixed || "0"
+            ).toString();
+            setLendAmount(maxAmount);
+            setReceiveAmount((Number(maxAmount) * b2rRatio).toString());
             setIsMax(true);
           }}
-          // buttonText={selectedData?.pool?.otherToken?.symbol}
           buttonText={
             selectedData?.pool?.source === "Compound"
               ? selectedData?.lend?.symbol
               : selectedData?.pool?.borrowToken?.symbol
           }
           isShowMaxBtn
-          // onClick={
-          //   selectedData?.pool !== null &&
-          //   selectedData.pool.source !== "Compound" &&
-          //   selectedData.pool.source !== "Unilend"
-          //     ? () => handleOpenTokenList("receive")
-          //     : () => {}
-          // }
           onClick={() => {}}
           btnClass={
             selectedData?.pool === null ||
@@ -441,6 +434,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           //   selectedData?.pool?.source === "Compound" ? "" : "disable_btn"
           // }
         />
+
         <p className='paragraph06 label'>You Receive</p>
         <AmountContainer
           balance={truncateToDecimals(
