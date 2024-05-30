@@ -80,11 +80,13 @@ export default function BorrowCard({ uniSwapTokens }: any) {
   });
   const [operationProgress, setOperationProgress] = useState(0);
 
+  const [accordionModal, setAccordionModal] = useState<boolean>(false);
   const [uniQuote, setUniQuote] = useState({
     totalFee: 0,
     slippage: 0,
     path: [],
   });
+
   const isLowBal: boolean = +lendAmount > selectedTokens?.lend?.balanceFixed;
   const connectWallet = isConnected;
 
@@ -193,7 +195,8 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       setSelectedLTV,
       setQuoteError,
       setIsTokenLoading,
-      setUniQuote
+      setUniQuote,
+      setAccordionModal
     );
   };
 
@@ -245,6 +248,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       handleSelectLendToken,
       handleBorrowToken,
       setSelectedLTV,
+      setAccordionModal,
       setIsLowLiquidity,
       chain
     );
@@ -278,6 +282,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       setIsBorrowProgressModal(false);
       setOperationProgress(0);
     }, 3000);
+    setAccordionModal(false);
   };
 
   useEffect(() => {
@@ -432,6 +437,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           fee={uniQuote.totalFee}
           slippage={uniQuote.slippage}
           lendAmount={lendAmount}
+          showAccordion={accordionModal}
         />
       </div>
       <Modal

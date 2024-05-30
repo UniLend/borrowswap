@@ -17,6 +17,7 @@ import NotificationMessage from "../../Common/NotificationMessage";
 import { quoteWithSdk } from "../../../api/uniswap/quotes";
 
 export const handleQuote = async (
+  selectedDataRef: any,
   selectedData: any,
   chain: any,
   address: any,
@@ -26,35 +27,37 @@ export const handleQuote = async (
   setReceiveAmount: (value: string) => void,
   setQuoteError: (value: boolean) => void,
   setIsTokenLoading: (value: any) => void,
-  setUniQuote: (value: any) => void
+  setUniQuote: (value: any) => void,
+  setAccordionModal: (value: any) => void
 ) => {
   try {
-    const borrowDecimals = selectedData?.borrow?.decimals;
-    const lendAddress = selectedData?.lend?.address;
-    const borrowAddress = selectedData?.borrow?.address;
+    setAccordionModal(false);
+    const borrowDecimals = selectedDataRef.current?.borrow?.decimals;
+    const lendAddress = selectedDataRef.current?.lend?.address;
+    const borrowAddress = selectedDataRef.current?.borrow?.address;
     const chainId = 16715 ? 137 : chain?.id;
     let flag = false;
     if (
       String(borrowAddress).toLowerCase() === String(lendAddress).toLowerCase()
     ) {
       setb2rRatio(1);
-      setLendAmount(selectedData?.borrow?.borrowBalanceFixed);
+      setLendAmount(selectedDataRef.current?.borrow?.borrowBalanceFixed);
       flag = true;
     } else {
       const tokenIn = {
         chainId: chain?.id == 16715 ? 137 : chain?.id,
-        address: selectedData?.borrow?.address,
-        decimals: selectedData?.borrow?.decimals,
-        symbol: selectedData?.borrow?.symbol,
-        name: selectedData?.borrow?.name,
+        address: selectedDataRef.current?.borrow?.address,
+        decimals: selectedDataRef.current?.borrow?.decimals,
+        symbol: selectedDataRef.current?.borrow?.symbol,
+        name: selectedDataRef.current?.borrow?.name,
       };
 
       const tokenOut = {
         chainId: chain?.id == 16715 ? 137 : chain?.id,
-        address: selectedData?.lend?.address,
-        decimals: selectedData?.lend?.decimals,
-        symbol: selectedData?.lend?.symbol,
-        name: selectedData?.lend?.name,
+        address: selectedDataRef.current?.lend?.address,
+        decimals: selectedDataRef.current?.lend?.decimals,
+        symbol: selectedDataRef.current?.lend?.symbol,
+        name: selectedDataRef.current?.lend?.name,
       };
       // const value = await getQuote(
       //   decimal2Fixed(1, borrowDecimals),
@@ -77,24 +80,30 @@ export const handleQuote = async (
           path: quotePath,
         });
         const payLendAmount =
-          coveredValue * (selectedData?.borrow?.borrowBalanceFixed || 0);
+          coveredValue *
+          (selectedDataRef.current?.borrow?.borrowBalanceFixed || 0);
         console.log(
           "pay amount",
           selectedData,
-          payLendAmount.toFixed(selectedData?.lend.decimals),
-          selectedData?.borrow?.borrowBalanceFixed,
+          payLendAmount.toFixed(selectedDataRef.current?.lend.decimals),
+          selectedDataRef.current?.borrow?.borrowBalanceFixed,
           coveredValue,
           quoteValue
         );
-        setLendAmount(payLendAmount.toFixed(selectedData?.borrow.decimals));
+
+        setLendAmount(
+          payLendAmount.toFixed(selectedDataRef.current?.borrow.decimals)
+        );
         // setReceiveAmount()
         flag = true;
+        setAccordionModal(true);
       }
     }
 
     setReceiveAmount(
-      (selectedData?.receive?.collateralBalanceFixed || 0) +
-        (selectedData?.receive?.redeemBalanceFixed || 0)
+      (selectedDataRef.current?.receive?.collateralBalanceFixed || 0) +
+        (selectedDataRef.current.currentctedData?.receive?.redeemBalanceFixed ||
+          0)
     );
     setQuoteError(false);
     if (flag) setIsTokenLoading({ ...isTokenLoading, quotation: false });
@@ -103,7 +112,7 @@ export const handleQuote = async (
     setIsTokenLoading({ ...isTokenLoading, quotation: false });
     NotificationMessage(
       "error",
-      `Swap is not available for ${selectedData.lend.symbol}, please select different Pay token.`
+      `Swap is not available for ${selectedDataRef.current.lend.symbol}, please select different Pay token.`
     );
   } finally {
     // setIsTokenLoading({ ...isTokenLoading, quotation: false });

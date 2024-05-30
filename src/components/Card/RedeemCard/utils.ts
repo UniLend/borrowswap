@@ -61,6 +61,7 @@ import { quoteWithSdk } from "../../../api/uniswap/quotes";
 // };
 
 export const handleQuote = async (
+  selectedDataRef: any,
   selectedData: any,
   chain: any,
   address: any,
@@ -71,11 +72,13 @@ export const handleQuote = async (
   setReceiveAmount: (value: string) => void,
   setQuoteError: (value: boolean) => void,
   setIsTokenLoading: (value: any) => void,
-  setUniQuote: (value: any) => void
+  setUniQuote: (value: any) => void,
+  setAccordionModal: (value: any) => void
 ) => {
   try {
-    const lendAddress = selectedData?.lend?.address;
-    const borrowAddress = selectedData?.receive?.address;
+    setAccordionModal(false);
+    const lendAddress = selectedDataRef.current?.lend?.address;
+    const borrowAddress = selectedDataRef.current?.receive?.address;
     let flag = false;
     if (
       String(borrowAddress).toLowerCase() === String(lendAddress).toLowerCase()
@@ -83,26 +86,26 @@ export const handleQuote = async (
       setb2rRatio(1);
       setReceiveAmount(
         truncateToDecimals(
-          Number(selectedData?.lend?.redeemBalanceFixed),
-          selectedData?.lend?.decimals
+          Number(selectedDataRef.current?.lend?.redeemBalanceFixed),
+          selectedDataRef.current?.lend?.decimals
         ).toString()
       );
       flag = true;
     } else {
       const tokenIn = {
         chainId: chain?.id == 16715 ? 137 : chain?.id,
-        address: selectedData?.lend?.address,
-        decimals: selectedData?.lend?.decimals,
-        symbol: selectedData?.lend?.symbol,
-        name: selectedData?.lend?.name,
+        address: selectedDataRef.current?.lend?.address,
+        decimals: selectedDataRef.current?.lend?.decimals,
+        symbol: selectedDataRef.current?.lend?.symbol,
+        name: selectedDataRef.current?.lend?.name,
       };
 
       const tokenOut = {
         chainId: chain?.id == 16715 ? 137 : chain?.id,
-        address: selectedData?.receive?.address,
-        decimals: selectedData?.receive?.decimals,
-        symbol: selectedData?.receive?.symbol,
-        name: selectedData?.receive?.name,
+        address: selectedDataRef.current?.receive?.address,
+        decimals: selectedDataRef.current?.receive?.decimals,
+        symbol: selectedDataRef.current?.receive?.symbol,
+        name: selectedDataRef.current?.receive?.name,
       };
 
       const { quoteValue, quoteFee, quotePath }: any = await quoteWithSdk(
@@ -119,19 +122,20 @@ export const handleQuote = async (
         });
         const payLendAmount = mul(
           quoteValue,
-          selectedData?.lend?.redeemBalanceFixed || 0
+          selectedDataRef.current?.lend?.redeemBalanceFixed || 0
         );
         console.log(
           "pay amount",
-          selectedData,
+          selectedDataRef.current,
           payLendAmount,
-          selectedData?.lend?.redeemBalanceFixed,
+          selectedDataRef.current?.lend?.redeemBalanceFixed,
           quoteValue
         );
 
         setReceiveAmount(payLendAmount.toString());
-        setLendAmount(selectedData?.lend?.redeemBalanceFixed);
+        setLendAmount(selectedDataRef.current?.lend?.redeemBalanceFixed);
         flag = true;
+        setAccordionModal(true);
       }
     }
 
@@ -142,7 +146,7 @@ export const handleQuote = async (
     setIsTokenLoading({ ...isTokenLoading, quotation: false });
     NotificationMessage(
       "error",
-      `Swap is not available for ${selectedData.receive.symbol}, please select different receive token.`
+      `Swap is not available for ${selectedDataRef.current?.receive.symbol}, please select different receive token.`
     );
   } finally {
     // setIsTokenLoading({ ...isTokenLoading, quotation: false });
