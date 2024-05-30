@@ -66,9 +66,11 @@ export const handleLTVSlider = (
   b2rRatio: number,
   setSelectedLTV: (value: number) => void,
   setBorrowAmount: (amount: number) => void,
-  setReceiveAmount: (amount: string) => void
+  setReceiveAmount: (amount: string) => void,
+  setLtvError: (amount: boolean) => void
 ) => {
   setSelectedLTV(value);
+  setLtvError(false);
   let borrowAmount = 0;
   if (selectedTokens.borrow.source === "Unilend") {
     borrowAmount = getBorrowAmount(
@@ -293,7 +295,9 @@ export const handleTokenSelection = async (
   handleSelectLendToken: (value: any) => void,
   handleSelectBorrowToken: (value: any) => void,
   setSelectedLTV: (value: any) => void,
-  setAccordionModal: (value: any) => void
+  setAccordionModal: (value: any) => void,
+  setIsLowLiquidity: (value: any) => void,
+  chain: any
 ) => {
   setSelectedTokens({
     ...selectedTokens,
@@ -312,6 +316,7 @@ export const handleTokenSelection = async (
     setReceiveAmount("");
     setLendAmount("");
     setSelectedLTV(5);
+    setIsLowLiquidity(false);
   } else if (tokenListStatus.operation == "borrow") {
     console.log(token.address);
     handleSelectBorrowToken(token);
@@ -478,4 +483,23 @@ export const handleSelectBorrowToken = async (
       ["borrow"]: { ...selectedTokens.borrow, ...borrowedToken },
     });
   }
+};
+
+export const calculateLTVFromReceiveAmount = (
+  receiveAmount: number,
+  lendAmount: string,
+  lendToken: any,
+  b2rRatio: number
+) => {
+  const lendAmountNum =
+    Number(lendAmount) +
+    Number(lendToken?.lendBalanceFixed || lendToken?.collateralBalanceFixed);
+  if (isNaN(lendAmountNum) || isNaN(receiveAmount) || b2rRatio === 0) {
+    return 0;
+  }
+  const borrowAmount = receiveAmount / b2rRatio;
+  const lendPrice = lendToken?.price || lendToken?.priceRatio || 1;
+  const collateralValue = lendAmountNum * lendPrice;
+  const ltv = (borrowAmount / collateralValue) * 100;
+  return Math.max(Number(ltv.toFixed(2)), 0);
 };

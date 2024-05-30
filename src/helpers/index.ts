@@ -376,6 +376,7 @@ export const getButtonAction = (
   isLowBal: boolean,
   connectWallet: any,
   receiveAmount: string,
+  ltvError: boolean,
   borrowAmount: any
 ) => {
   let btn = {
@@ -414,6 +415,8 @@ export const getButtonAction = (
     btn.text = "Receive Amount must not 0";
   } else if (quoteError) {
     btn.text = "Swap not available";
+  } else if (ltvError) {
+    btn.text = "Exceeds LTV Limit";
   } else if (isLowLiquidity) {
     btn.text = "Low liquidity";
   } else if (isLowValueCompound) {
