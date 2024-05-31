@@ -17,6 +17,7 @@ import {
   TokenListModal,
   AmountContainer,
   ButtonWithDropdown,
+  PoolHealthContainer,
 } from "../../Common";
 import BorrowLoader from "../../Loader/BorrowLoader";
 import {
@@ -85,6 +86,12 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     totalFee: 0,
     slippage: 0,
     path: [],
+  });
+
+  const [analyticsData, setAnalyticsData] = useState({
+    totalBorrowed: 0,
+    totalLend: 0,
+    healthFactor: 0,
   });
 
   const isLowBal: boolean = +lendAmount > selectedTokens?.lend?.balanceFixed;
@@ -332,6 +339,26 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     console.log("selectedTokens", selectedTokens);
   }, [selectedTokens]);
 
+  const calculateData = (selectedTokens: any) => {
+    const totalLend =
+      selectedTokens?.borrow?.lendBalanceFixed ??
+      0 + selectedTokens?.lend?.lendBalanceFixed ??
+      0;
+
+    const totalBorrowed =
+      selectedTokens?.borrow?.borrowBalanceFixed ??
+      0 + selectedTokens?.lend?.borrowBalanceFixed ??
+      0;
+    const healthFactor = selectedTokens?.lend?.healthFactor;
+    return { totalLend, totalBorrowed, healthFactor };
+  };
+  useEffect(() => {
+    if (selectedTokens) {
+      const data: any = calculateData(selectedTokens);
+      setAnalyticsData(data);
+    }
+  }, [selectedTokens?.borrow]);
+
   return (
     <>
       <div className='borrow_container'>
@@ -416,6 +443,13 @@ export default function BorrowCard({ uniSwapTokens }: any) {
             }
           />
         </div>
+        <PoolHealthContainer
+          selectedTokens={selectedTokens}
+          totalBorrow={analyticsData.totalBorrowed}
+          totalLend={analyticsData.totalLend}
+          healthFactor={analyticsData.healthFactor}
+          showAccordion={accordionModal}
+        />
         {isConnected ? (
           <Button
             disabled={borrowBtn.disable}

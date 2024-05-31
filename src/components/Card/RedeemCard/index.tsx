@@ -18,6 +18,7 @@ import {
   AmountContainer,
   ButtonWithDropdown,
   AccordionContainer,
+  PoolHealthContainer,
 } from "../../Common";
 import BorrowLoader from "../../Loader/BorrowLoader";
 import {
@@ -144,6 +145,12 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     totalFee: 0,
     slippage: 0,
     path: [],
+  });
+
+  const [analyticsData, setAnalyticsData] = useState({
+    totalBorrowed: 0,
+    totalLend: 0,
+    healthFactor: 0,
   });
 
   //sorted Specific tokens acording to our choice
@@ -384,6 +391,26 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     checkLoading(isTokenLoading);
   }, [isTokenLoading]);
 
+  const calculateData = (selectedData: any) => {
+    const totalLend =
+      selectedData?.borrow?.lendBalanceFixed ??
+      0 + selectedData?.lend?.lendBalanceFixed ??
+      0;
+
+    const totalBorrowed =
+      selectedData?.borrow?.borrowBalanceFixed ??
+      0 + selectedData?.lend?.borrowBalanceFixed ??
+      0;
+    const healthFactor = selectedData?.lend?.healthFactor;
+    return { totalLend, totalBorrowed, healthFactor };
+  };
+  useEffect(() => {
+    if (selectedData) {
+      const data: any = calculateData(selectedData);
+      setAnalyticsData(data);
+    }
+  }, [selectedData?.borrow]);
+
   return (
     <>
       <div className='repay_container'>
@@ -458,6 +485,13 @@ export default function RedeemCard({ uniSwapTokens }: any) {
               ? "disable_btn"
               : "visible"
           }
+        />
+        <PoolHealthContainer
+          selectedTokens={selectedData}
+          totalBorrow={analyticsData.totalBorrowed}
+          totalLend={analyticsData.totalLend}
+          healthFactor={analyticsData.healthFactor}
+          showAccordion={accordionModal}
         />
         {isConnected ? (
           <Button

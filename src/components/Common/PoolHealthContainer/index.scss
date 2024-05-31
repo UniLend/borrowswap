@@ -1,0 +1,27 @@
+@import "/src/theme";
+
+.healthContainer {
+  .analytics {
+    display: flex;
+    margin: 25px auto;
+    justify-content: space-between;
+    background-color: var(--low-dark-bg);
+    padding: 20px;
+    border-radius: 12px;
+    div {
+      width: fit-content;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      span {
+        font-size: $font-size-xsm;
+        font-weight: 400;
+        color: var(--light-gray);
+      }
+      .paragraph04 {
+        margin: 5px;
+      }
+    }
+  }
+}

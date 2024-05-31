@@ -4,12 +4,13 @@ import NotificationMessage from "./NotificationMessage";
 import TokenCard from "./TokenCard";
 import TokenListModal from "./TokenListModal";
 import AccordionContainer from "./Accordion";
-
+import PoolHealthContainer from "./PoolHealthContainer";
 export {
-    AmountContainer,
-    ButtonWithDropdown,
-    NotificationMessage,
-    TokenCard,
-    TokenListModal,
-    AccordionContainer,
-}
+  AmountContainer,
+  ButtonWithDropdown,
+  NotificationMessage,
+  TokenCard,
+  TokenListModal,
+  AccordionContainer,
+  PoolHealthContainer,
+};
