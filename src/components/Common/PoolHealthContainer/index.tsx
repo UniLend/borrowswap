@@ -44,7 +44,8 @@ const HealthFactorData: React.FC<HealthFactorDataProps> = ({
         <h3 className='paragraph04'>-</h3>
       ) : (
         <h3 className='paragraph04'>
-          {healthFactor !== undefined ? Number(healthFactor) : ""}
+          {healthFactor > 100 ? 100 : Number(healthFactor).toFixed(2)}
+          {/* {healthFactor !== undefined ? Number(healthFactor) : ""} */}
         </h3>
       )}
     </div>

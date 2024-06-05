@@ -392,16 +392,10 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   }, [isTokenLoading]);
 
   const calculateData = (selectedData: any) => {
-    const totalLend =
-      selectedData?.borrow?.lendBalanceFixed ??
-      0 + selectedData?.lend?.lendBalanceFixed ??
-      0;
+    const totalLend = selectedData?.lend?.lendBalanceFixed ?? 0;
 
-    const totalBorrowed =
-      selectedData?.borrow?.borrowBalanceFixed ??
-      0 + selectedData?.lend?.borrowBalanceFixed ??
-      0;
-    const healthFactor = selectedData?.lend?.healthFactor;
+    const totalBorrowed = selectedData?.lend?.borrowBalanceFixed ?? 0;
+    const healthFactor = selectedData?.lend?.healthFactorFixed ?? 0;
     return { totalLend, totalBorrowed, healthFactor };
   };
   useEffect(() => {

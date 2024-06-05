@@ -341,15 +341,13 @@ export default function BorrowCard({ uniSwapTokens }: any) {
 
   const calculateData = (selectedTokens: any) => {
     const totalLend =
-      selectedTokens?.borrow?.lendBalanceFixed ??
-      0 + selectedTokens?.lend?.lendBalanceFixed ??
-      0;
+      // selectedTokens?.borrow?.lendBalanceFixed ?? 0 +
+      selectedTokens?.lend?.lendBalanceFixed ?? 0;
 
-    const totalBorrowed =
-      selectedTokens?.borrow?.borrowBalanceFixed ??
-      0 + selectedTokens?.lend?.borrowBalanceFixed ??
-      0;
-    const healthFactor = selectedTokens?.lend?.healthFactor;
+    const totalBorrowed = selectedTokens?.borrow?.borrowBalanceFixed ?? 0;
+    // + selectedTokens?.lend?.borrowBalanceFixed ??
+    0;
+    const healthFactor = selectedTokens?.lend?.healthFactorFixed ?? 0;
     return { totalLend, totalBorrowed, healthFactor };
   };
   useEffect(() => {
