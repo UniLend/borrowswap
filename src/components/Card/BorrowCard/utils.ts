@@ -7,6 +7,8 @@ import {
   handleApproval,
   handleCompoundSwap,
   handleSwap,
+  getCollateralTokenDataAave,
+  getBorrowTokenDataAave,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
 import { quoteWithSdk } from "../../../api/uniswap/quotes";
@@ -345,27 +347,31 @@ export const getOprationToken = (
   selectedTokens: any,
   borrowingTokens: any,
   baseTokens: any,
-  uniSwapTokens: any
+  uniSwapTokens: any,
+  aaveBaseTokens: any,
+  aaveBorrowTokens: any,
+  setDataFilter: (value: any) => void
 ) => {
   if (tokenListStatus.operation === "lend") {
     const common: any = {};
-    const tokenArray = [...lendingTokens, ...compoundCollateralTokens];
+    const tokenArray = [
+      ...lendingTokens,
+      ...compoundCollateralTokens,
+      ...aaveBaseTokens,
+    ];
+
     for (const token of tokenArray) {
-      if (common[String(token.address).toLocaleUpperCase()]) {
-        common[String(token.address).toLocaleUpperCase()] = {
+      const address = token.address.toUpperCase();
+      const source = token.source.toLowerCase();
+
+      if (common[address]) {
+        if (!common[address].availableIn.includes(source)) {
+          common[address].availableIn.push(source);
+        }
+      } else {
+        common[address] = {
           ...token,
-          ...common[token.address],
-          availableIn: ["unilend", "compound"],
-        };
-      } else if (token.source == "Unilend") {
-        common[String(token.address).toLocaleUpperCase()] = {
-          ...token,
-          availableIn: ["unilend"],
-        };
-      } else if (token.source == "Compound") {
-        common[String(token.address).toLocaleUpperCase()] = {
-          ...token,
-          availableIn: ["compound"],
+          availableIn: [source],
         };
       }
     }
@@ -375,16 +381,30 @@ export const getOprationToken = (
     const tokensAvailableIn =
       Array.isArray(selectedTokens.lend.availableIn) &&
       selectedTokens.lend.availableIn;
-    if (
-      tokensAvailableIn.includes("unilend") &&
-      tokensAvailableIn.includes("compound")
-    ) {
-      return [...borrowingTokens, ...baseTokens];
-    } else if (tokensAvailableIn.includes("unilend")) {
-      return [...borrowingTokens];
-    } else if (tokensAvailableIn.includes("compound")) {
-      return [...baseTokens];
+
+    if (!tokensAvailableIn) {
+      console.error(
+        "Error: tokensAvailableIn is not available or is not an array"
+      );
+      return [];
     }
+
+    const tokenSourcesMap: { [key: string]: any[] } = {
+      unilend: borrowingTokens,
+      compound: baseTokens,
+      aave: aaveBaseTokens,
+    };
+
+    const resultTokens = tokensAvailableIn.reduce((acc: any, platform: any) => {
+      if (tokenSourcesMap[platform]) {
+        return [...acc, ...tokenSourcesMap[platform]];
+      } else {
+        console.warn(`No matching tokens found for platform: ${platform}`);
+        return acc;
+      }
+    }, []);
+
+    return resultTokens;
   } else if (tokenListStatus.operation === "receive") {
     return uniSwapTokens;
   } else {
@@ -457,7 +477,7 @@ export const handleSelectBorrowToken = async (
     }
     setUnilendPool(data);
     setIsTokenLoading({ ...isTokenLoading, pools: false });
-  } else {
+  } else if (token.source == "Compound") {
     setIsTokenLoading({ ...isTokenLoading, pools: true });
     const collateralToken = await getCollateralTokenData(
       selectedTokensRef?.current?.lend,
@@ -483,6 +503,37 @@ export const handleSelectBorrowToken = async (
       ...selectedTokens,
       ["lend"]: { ...selectedTokensRef?.current?.lend, ...collateralToken },
       ["borrow"]: { ...selectedTokens.borrow, ...borrowedToken },
+      ["receive"]: null,
+    });
+  } else if (token.source == "Aave") {
+    console.log("click on AAve");
+    setIsTokenLoading({ ...isTokenLoading, pools: true });
+
+    const collateralTokenAave = await getCollateralTokenDataAave(
+      selectedTokensRef?.current?.lend,
+      address
+    );
+    const borrowedTokenAave = await getBorrowTokenDataAave(token, address);
+    setIsTokenLoading({ ...isTokenLoading, pools: false });
+
+    // const ltv = getCompoundCurrentLTV(
+    //   borrowedToken?.borrowBalanceFixed,
+    //   collateralToken?.collateralBalanceFixed,
+    //   collateralToken?.price
+    // );
+    // console.log(
+    //   "LTV",
+    //   ltv,
+    //   borrowedToken?.borrowBalanceFixed,
+    //   collateralToken?.collateralBalanceFixed,
+    //   collateralToken?.price
+    // );
+
+    // setCurrentLTV(ltv);
+    setSelectedTokens({
+      ...selectedTokens,
+      ["lend"]: { ...selectedTokensRef?.current?.lend, ...collateralTokenAave },
+      ["borrow"]: { ...selectedTokens.borrow, ...borrowedTokenAave },
       ["receive"]: null,
     });
   }

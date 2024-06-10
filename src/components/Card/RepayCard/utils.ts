@@ -9,6 +9,8 @@ import {
   handleCompoundRepay,
   handleRepay,
   waitForTransaction,
+  getCollateralTokenDataAave,
+  getBorrowTokenDataAave,
   // checkTxnStatus,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
@@ -173,10 +175,27 @@ export const handleSelectRepayToken = async (
         ["borrow"]: data.token1,
       });
     }
-  } else {
+  } else if (poolData.source == "Compound") {
     console.log("No Pool Data");
 
     const tokenData = await getBorrowTokenData(poolData.borrowToken, address);
+
+    console.log("tokenData", tokenData);
+
+    setSelectedData({
+      ...selectedData,
+      ["pool"]: poolData,
+      ["lend"]: null,
+      ["receive"]: tokenData,
+      ["borrow"]: tokenData,
+    });
+  } else if (poolData.source == "Aave") {
+    console.log("No Pool Data");
+
+    const tokenData = await getBorrowTokenDataAave(
+      poolData.borrowToken,
+      address
+    );
 
     console.log("tokenData", tokenData);
 

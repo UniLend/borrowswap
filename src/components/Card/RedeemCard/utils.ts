@@ -2,6 +2,8 @@ import {
   getCollateralValue,
   handleCompoundRedeem,
   handleRedeem,
+  getBorrowTokenDataAave,
+  getCollateralTokenDataAave,
 } from "./../../../api/contracts/actions";
 import { valueType } from "antd/es/statistic/utils";
 import { getQuote } from "../../../api/axios/calls";

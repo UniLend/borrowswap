@@ -1,5 +1,7 @@
 export const contractAddresses = {
   137: {
+    aavePoolDataProvider: "0x69FA688f1Dc47d4B5d8029D5a35FB7a548310654",
+    aaveAddress: "0x8dff5e27ea6b7ac08ebfdf9eb090f32ee9a30fcf",
     compound: "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
     // controller: '0xDd632740B619C1FC88227a46a0c11f9187dEf794',// '0x009b39baBb260f01aDe3EC1CB7160Caa20baFE59',// '0x630Ca41F0E27Fe9B70FDD51C3A90d5EaB1139EAE',// '0x602F61e5cb3FD81B81Ab0FB3a3969321c0bFf328',
     controller: "0x5cc6eA390CDDb18C171B45CB910f3A879F9C242B", //"0xa0833d25914e873F2481Be698C9bdC0a96cA7fe5",
@@ -16,6 +18,8 @@ export const contractAddresses = {
     uftgToken: "0x6CbFa51AF1C1B8940f823DA4C58877E409d6da25",
   },
   16715: {
+    aavePoolDataProvider: "0x69FA688f1Dc47d4B5d8029D5a35FB7a548310654",
+    aaveAddress: "0x8dff5e27ea6b7ac08ebfdf9eb090f32ee9a30fcf",
     compound: "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
     // controller: '0x6a77Cd94D78FAEC6edd0D5cc6EACF921FA72574F',//'0x4Fb5192Cb570E71F30A50c479E5aea139730256C',// '0x602F61e5cb3FD81B81Ab0FB3a3969321c0bFf328',
     // controller: "0xbb2f627FCcD208fEDac3935bbDaa9e680337c744",
@@ -33,6 +37,8 @@ export const contractAddresses = {
     uftgToken: "0x6CbFa51AF1C1B8940f823DA4C58877E409d6da25",
   },
   1: {
+    aavePoolDataProvider: "0x69FA688f1Dc47d4B5d8029D5a35FB7a548310654",
+    aaveAddress: "0x8dff5e27ea6b7ac08ebfdf9eb090f32ee9a30fcf",
     compound: "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
     controller: "0x6f274685b29a73846fAAdd7F6aE5EAaC9961Ea72",
     helperAddress: "0xAE84B51a1ee35275542Dd99df0F107d4F4e32A63",

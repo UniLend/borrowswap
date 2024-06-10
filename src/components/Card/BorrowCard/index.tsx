@@ -12,6 +12,7 @@ import type { UnilendV2State } from "../../../states/store";
 import { useSelector } from "react-redux";
 import "./index.scss";
 import useWalletHook from "../../../api/hooks/useWallet";
+
 import {
   AccordionContainer,
   TokenListModal,
@@ -34,6 +35,8 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
   CompoundBaseTokens,
   compoundCollateralTokens,
+  aaveBaseTokens,
+  aaveBorrowTokens,
 } from "../../../helpers/constants";
 
 enum ActiveOperation {
@@ -87,6 +90,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     slippage: 0,
     path: [],
   });
+  const [dataFilter, setDataFilter] = useState<boolean>(false);
 
   const [analyticsData, setAnalyticsData] = useState({
     totalBorrowed: 0,
@@ -191,6 +195,14 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     );
   };
 
+  // aave integration Here
+  // console.log("borrowTokensData", borrowTokensData);
+  // useEffect(() => {
+  //   console.log("click");
+  //   getBorrowData(address);
+  //   getBorrowTokens(address);
+  // }, []);
+
   const handleQuoteValue = async () => {
     await handleQuote(
       selectedTokensRef,
@@ -269,7 +281,10 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       selectedTokens,
       borrowingTokens,
       CompoundBaseTokens,
-      uniSwapTokens
+      uniSwapTokens,
+      aaveBaseTokens,
+      aaveBorrowTokens,
+      setDataFilter
     );
   };
 
@@ -487,6 +502,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           isTokenListLoading={isTokenLoading.lend}
           showPoolData={tokenListStatus.operation === "borrow" ? true : false}
           lendTokenSymbol={selectedTokens?.lend?.symbol}
+          isShowfilter={tokenListStatus.operation === "lend" ? true : false}
         />
       </Modal>
 

@@ -7,6 +7,8 @@ import {
   erc20Abi,
   helperAbi,
   positionAbi,
+  aaveABI,
+  aavePoolDataProviderABI,
 } from "./abi";
 
 import { getEtherContract } from "./ethers";
@@ -825,7 +827,7 @@ export const getCollateralTokenData = async (token: any, address: any) => {
   );
 
   // const collateralBal = await comet?.userCollateral(proxy, tokenAddress);
-  // console.log("collateralBalance", collateralBal);
+  console.log("collateralDataCompound", collateralBal, price, assetInfo);
   //const baseToken = await comet?.getCollateralReserves(tokenAddress)
   // quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
   const data = await getAllowance(token, address);
@@ -943,4 +945,116 @@ export const handleCompoundSwap = async (
 
   const receipt = await waitForTransaction(hash);
   return hash;
+};
+
+export const getAaveCollateralData = async (token: any, address: any) => {
+  const chainId = getChainId(wagmiConfig);
+  const aaveAddress: any =
+    contractAddresses[chainId as keyof typeof contractAddresses]?.aaveAddress;
+  const instance = await getEtherContract(aaveAddress, aaveABI);
+  console.log("instance", instance);
+  const proxy = await getUserProxy(address);
+};
+
+export const getCollateralTokenDataAave = async (token: any, address: any) => {
+  try {
+    const chainId = getChainId(wagmiConfig);
+    const aaveAddress: any =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.aaveAddress;
+    const poolDataAddress: any =
+      contractAddresses[chainId as keyof typeof contractAddresses]
+        ?.aavePoolDataProvider;
+
+    const instance: any = await getEtherContract(aaveAddress, aaveABI);
+    const poolDataInstance: any = await getEtherContract(
+      poolDataAddress,
+      aavePoolDataProviderABI
+    );
+    console.log("instance", instance, poolDataInstance);
+    const userAccountData = await instance.getUserAccountData(address);
+    const getReserveDataPool = await instance.getReserveData(token.address);
+    const getAllReservesTokens = await poolDataInstance.getAllReservesTokens();
+    const getAllAtokens = await poolDataInstance.getAllATokens();
+    const getReserveConfigurationData =
+      await poolDataInstance.getReserveConfigurationData(
+        "0x6d80113e533a2C0fe82EaBD35f1875DcEA89Ea97"
+      );
+    const getReserveCaps = await poolDataInstance.getReserveCaps(
+      "0x6d80113e533a2C0fe82EaBD35f1875DcEA89Ea97"
+    );
+    const getLiquidationProtocolFee =
+      await poolDataInstance.getLiquidationProtocolFee(
+        "0x6d80113e533a2C0fe82EaBD35f1875DcEA89Ea97"
+      );
+    const getReserveData = await poolDataInstance.getReserveData(token.address);
+    const getUserReserveData = await poolDataInstance.getUserReserveData(
+      token.address,
+      address
+    );
+    console.log(
+      "poolDataProvider",
+      getReserveDataPool,
+      getAllReservesTokens,
+      getAllAtokens,
+      getReserveConfigurationData,
+      getReserveCaps,
+      getLiquidationProtocolFee,
+      getReserveData,
+      getUserReserveData
+    );
+    const info = {
+      availableBorrowsETH: fromBigNumber(userAccountData.availableBorrowsETH),
+
+      currentLiquidationThreshold: fromBigNumber(
+        userAccountData.currentLiquidationThreshold
+      ),
+      healthFactor: fromBigNumber(userAccountData.healthFactor),
+      totalCollateralETH: fromBigNumber(userAccountData.totalCollateralETH),
+      ltv: fromBigNumber(userAccountData.ltv),
+      totalDebtETH: Number(fromBigNumber(userAccountData.totalDebtETH)),
+    };
+    console.log("user Data", info);
+    return info;
+  } catch (error) {
+    console.error("Error fetching borrow data:", error);
+  }
+};
+
+export const getBorrowTokenDataAave = async (token: any, address: any) => {
+  try {
+    const chainId = getChainId(wagmiConfig);
+    const aaveAddress: any =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.aaveAddress;
+
+    const instance: any = await getEtherContract(aaveAddress, aaveABI);
+    console.log("instance", instance);
+
+    const collateralToken = await instance.getUserAccountData(address);
+    console.log("borrowTokens", collateralToken);
+
+    const info = {
+      ...token,
+      availableBorrowsETH: fromBigNumber(collateralToken.availableBorrowsETH),
+
+      collateral: fixed2Decimals(
+        fromBigNumber(collateralToken.totalCollateralETH),
+        token?.decimals || 18
+      ),
+      borrow: fixed2Decimals(
+        fromBigNumber(collateralToken.totalDebtETH),
+        token?.decimals || 18
+      ),
+      currentLiquidationThreshold: fromBigNumber(
+        collateralToken.currentLiquidationThreshold
+      ),
+      healthFactor: fromBigNumber(collateralToken.healthFactor),
+      totalCollateralETH: fromBigNumber(collateralToken.totalCollateralETH),
+      ltv: fromBigNumber(collateralToken.ltv),
+      totalDebtETH: Number(fromBigNumber(collateralToken.totalDebtETH)),
+    };
+    console.log("user Data", info);
+    return info;
+  } catch (error) {
+    console.error("Error fetching borrow data:", error);
+  }
 };

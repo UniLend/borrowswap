@@ -114,6 +114,36 @@
       height: 340px;
     }
   }
+  .checkbox-div {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+
+    .platform-container {
+      background-color: var(--low-dark-bg);
+      margin-right: 15px;
+      background-color: var(--low-dark-bg);
+      text-transform: capitalize;
+      border-radius: 8px;
+      padding: 10px 20px;
+      color: var(--always-white);
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .platform-container.active {
+      background-color: var(--main);
+      color: #fff;
+      opacity: 0.9;
+      &:hover {
+        opacity: 1;
+      }
+    }
+
+    .platform-text {
+      display: inline-block;
+    }
+  }
 }
 
 .antd_modal_overlay {

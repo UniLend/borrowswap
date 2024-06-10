@@ -18,10 +18,12 @@ interface Token {
   otherToken: any;
   pool: any;
   source: string;
-  address:string;
-  token0?: any
-  token1?:any
-  compoundCollateralTokens?: any
+  address: string;
+  token0?: any;
+  token1?: any;
+  compoundCollateralTokens?: any;
+  aaveCollateralTokens?: any;
+  availableIn?: any;
 }
 interface PositionData {
   borrowBalance0: number;
@@ -38,7 +40,7 @@ interface PositionData {
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
   REPAY = "Swap_Repay",
-  REDEEM= "Redeem_Swap"
+  REDEEM = "Redeem_Swap",
 }
 
 interface TokenListModalProps {
@@ -51,6 +53,7 @@ interface TokenListModalProps {
   positionData?: any;
   lendTokenSymbol?: string;
   currentOperation?: string;
+  isShowfilter: boolean;
 }
 
 const TokenListModal: React.FC<TokenListModalProps> = ({
@@ -63,187 +66,204 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
   positionData,
   lendTokenSymbol,
   currentOperation,
+  isShowfilter,
 }) => {
+  console.log("tokenList", tokenList, isShowfilter);
   // TODO: update typeScript here
   const container = useRef<any>(null);
   const [page, setPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [filteredTokenList, setFilteredTokenList]= useState<any>([]);
-  const [borrowedPosition, setBorrowedposition] = useState([])
-   const [poolsData, setPoolsData] = useState([])
+  const [filteredTokenList, setFilteredTokenList] = useState<any>([]);
+  const [borrowedPosition, setBorrowedposition] = useState([]);
+  const [poolsData, setPoolsData] = useState([]);
   const handleTokensList = (token: Token) => {
-    console.log("token", token);
-    
     onSelectToken(token);
     setSearchQuery("");
   };
 
-    // console.log("tokenList", tokenList)
-  const findBorrowPosition = () => {
-    let list: any = [];
-  for (let i = 0; i < positionData!.length; i++) {
-    if (
-      positionData[i].borrowBalance0 > 0 &&
-      positionData[i].borrowBalance1 > 0
-    ) {
-      let temp0 = {
-        borrowToken: positionData[i].pool.token0,
-        otherToken: positionData[i].pool.token1,
-        pool: positionData[i].pool.pool,
-        positionId: positionData[i].id,
-        source: positionData[i].source,
-      };
-      list.push(temp0);
-      let temp1 = {
-        borrowToken: positionData[i].pool.token1,
-        otherToken: positionData[i].pool.token0,
-        pool: positionData[i].pool.pool,
-        positionId: positionData[i].id,
-        source: positionData[i].source,
-      };
-      list.push(temp1);
-    } else if (positionData[i].borrowBalance0 > 0) {
-      let temp = {
-        borrowToken: positionData[i].pool.token0,
-        otherToken: positionData[i].pool.token1,
-        pool: positionData[i].pool.pool,
-        positionId: positionData[i].id,
-        source: positionData[i].source,
-      };
-      list.push(temp);
-    } else if (positionData[i].borrowBalance1 > 0) {
-      let temp = {
-        borrowToken: positionData[i].pool.token1,
-        otherToken: positionData[i].pool.token0,
-        pool: positionData[i].pool.pool,
-        positionId: positionData[i].id,
-        source: positionData[i].source,
-      };
-      list.push(temp);
-    }
-  }
-  setBorrowedposition(list)
-  // console.log("Position List", list);
-  
-  }
+  const platforms = ["unilend", "compound", "aave"];
+
+  const [selectedPlatforms, setSelectedPlatforms]: any = useState({
+    unilend: false,
+    compound: false,
+    aave: false,
+  });
 
   const findPoolData = () => {
     let list: any = [];
-  for (let i = 0; i < tokenList!.length; i++) {
-    
-    if (
-      tokenList[i].source == "Unilend"
-    ) {
-      let temp0 = {
-        borrowToken: tokenList[i].token0,
-        otherToken: tokenList[i].token1,
-        pool: tokenList[i].pool,
-        positionId: 1,
-        source: tokenList[i].source,
-      };
-      list.push(temp0);
-      let temp1 = {
-        borrowToken: tokenList[i].token1,
-        otherToken: tokenList[i].token0,
-        pool: tokenList[i].pool,
-        positionId: 1,
-        source: tokenList[i].source,
-      };
-      list.push(temp1);
-    } else if(tokenList[i].source == "Compound") {
-
-      if( operation == "Redeem_Swap" && tokenList[i]?.compoundCollateralTokens?.length){
-        for (const tkn of tokenList[i]?.compoundCollateralTokens) {
-          list.push({
-            borrowToken: tkn,
-            otherToken: tokenList[i],
-            pool: null,
-            positionId: 1,
-            source: tokenList[i].source,
-          })
+    for (let i = 0; i < tokenList!.length; i++) {
+      if (tokenList[i].source == "Unilend") {
+        let temp0 = {
+          borrowToken: tokenList[i].token0,
+          otherToken: tokenList[i].token1,
+          pool: tokenList[i].pool,
+          positionId: 1,
+          source: tokenList[i].source,
+        };
+        list.push(temp0);
+        let temp1 = {
+          borrowToken: tokenList[i].token1,
+          otherToken: tokenList[i].token0,
+          pool: tokenList[i].pool,
+          positionId: 1,
+          source: tokenList[i].source,
+        };
+        list.push(temp1);
+      } else if (tokenList[i].source == "Compound") {
+        if (
+          operation == "Redeem_Swap" &&
+          tokenList[i]?.compoundCollateralTokens?.length
+        ) {
+          for (const tkn of tokenList[i]?.compoundCollateralTokens) {
+            list.push({
+              borrowToken: tkn,
+              otherToken: tokenList[i],
+              pool: null,
+              positionId: 1,
+              source: tokenList[i].source,
+            });
+          }
         }
+        list.push({
+          borrowToken: tokenList[i],
+          otherToken: tokenList[i],
+          pool: null,
+          positionId: 1,
+          source: tokenList[i].source,
+        });
+      } else if (tokenList[i].source == "Aave") {
+        if (
+          operation == "Redeem_Swap" &&
+          tokenList[i]?.aaveCollateralTokens?.length
+        ) {
+          for (const tkn of tokenList[i]?.aaveCollateralTokens) {
+            list.push({
+              borrowToken: tkn,
+              otherToken: tokenList[i],
+              pool: null,
+              positionId: 1,
+              source: tokenList[i].source,
+            });
+          }
+        }
+        list.push({
+          borrowToken: tokenList[i],
+          otherToken: tokenList[i],
+          pool: null,
+          positionId: 1,
+          source: tokenList[i].source,
+        });
       }
-      list.push({
-        borrowToken: tokenList[i],
-        otherToken: tokenList[i],
-        pool: null,
-        positionId: 1,
-        source: tokenList[i].source,
-      })
     }
-  }
 
-  setPoolsData(list)
-  console.log("pool List", operation, list);
-  }
-   
-  // useEffect(()=> {
-      
-  //   if(tokenList.length && tokenList[0]?.type == 'position'){
-  //     console.log("TokenList", tokenList);
-  //     findBorrowPosition()
-  //   }
-    
-      
-  // },[tokenList])
+    setPoolsData(list);
+    console.log("pool List", operation, list);
+  };
 
-  useEffect(()=> {
-      
-    if(tokenList.length){
-      // console.log("TokenList", tokenList);
-     // findBorrowPosition()
-      findPoolData()
+  useEffect(() => {
+    if (tokenList.length) {
+      findPoolData();
     }
-      
-  },[tokenList])
+  }, [tokenList]);
 
-  useEffect(()=> {
-    handleSearch('')
-  },[page, tokenList, poolsData])
-
+  useEffect(() => {
+    handleSearch("");
+  }, [page, tokenList, poolsData]);
 
   const handleSearch = (searched: string) => {
     const searchQueryLower = searched.toLowerCase();
     setSearchQuery(searchQueryLower);
-    let filtered= [];
-   
+    let filtered = [];
+
     if (currentOperation === "pool") {
       filtered = poolsData.filter((token: Token) =>
-        token.borrowToken.name.toLowerCase().includes(searchQueryLower.toLowerCase())
+        token.borrowToken.name
+          .toLowerCase()
+          .includes(searchQueryLower.toLowerCase())
       );
-      console.log("filtered", filtered);
-      
-    setFilteredTokenList(filtered);
+
+      setFilteredTokenList(filtered);
     } else {
       filtered = tokenList.filter(
         (token) =>
-          token.symbol.toLowerCase().includes(searchQueryLower.toLowerCase()) ||  token.address.toLowerCase().includes(searchQueryLower.toLowerCase()),
+          token.symbol.toLowerCase().includes(searchQueryLower.toLowerCase()) ||
+          token.address.toLowerCase().includes(searchQueryLower.toLowerCase())
       );
-  
-    const priorityTokens = ["usdc", "usdt", "sushi", "uft"];
-    filtered.sort((a, b) => {
-      const aIndex = priorityTokens?.indexOf(a.symbol.toLowerCase());
-      const bIndex = priorityTokens?.indexOf(b.symbol.toLowerCase());
-      if (aIndex !== -1 && bIndex === -1) return -1;
-      if (aIndex === -1 && bIndex !== -1) return 1;
-      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-      return 0;
-    });
-    setFilteredTokenList(filtered);
-    }
-  }
 
+      const priorityTokens = ["usdc", "usdt", "sushi", "uft"];
+      filtered.sort((a, b) => {
+        const aIndex = priorityTokens?.indexOf(a.symbol.toLowerCase());
+        const bIndex = priorityTokens?.indexOf(b.symbol.toLowerCase());
+        if (aIndex !== -1 && bIndex === -1) return -1;
+        if (aIndex === -1 && bIndex !== -1) return 1;
+        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+        return 0;
+      });
+      setFilteredTokenList(filtered);
+    }
+  };
+
+  // useEffect(() => {
+  //   container?.current?.addEventListener("scroll", () => {
+  //     if (
+  //       container.current.scrollTop + container.current.clientHeight >=
+  //       container.current.scrollHeight
+  //     ) {
+  //       setPage((prevPage) => prevPage + 1);
+  //     }
+  //   });
+  // }, []);
 
   useEffect(() => {
-    container?.current?.addEventListener("scroll", () => {
-      if (
-        container.current.scrollTop + container.current.clientHeight >=
-        container.current.scrollHeight
-      ) {
-        setPage((prevPage) => prevPage + 1);
-      }
-    });
-  }, []);
+    checkBoxFilter();
+  }, [selectedPlatforms]);
+
+  const handlePlatformClick = (platform: any) => {
+    setSelectedPlatforms((prev: any) => ({
+      ...prev,
+      [platform]: !prev[platform],
+    }));
+  };
+  const checkBoxFilter = () => {
+    let filtered = [];
+    if (currentOperation === "pool") {
+      const platforms = Object.keys(selectedPlatforms).filter(
+        (platform) => selectedPlatforms[platform]
+      );
+      filtered = poolsData.filter((token: any) => {
+        const matchesPlatform =
+          platforms.length === 0 ||
+          platforms.some(
+            (platform) =>
+              token.borrowToken.source.toLowerCase() === platform.toLowerCase()
+          );
+        const matchesSearch = poolsData.filter((token: Token) =>
+          token.borrowToken.name
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
+        );
+        return matchesPlatform && matchesSearch;
+      });
+
+      setFilteredTokenList(filtered);
+    } else {
+      const platforms = Object.keys(selectedPlatforms).filter(
+        (platform) => selectedPlatforms[platform]
+      );
+
+      filtered = tokenList.filter((token) => {
+        const matchesPlatform =
+          platforms.length === 0 ||
+          platforms.some((platform) => token.availableIn.includes(platform));
+        const matchesSearch =
+          token.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          token.name.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesPlatform && matchesSearch;
+      });
+
+      setFilteredTokenList(filtered);
+    }
+  };
 
   return (
     <div className='select_token_modal'>
@@ -260,12 +280,28 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
           />
         </div>
       </div>
+      {isShowfilter && (
+        <div className='checkbox-div'>
+          {platforms.map((platform) => (
+            <div
+              className={`platform-container ${
+                selectedPlatforms[platform] ? "active" : ""
+              }`}
+              key={platform}
+              onClick={() => handlePlatformClick(platform)}
+            >
+              <span className='platform-text'>{platform}</span>
+            </div>
+          ))}
+        </div>
+      )}
       {isTokenListLoading ? (
         <div className='token_list'>
           <UnilendLoader width='200px' height='200px' className='logo_loader' />
         </div>
       ) : (
         <div ref={container} className='token_list'>
+          {console.log("filterKList", filteredTokenList)}
           {filteredTokenList.length > 0 ? (
             filteredTokenList?.map((token: Token, i: number) =>
               i < page * 100 ? (
@@ -300,6 +336,7 @@ TokenListModal.defaultProps = {
   positionData: [],
   lendTokenSymbol: "logo",
   currentOperation: "",
+  isShowfilter: false,
 };
 
 export default TokenListModal;

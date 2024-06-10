@@ -18,7 +18,7 @@ interface Token {
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
   REPAY = "Swap_Repay",
-  REDEEM= "Redeem_Swap"
+  REDEEM = "Redeem_Swap",
 }
 
 interface TokenCardProps {
@@ -44,7 +44,6 @@ const TokenCard: React.FC<TokenCardProps> = ({
   // const handlePoolList = () => {
   //   onClick(poolData);
   // };
-
   return (
     <>
       {operation === ActiveOperation.BRROW ? (

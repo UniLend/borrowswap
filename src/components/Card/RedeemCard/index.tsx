@@ -29,7 +29,7 @@ import {
   // checkLiquidity
 } from "./utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-// import { compoundCollateralTokens } from "../../../helpers/constants";
+import { aaveBaseTokens, aaveBorrowTokens } from "../../../helpers/constants";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -219,7 +219,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
 
   const getOprationToken = () => {
     if (tokenListStatus.operation === "pool") {
-      return [...pools, ...compoundCollateralTokens];
+      return [...pools, ...compoundCollateralTokens, ...aaveBorrowTokens];
     } else if (tokenListStatus.operation === "receive") {
       return tokens;
     } else if (tokenListStatus.operation === "lend") {
@@ -529,6 +529,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
               item.borrowBalance0 !== 0 || item.token1.borrowBalance1 !== 0
           )}
           currentOperation={tokenListStatus.operation}
+          isShowfilter={tokenListStatus.operation === "pool" ? true : false}
         />
       </Modal>
 
