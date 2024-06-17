@@ -7,8 +7,9 @@ import {
   erc20Abi,
   helperAbi,
   positionAbi,
-  aaveABI,
   aavePoolDataProviderABI,
+  aavePoolABI,
+  aaveOracleABI,
 } from "./abi";
 
 import { getEtherContract } from "./ethers";
@@ -36,6 +37,7 @@ import {
 import { wagmiConfig } from "../../main";
 import { contractAddresses } from "./address";
 import { CompoundBaseTokens } from "../../helpers/constants";
+import { BigNumber } from "ethers";
 
 export const waitForTransaction = async (hash: any) => {
   try {
@@ -732,6 +734,7 @@ export const getCollateralValue = async (address: any) => {
       comet?.getAssetInfoByAddress(token.address)
     )
   );
+  console.log("assets", assets, values);
   const priceFeeds = assets.map((values: any) => values.priceFeed);
   //const quote =  (await Promise.all(collateralTokens.map((token: any)=> comet?.quoteCollateral(token.address, 1)))).map((values: any)=> fromBigNumber(values) )
   const prices = (
@@ -812,7 +815,7 @@ export const getCollateralTokenData = async (token: any, address: any) => {
     "getAssetInfoByAddress",
     [tokenAddress]
   );
-
+  console.log("aasetInfo", assetInfo.borrowCollateralFactor);
   const price = await readContractLib(
     compoundAddress,
     compoundABI,
@@ -865,7 +868,7 @@ export const getBorrowTokenData = async (token: any, address: any) => {
       "borrowBalanceOf",
       [proxy]
     );
-
+    console.log("borrow Balance", BorrowBal);
     //const assetInfo = await comet?.getAssetInfoByAddress(tokenAddress)
     // const BorrowBal = await comet?.borrowBalanceOf(proxy);
     //  const Bal = await comet?.balanceOf( proxy)
@@ -947,71 +950,123 @@ export const handleCompoundSwap = async (
   return hash;
 };
 
-export const getAaveCollateralData = async (token: any, address: any) => {
-  const chainId = getChainId(wagmiConfig);
-  const aaveAddress: any =
-    contractAddresses[chainId as keyof typeof contractAddresses]?.aaveAddress;
-  const instance = await getEtherContract(aaveAddress, aaveABI);
-  console.log("instance", instance);
-  const proxy = await getUserProxy(address);
-};
-
 export const getCollateralTokenDataAave = async (token: any, address: any) => {
   try {
+    // const proxy = await getUserProxy(address);
+    const tokenAddress = token.address;
     const chainId = getChainId(wagmiConfig);
-    const aaveAddress: any =
-      contractAddresses[chainId as keyof typeof contractAddresses]?.aaveAddress;
+
     const poolDataAddress: any =
       contractAddresses[chainId as keyof typeof contractAddresses]
         ?.aavePoolDataProvider;
 
-    const instance: any = await getEtherContract(aaveAddress, aaveABI);
     const poolDataInstance: any = await getEtherContract(
       poolDataAddress,
       aavePoolDataProviderABI
     );
-    console.log("instance", instance, poolDataInstance);
-    const userAccountData = await instance.getUserAccountData(address);
-    const getReserveDataPool = await instance.getReserveData(token.address);
-    const getAllReservesTokens = await poolDataInstance.getAllReservesTokens();
-    const getAllAtokens = await poolDataInstance.getAllATokens();
-    const getReserveConfigurationData =
-      await poolDataInstance.getReserveConfigurationData(
-        "0x6d80113e533a2C0fe82EaBD35f1875DcEA89Ea97"
-      );
-    const getReserveCaps = await poolDataInstance.getReserveCaps(
-      "0x6d80113e533a2C0fe82EaBD35f1875DcEA89Ea97"
+
+    //get User account data
+    const { totalCollateralInUSD, ltv, healthFactor }: any =
+      await getAaveUserData(token, address);
+
+    //for fetching Price of any token
+    const aaveOracle: any =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.aaveOracle;
+    const poolOracleInstance: any = await getEtherContract(
+      aaveOracle,
+      aaveOracleABI
     );
-    const getLiquidationProtocolFee =
-      await poolDataInstance.getLiquidationProtocolFee(
-        "0x6d80113e533a2C0fe82EaBD35f1875DcEA89Ea97"
-      );
-    const getReserveData = await poolDataInstance.getReserveData(token.address);
-    const getUserReserveData = await poolDataInstance.getUserReserveData(
-      token.address,
+    const price = await poolOracleInstance.getAssetPrice(tokenAddress);
+
+    //for fetching user reserve data for specific token and User
+    const userReserveData: any = await poolDataInstance.getUserReserveData(
+      tokenAddress,
       address
     );
-    console.log(
-      "poolDataProvider",
-      getReserveDataPool,
-      getAllReservesTokens,
-      getAllAtokens,
-      getReserveConfigurationData,
-      getReserveCaps,
-      getLiquidationProtocolFee,
-      getReserveData,
-      getUserReserveData
-    );
-    const info = {
-      availableBorrowsETH: fromBigNumber(userAccountData.availableBorrowsETH),
 
-      currentLiquidationThreshold: fromBigNumber(
-        userAccountData.currentLiquidationThreshold
+    const lendAmount = fromBigNumber(userReserveData.currentATokenBalance);
+    const collateralAmount = fromBigNumber(
+      userReserveData.usageAsCollateralEnabled
+        ? userReserveData.currentATokenBalance
+        : "0"
+    );
+
+    const info = {
+      ...token,
+      collateralBalance: collateralAmount,
+      collateralBalanceFixed: fixed2Decimals(collateralAmount, token.decimals),
+      ltv: ltv,
+      healthFactorFixed: healthFactor,
+      totalLendBalanceFixedinUSd: totalCollateralInUSD,
+      lendBalance: fixed2Decimals(lendAmount, token.decimals),
+      lendBalanceFixed: fixed2Decimals(lendAmount, token.decimals),
+      price: Number(fromBigNumber(price)) / 10 ** 8,
+    };
+    console.log("user Data", info);
+    return info;
+  } catch (error) {
+    console.error("Error fetching Lend data:", error);
+  }
+};
+
+export const getBorrowTokenDataAave = async (token: any, userAddress: any) => {
+  try {
+    const tokenAddress = token.address;
+    const chainId = getChainId(wagmiConfig);
+
+    const poolDataAddress: any =
+      contractAddresses[chainId as keyof typeof contractAddresses]
+        ?.aavePoolDataProvider;
+    const poolDataInstance: any = await getEtherContract(
+      poolDataAddress,
+      aavePoolDataProviderABI
+    );
+
+    const aaveOracle: any =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.aaveOracle;
+    const poolOracleInstance: any = await getEtherContract(
+      aaveOracle,
+      aaveOracleABI
+    );
+    //for fetching Price of Token
+    const price = await poolOracleInstance.getAssetPrice(tokenAddress);
+
+    //for fetching user Account Account Data
+    const { totalBorrowInUSD, totalCollateralInUSD, ltv, healthFactor }: any =
+      await getAaveUserData(token, userAddress);
+
+    //for fetching user reserve data for specific token and User
+    const userReserveData: any = await poolDataInstance.getUserReserveData(
+      tokenAddress,
+      userAddress
+    );
+    // borrow and supply caps
+    const userReserveCap: any = await poolDataInstance.getReserveCaps(
+      tokenAddress
+    );
+    console.log("userReserveCap", userReserveCap);
+    const borrowAmount = fromBigNumber(
+      userReserveData.currentStableDebt + userReserveData.currentVariableDebt
+    );
+
+    const info = {
+      ...token,
+      borrowBalance: borrowAmount,
+      borrowBalanceFixed: fixed2Decimals(borrowAmount, token?.decimals),
+      price: Number(fromBigNumber(price)) / 10 ** 8,
+      ltv: ltv,
+      healthFactorFixed: healthFactor,
+
+      totalCollateralInUSD: totalCollateralInUSD,
+      totalDebtInUSD: totalBorrowInUSD,
+      borrowCap: fixed2Decimals(
+        fromBigNumber(userReserveCap.borrowCap),
+        token.decimals
       ),
-      healthFactor: fromBigNumber(userAccountData.healthFactor),
-      totalCollateralETH: fromBigNumber(userAccountData.totalCollateralETH),
-      ltv: fromBigNumber(userAccountData.ltv),
-      totalDebtETH: Number(fromBigNumber(userAccountData.totalDebtETH)),
+      SupplyCap: fixed2Decimals(
+        fromBigNumber(userReserveCap.supplyCap),
+        token.decimals
+      ),
     };
     console.log("user Data", info);
     return info;
@@ -1020,41 +1075,132 @@ export const getCollateralTokenDataAave = async (token: any, address: any) => {
   }
 };
 
-export const getBorrowTokenDataAave = async (token: any, address: any) => {
+export const getAaveUserData = async (token: any, userAddress: any) => {
   try {
     const chainId = getChainId(wagmiConfig);
-    const aaveAddress: any =
-      contractAddresses[chainId as keyof typeof contractAddresses]?.aaveAddress;
+    const aavePoolAddress: any =
+      contractAddresses[chainId as keyof typeof contractAddresses]
+        ?.aavePoolAddress;
+    const poolInstance: any = await getEtherContract(
+      aavePoolAddress,
+      aavePoolABI
+    );
+    const getUserAccountData = await poolInstance.getUserAccountData(
+      userAddress
+    );
 
-    const instance: any = await getEtherContract(aaveAddress, aaveABI);
-    console.log("instance", instance);
-
-    const collateralToken = await instance.getUserAccountData(address);
-    console.log("borrowTokens", collateralToken);
-
-    const info = {
-      ...token,
-      availableBorrowsETH: fromBigNumber(collateralToken.availableBorrowsETH),
-
-      collateral: fixed2Decimals(
-        fromBigNumber(collateralToken.totalCollateralETH),
-        token?.decimals || 18
-      ),
-      borrow: fixed2Decimals(
-        fromBigNumber(collateralToken.totalDebtETH),
-        token?.decimals || 18
-      ),
-      currentLiquidationThreshold: fromBigNumber(
-        collateralToken.currentLiquidationThreshold
-      ),
-      healthFactor: fromBigNumber(collateralToken.healthFactor),
-      totalCollateralETH: fromBigNumber(collateralToken.totalCollateralETH),
-      ltv: fromBigNumber(collateralToken.ltv),
-      totalDebtETH: Number(fromBigNumber(collateralToken.totalDebtETH)),
+    const totalCollateralInUSD =
+      Number(fromBigNumber(getUserAccountData.totalCollateralBase)) / 10 ** 8;
+    const totalBorrowInUSD =
+      Number(fromBigNumber(getUserAccountData.totalDebtBase)) / 10 ** 8;
+    const ltv = Number(fromBigNumber(getUserAccountData.ltv)) / 100;
+    const healthFactor = fromBigNumber(getUserAccountData.healthFactor);
+    const redeemBalanceInUSD = totalCollateralInUSD - totalBorrowInUSD;
+    console.log("redeeminUsd", redeemBalanceInUSD);
+    return {
+      redeemBalanceInUSD,
+      totalBorrowInUSD,
+      totalCollateralInUSD,
+      ltv,
+      healthFactor,
     };
-    console.log("user Data", info);
-    return info;
   } catch (error) {
-    console.error("Error fetching borrow data:", error);
+    console.error("Error fetching user repay amount:", error);
+  }
+};
+
+export const handleAaveSwap = async (
+  tokenIn: string,
+  borrowAsset: string,
+  tokenOut: string,
+  supplyAmount: string,
+  borrowAmount: string,
+  user: any,
+  fees: any
+) => {
+  const chainId = getChainId(wagmiConfig);
+  const controllerAddress =
+    contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
+  const instance = await getEtherContract(controllerAddress, controllerABI);
+
+  const parameters = {
+    _supplyAsset: tokenIn,
+    _borrowAsset: borrowAsset,
+    _tokenOut: tokenOut,
+    _supplyAmount: supplyAmount,
+    _borrowAmount: borrowAmount,
+    _user: user,
+    _route: fees,
+  };
+  console.log("instance", instance, parameters);
+
+  const { hash } = await instance?.compoundBorrow(parameters);
+
+  const receipt = await waitForTransaction(hash);
+  return hash;
+};
+export const handleAaveRedeem = async (
+  lend: any,
+  user: any,
+  selectedData: any,
+  borrowAmount: any,
+  fees: any
+) => {
+  try {
+    const chainId = getChainId(wagmiConfig);
+    const controllerAddress =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
+    const instance = await getEtherContract(controllerAddress, controllerABI);
+
+    const parameters = {
+      _user: user,
+      _collateralToken: selectedData?.borrow.address,
+      _collateralAmount: decimal2Fixed(lend, selectedData?.lend.decimals),
+      _tokenOut: selectedData?.receive.address,
+      _route: fees,
+    };
+    console.log("handleComReeem", parameters);
+
+    const { hash } = await instance?.compRedeem(parameters);
+    console.log("transaction", hash);
+    const receipt = await waitForTransaction(hash);
+    return receipt;
+    return "";
+  } catch (error) {
+    console.log("Error", { error });
+
+    throw error;
+  }
+};
+
+export const handleAaveRepay = async (
+  lend: any,
+  user: any,
+  selectedData: any,
+  borrowAmount: any,
+  fees: any
+) => {
+  try {
+    const chainId = getChainId(wagmiConfig);
+    const controllerAddress =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
+    const instance = await getEtherContract(controllerAddress, controllerABI);
+
+    const parameters = {
+      _borrowedToken: selectedData?.borrow.address,
+      _tokenIn:
+        lend == "" ? selectedData?.borrow.address : selectedData?.lend.address,
+      _repayAmount: decimal2Fixed(lend, selectedData?.lend.decimals),
+      _route: fees,
+    };
+    const { hash } = await instance?.compRepay(parameters);
+    console.log("transaction", hash);
+    const receipt = await waitForTransaction(hash);
+    return receipt;
+    return "";
+  } catch (error) {
+    console.log("Error", { error });
+
+    throw error;
   }
 };

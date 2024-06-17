@@ -1,5 +1,8 @@
 export const contractAddresses = {
   137: {
+    aaveOracle: "0xb023e699F5a33916Ea823A16485e259257cA8Bd1",
+    aavePoolAddress: "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
+    uiaavePoolDataProvider: "0x204f2Eb81D996729829debC819f7992DCEEfE7b1",
     aavePoolDataProvider: "0x69FA688f1Dc47d4B5d8029D5a35FB7a548310654",
     aaveAddress: "0x8dff5e27ea6b7ac08ebfdf9eb090f32ee9a30fcf",
     compound: "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
@@ -18,6 +21,9 @@ export const contractAddresses = {
     uftgToken: "0x6CbFa51AF1C1B8940f823DA4C58877E409d6da25",
   },
   16715: {
+    aaveOracle: "0xb023e699F5a33916Ea823A16485e259257cA8Bd1",
+    aavePoolAddress: "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
+    uiaavePoolDataProvider: "0x204f2Eb81D996729829debC819f7992DCEEfE7b1",
     aavePoolDataProvider: "0x69FA688f1Dc47d4B5d8029D5a35FB7a548310654",
     aaveAddress: "0x8dff5e27ea6b7ac08ebfdf9eb090f32ee9a30fcf",
     compound: "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
@@ -37,6 +43,9 @@ export const contractAddresses = {
     uftgToken: "0x6CbFa51AF1C1B8940f823DA4C58877E409d6da25",
   },
   1: {
+    aaveOracle: "0xb023e699F5a33916Ea823A16485e259257cA8Bd1",
+    aavePoolAddress: "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
+    uiaavePoolDataProvider: "0x204f2Eb81D996729829debC819f7992DCEEfE7b1",
     aavePoolDataProvider: "0x69FA688f1Dc47d4B5d8029D5a35FB7a548310654",
     aaveAddress: "0x8dff5e27ea6b7ac08ebfdf9eb090f32ee9a30fcf",
     compound: "0xF25212E676D1F7F89Cd72fFEe66158f541246445",

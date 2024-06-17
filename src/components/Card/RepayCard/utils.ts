@@ -11,6 +11,7 @@ import {
   waitForTransaction,
   getCollateralTokenDataAave,
   getBorrowTokenDataAave,
+  handleAaveRepay,
   // checkTxnStatus,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
@@ -303,8 +304,16 @@ export const handleRepayTransaction = async (
         if (hash.error) {
           throw new Error(hash.error.data.message);
         }
-      } else {
+      } else if (selectedData.borrow.source == "Compound") {
         hash = await handleCompoundRepay(
+          lendAmount,
+          address,
+          selectedData,
+          borrowAmount,
+          path
+        );
+      } else if (selectedData.borrow.source == "Aave") {
+        hash = await handleAaveRepay(
           lendAmount,
           address,
           selectedData,

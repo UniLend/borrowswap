@@ -22,7 +22,10 @@ import {
   handleSelectReceiveToken,
 } from "./utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { aaveBaseTokens, CompoundBaseTokens } from "../../../helpers/constants";
+import {
+  aaveBorrowTokens,
+  CompoundBaseTokens,
+} from "../../../helpers/constants";
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
   REPAY = "Swap_Repay",
@@ -181,9 +184,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
 
   const getOprationToken = () => {
     if (tokenListStatus.operation === "pool") {
-      console.log("poos", pools);
-
-      return [...pools, ...CompoundBaseTokens, ...aaveBaseTokens];
+      return [...pools, ...CompoundBaseTokens, ...aaveBorrowTokens];
     } else if (tokenListStatus.operation === "lend") {
       return uniSwapTokens;
     } else if (tokenListStatus.operation === "receive") {
@@ -343,11 +344,20 @@ export default function RepayCard({ uniSwapTokens }: any) {
     checkLoading(isTokenLoading);
   }, [isTokenLoading]);
 
-  const calculateData = (selectedData: any) => {
-    const totalLend = selectedData?.borrow?.lendBalanceFixed ?? 0;
+  const calculateData = (selectedTokens: any) => {
+    const totalLend =
+      // selectedTokens?.borrow?.lendBalanceFixed ?? 0 +
+      selectedTokens.token === "unilend"
+        ? selectedTokens?.lend?.lendBalanceFixed ?? 0
+        : selectedTokens?.lend?.totalSupply ?? 0;
 
-    const totalBorrowed = selectedData?.borrow?.borrowBalanceFixed ?? 0;
-    const healthFactor = selectedData?.borrow?.healthFactorFixed ?? 0;
+    const totalBorrowed =
+      selectedTokens.token === "unilend"
+        ? selectedTokens?.borrow?.borrowBalanceFixed ?? 0
+        : selectedTokens?.borrow?.totalDebtBase ?? 0;
+    // + selectedTokens?.lend?.borrowBalanceFixed ??
+    0;
+    const healthFactor = selectedTokens?.lend?.healthFactorFixed ?? 0;
     return { totalLend, totalBorrowed, healthFactor };
   };
   useEffect(() => {

@@ -29,7 +29,7 @@ import {
   // checkLiquidity
 } from "./utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { aaveBaseTokens, aaveBorrowTokens } from "../../../helpers/constants";
+import { aaveBaseTokens } from "../../../helpers/constants";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -124,6 +124,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     receive: null,
     borrow: null,
   });
+  console.log("selectedData", selectedData);
   //open  diffrent modal dynamically
   const [tokenListStatus, setTokenListStatus] = useState({
     isOpen: false,
@@ -219,7 +220,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
 
   const getOprationToken = () => {
     if (tokenListStatus.operation === "pool") {
-      return [...pools, ...compoundCollateralTokens, ...aaveBorrowTokens];
+      return [...pools, ...compoundCollateralTokens, ...aaveBaseTokens];
     } else if (tokenListStatus.operation === "receive") {
       return tokens;
     } else if (tokenListStatus.operation === "lend") {
@@ -391,11 +392,20 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     checkLoading(isTokenLoading);
   }, [isTokenLoading]);
 
-  const calculateData = (selectedData: any) => {
-    const totalLend = selectedData?.lend?.lendBalanceFixed ?? 0;
+  const calculateData = (selectedTokens: any) => {
+    const totalLend =
+      // selectedTokens?.borrow?.lendBalanceFixed ?? 0 +
+      selectedTokens.token === "unilend"
+        ? selectedTokens?.lend?.lendBalanceFixed ?? 0
+        : selectedTokens?.lend?.totalSupply ?? 0;
 
-    const totalBorrowed = selectedData?.lend?.borrowBalanceFixed ?? 0;
-    const healthFactor = selectedData?.lend?.healthFactorFixed ?? 0;
+    const totalBorrowed =
+      selectedTokens.token === "unilend"
+        ? selectedTokens?.borrow?.borrowBalanceFixed ?? 0
+        : selectedTokens?.borrow?.totalDebtBase ?? 0;
+    // + selectedTokens?.lend?.borrowBalanceFixed ??
+    0;
+    const healthFactor = selectedTokens?.lend?.healthFactorFixed ?? 0;
     return { totalLend, totalBorrowed, healthFactor };
   };
   useEffect(() => {

@@ -9,6 +9,7 @@ import {
   handleSwap,
   getCollateralTokenDataAave,
   getBorrowTokenDataAave,
+  handleAaveSwap,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
 import { quoteWithSdk } from "../../../api/uniswap/quotes";
@@ -22,6 +23,8 @@ import {
   getCurrentLTV,
   truncateToDecimals,
   mul,
+  getAaveCurrentLTV,
+  getAaveBorrowAmount,
 } from "../../../helpers";
 import NotificationMessage from "../../Common/NotificationMessage";
 
@@ -81,7 +84,7 @@ export const handleLTVSlider = (
       selectedTokens.lend,
       selectedTokens.borrow
     );
-  } else {
+  } else if (selectedTokens.borrow.source === "Compound") {
     borrowAmount = getCompoundBorrowAmount(
       lendAmount,
       value,
@@ -89,17 +92,19 @@ export const handleLTVSlider = (
       selectedTokens.borrow.borrowBalanceFixed,
       selectedTokens.lend.price
     );
+  } else if (selectedTokens.borrow.source === "Aave") {
+    borrowAmount = getAaveBorrowAmount(lendAmount, value, selectedTokens);
   }
 
   setBorrowAmount(borrowAmount);
-
+  console.log("borrowAmount", borrowAmount);
   if (selectedTokens.receive) {
     // let receiveVal = mul(borrowAmount, b2rRatio);
-    let receiveVal = borrowAmount * b2rRatio;
+    let receiveVal: any = mul(borrowAmount, b2rRatio);
     if (isNaN(receiveVal) || receiveVal < 0) {
       receiveVal = 0;
     }
-
+    console.log("receiveValue", receiveVal);
     setReceiveAmount(
       truncateToDecimals(
         Number(receiveVal),
@@ -248,8 +253,19 @@ export const handleSwapTransaction = async (
         if (hash.error) {
           throw new Error(hash.error.data.message);
         }
-      } else {
+      } else if (selectedTokens.borrow.source == "Compound") {
         hash = await handleCompoundSwap(
+          selectedTokens.lend.address,
+          selectedTokens.borrow.address,
+          selectedTokens.receive.address,
+          decimal2Fixed(lendAmount, selectedTokens.lend.decimals),
+          decimal2Fixed(borrowAmount, selectedTokens.borrow.decimals),
+          address,
+          path
+        );
+      } else if (selectedTokens.borrow.source == "Aave") {
+        console.log("click on Aave");
+        hash = await handleAaveSwap(
           selectedTokens.lend.address,
           selectedTokens.borrow.address,
           selectedTokens.receive.address,
@@ -392,7 +408,7 @@ export const getOprationToken = (
     const tokenSourcesMap: { [key: string]: any[] } = {
       unilend: borrowingTokens,
       compound: baseTokens,
-      aave: aaveBaseTokens,
+      aave: aaveBorrowTokens,
     };
 
     const resultTokens = tokensAvailableIn.reduce((acc: any, platform: any) => {
@@ -516,20 +532,21 @@ export const handleSelectBorrowToken = async (
     const borrowedTokenAave = await getBorrowTokenDataAave(token, address);
     setIsTokenLoading({ ...isTokenLoading, pools: false });
 
-    // const ltv = getCompoundCurrentLTV(
-    //   borrowedToken?.borrowBalanceFixed,
-    //   collateralToken?.collateralBalanceFixed,
-    //   collateralToken?.price
-    // );
-    // console.log(
-    //   "LTV",
-    //   ltv,
-    //   borrowedToken?.borrowBalanceFixed,
-    //   collateralToken?.collateralBalanceFixed,
-    //   collateralToken?.price
-    // );
+    const ltv = getAaveCurrentLTV(
+      borrowedTokenAave?.totalDebtInUSD,
+      borrowedTokenAave?.totalCollateralInUSD
+    );
+    console.log(
+      "LTV",
+      ltv,
+      borrowedTokenAave?.totalDebtInUSD,
+      borrowedTokenAave?.totalCollateralInUSD
+    );
 
-    // setCurrentLTV(ltv);
+    setCurrentLTV(ltv);
+    if (+ltv != 0) {
+      setSelectedLTV(+ltv);
+    }
     setSelectedTokens({
       ...selectedTokens,
       ["lend"]: { ...selectedTokensRef?.current?.lend, ...collateralTokenAave },
@@ -542,18 +559,39 @@ export const handleSelectBorrowToken = async (
 export const calculateLTVFromReceiveAmount = (
   receiveAmount: number,
   lendAmount: string,
-  lendToken: any,
+  selectedTokens: any,
   b2rRatio: number
 ) => {
-  const lendAmountNum =
-    Number(lendAmount) +
-    Number(lendToken?.lendBalanceFixed || lendToken?.collateralBalanceFixed);
-  if (isNaN(lendAmountNum) || isNaN(receiveAmount) || b2rRatio === 0) {
-    return 0;
+  if (
+    selectedTokens?.borrow?.source === "Unilend" ||
+    selectedTokens?.borrow?.source === "Compound"
+  ) {
+    console.log("this is working unilend");
+    const lendAmountNum =
+      Number(lendAmount) +
+      Number(
+        selectedTokens?.lend?.lendBalanceFixed ||
+          selectedTokens?.lend?.collateralBalanceFixed
+      );
+    if (isNaN(lendAmountNum) || isNaN(receiveAmount) || b2rRatio === 0) {
+      return 0;
+    }
+    const borrowAmount = receiveAmount / b2rRatio;
+    const lendPrice =
+      selectedTokens?.lend?.price || selectedTokens?.lend?.priceRatio || 1;
+    const collateralValue = lendAmountNum * lendPrice;
+    const ltv = (borrowAmount / collateralValue) * 100;
+    return Math.max(Number(ltv.toFixed(2)), 0);
+  } else if (selectedTokens?.borrow?.source === "Aave") {
+    const lendAmountNum =
+      Number(lendAmount) + Number(selectedTokens?.lend?.collateralBalanceFixed);
+    if (isNaN(lendAmountNum) || isNaN(receiveAmount) || b2rRatio === 0) {
+      return 0;
+    }
+    const borrowAmount = receiveAmount / b2rRatio;
+    console.log("borrow Amountnew  re", borrowAmount);
+    const collateralValue = lendAmountNum;
+    const ltv = (borrowAmount / collateralValue) * 100;
+    return Math.max(Number(ltv.toFixed(2)), 0);
   }
-  const borrowAmount = receiveAmount / b2rRatio;
-  const lendPrice = lendToken?.price || lendToken?.priceRatio || 1;
-  const collateralValue = lendAmountNum * lendPrice;
-  const ltv = (borrowAmount / collateralValue) * 100;
-  return Math.max(Number(ltv.toFixed(2)), 0);
 };

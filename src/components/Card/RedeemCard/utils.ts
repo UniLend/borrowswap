@@ -2,8 +2,9 @@ import {
   getCollateralValue,
   handleCompoundRedeem,
   handleRedeem,
-  getBorrowTokenDataAave,
   getCollateralTokenDataAave,
+  getAaveUserData,
+  handleAaveRedeem,
 } from "./../../../api/contracts/actions";
 import { valueType } from "antd/es/statistic/utils";
 import { getQuote } from "../../../api/axios/calls";
@@ -218,7 +219,7 @@ export const handleSelectRepayToken = async (
         )
       );
     }
-  } else {
+  } else if (poolData.source === "Compound") {
     const { redeemBalanceInUSD } = await getCollateralValue(address);
     const tokenData = await getCollateralTokenData(
       poolData.borrowToken,
@@ -234,6 +235,44 @@ export const handleSelectRepayToken = async (
         )
       )
     );
+    if (minValue != Number(tokenData?.collateralBalance)) {
+      minValue = minValue * (tokenData.ltv / 100);
+    }
+
+    setSelectedData({
+      ...selectedData,
+      ["pool"]: poolData,
+      ["lend"]: {
+        ...tokenData,
+        redeemBalance: minValue,
+        redeemBalanceFixed: fixed2Decimals(minValue, tokenData.decimals),
+      },
+      ["receive"]: null,
+      ["borrow"]: tokenData,
+    });
+    setLendAmount(fixed2Decimals(minValue, tokenData.decimals));
+  } else if (poolData.source === "Aave") {
+    console.log("click on Aave");
+    const { redeemBalanceInUSD }: any = await getAaveUserData(
+      poolData,
+      address
+    );
+    console.log("redeemBalanceInUSD", redeemBalanceInUSD);
+    const tokenData = await getCollateralTokenDataAave(
+      poolData.borrowToken,
+      address
+    );
+    console.log("tokenData", tokenData);
+    let minValue = Math.min(
+      Number(tokenData?.collateralBalFixed),
+      Number(
+        decimal2Fixed(
+          Number(redeemBalanceInUSD / tokenData.price),
+          Number(tokenData.decimals)
+        )
+      )
+    );
+    console.log("minVal", minValue);
     if (minValue != Number(tokenData?.collateralBalance)) {
       minValue = minValue * (tokenData.ltv / 100);
     }
@@ -345,8 +384,16 @@ export const handleRepayTransaction = async (
       if (hash.error) {
         throw new Error(hash.error.data.message);
       }
-    } else {
+    } else if (selectedData.borrow.source == "Compound") {
       hash = await handleCompoundRedeem(
+        redeemAmount,
+        address,
+        selectedData,
+        borrowAmount,
+        path
+      );
+    } else if (selectedData.borrow.source == "Aave") {
+      hash = await handleAaveRedeem(
         redeemAmount,
         address,
         selectedData,

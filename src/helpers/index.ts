@@ -280,6 +280,13 @@ export const getCompoundCurrentLTV = (
 
   return (Number(ltv.toFixed(4)) * 100).toFixed(2);
 };
+export const getAaveCurrentLTV = (borrowBal: string, collteralBal: string) => {
+  const ltv =
+    Number(borrowBal) > 0 && Number(collteralBal) > 0
+      ? Number(borrowBal) / Number(collteralBal)
+      : 0;
+  return (Number(ltv.toFixed(4)) * 100).toFixed(2);
+};
 
 export const getBorrowAmount = (
   amount: any,
@@ -287,6 +294,19 @@ export const getBorrowAmount = (
   collateralToken: any,
   selectedToken: any
 ) => {
+  console.log(
+    "getborrowAMount",
+    amount,
+    ltv,
+    collateralToken.lendBalanceFixed,
+    selectedToken.borrowBalanceFixed
+  );
+  const calculateData =
+    (Number(amount) + Number(collateralToken.lendBalanceFixed)) *
+    Number(collateralToken.priceRatio) *
+    (ltv / 100);
+  console.log("calucaltion", calculateData);
+
   const borrowAmount =
     (Number(amount) + Number(collateralToken.lendBalanceFixed)) *
       Number(collateralToken.priceRatio) *
@@ -309,6 +329,30 @@ export const getCompoundBorrowAmount = (
       (ltv / 100) -
     Number(borrowBalanceFixed);
 
+  return borrowAmount > 0 ? borrowAmount : 0;
+};
+export const getAaveBorrowAmount = (
+  amount: any,
+  ltv: any,
+  selectedTokens: any
+) => {
+  console.log(
+    "ltv",
+    ltv,
+    selectedTokens?.borrow?.totalCollateralInUSD,
+    selectedTokens?.borrow?.totalDebtInUSD,
+    amount
+  );
+  const lendAmount = Number(amount) * selectedTokens?.lend?.price;
+
+  const totalCollateral =
+    lendAmount + Number(selectedTokens?.borrow?.totalCollateralInUSD);
+  const borrowAmount =
+    (totalCollateral * (ltv / 100) -
+      Number(selectedTokens?.borrow?.totalDebtInUSD)) /
+    selectedTokens?.borrow?.price;
+
+  console.log("borrowAmount AAve", borrowAmount);
   return borrowAmount > 0 ? borrowAmount : 0;
 };
 

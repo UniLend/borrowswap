@@ -68,7 +68,7 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
   currentOperation,
   isShowfilter,
 }) => {
-  console.log("tokenList", tokenList, isShowfilter);
+  // console.log("tokenList", tokenList, isShowfilter);
   // TODO: update typeScript here
   const container = useRef<any>(null);
   const [page, setPage] = useState<number>(1);
@@ -157,7 +157,7 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
     }
 
     setPoolsData(list);
-    console.log("pool List", operation, list);
+    // console.log("pool List", operation, list);
   };
 
   useEffect(() => {
@@ -301,7 +301,6 @@ const TokenListModal: React.FC<TokenListModalProps> = ({
         </div>
       ) : (
         <div ref={container} className='token_list'>
-          {console.log("filterKList", filteredTokenList)}
           {filteredTokenList.length > 0 ? (
             filteredTokenList?.map((token: Token, i: number) =>
               i < page * 100 ? (

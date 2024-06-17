@@ -6,6 +6,7 @@ import {
   getBorrowAmount,
   getButtonAction,
   getCompoundBorrowAmount,
+  getAaveBorrowAmount,
   truncateToDecimals,
 } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
@@ -38,6 +39,7 @@ import {
   aaveBaseTokens,
   aaveBorrowTokens,
 } from "../../../helpers/constants";
+// import { aaveBaseTokensNew } from "../../../api/contracts/actions";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -120,10 +122,10 @@ export default function BorrowCard({ uniSwapTokens }: any) {
 
   const handleReceiveAmount = (amount: string) => {
     setReceiveAmount(amount);
-    const ltv = calculateLTVFromReceiveAmount(
+    const ltv: any = calculateLTVFromReceiveAmount(
       Number(amount),
       lendAmount,
-      selectedTokens?.lend,
+      selectedTokens,
       b2rRatio
     );
     if (ltv > unilendPool?.maxLTV || ltv > selectedTokens?.lend?.ltv) {
@@ -132,14 +134,16 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       setLtvError(false);
       setSelectedLTV(Number(ltv.toFixed(2)));
       let borrowAmount = 0;
-      if (selectedTokens.borrow.source === "Unilend") {
+      if (selectedTokens?.borrow?.source === "Unilend") {
+        console.log("working unilend");
         borrowAmount = getBorrowAmount(
           lendAmount,
           Number(ltv.toFixed(2)),
           selectedTokens.lend,
           selectedTokens.borrow
         );
-      } else {
+      } else if (selectedTokens?.borrow?.source === "Compound") {
+        console.log("working compound");
         borrowAmount = getCompoundBorrowAmount(
           lendAmount,
           Number(ltv.toFixed(2)),
@@ -147,7 +151,15 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           selectedTokens.borrow.borrowBalanceFixed,
           selectedTokens.lend.price
         );
+      } else if (selectedTokens?.borrow?.source === "Aave") {
+        console.log("working aave");
+        borrowAmount = getAaveBorrowAmount(
+          lendAmount,
+          Number(ltv.toFixed(2)),
+          selectedTokens
+        );
       }
+      console.log("borrow Amount ");
       setBorrowAmount(borrowAmount);
     }
   };
@@ -332,7 +344,10 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     if (Object.keys(unilendV2Data.poolList).length > 0) {
       setIsTokenLoading({ ...isTokenLoading, lend: false });
     }
+
+    // aaveBaseTokensNew();
   }, [unilendV2Data]);
+  ` `;
 
   useEffect(() => {
     if (selectedTokens.receive !== null && !isTokenLoading.rangeSlider) {
@@ -357,9 +372,14 @@ export default function BorrowCard({ uniSwapTokens }: any) {
   const calculateData = (selectedTokens: any) => {
     const totalLend =
       // selectedTokens?.borrow?.lendBalanceFixed ?? 0 +
-      selectedTokens?.lend?.lendBalanceFixed ?? 0;
+      selectedTokens?.lend?.source === "Unilend"
+        ? selectedTokens?.lend?.lendBalanceFixed ?? 0
+        : selectedTokens?.borrow?.totalCollateralInUSD ?? 0;
 
-    const totalBorrowed = selectedTokens?.borrow?.borrowBalanceFixed ?? 0;
+    const totalBorrowed =
+      selectedTokens?.borrow?.source === "Unilend"
+        ? selectedTokens?.borrow?.borrowBalanceFixed ?? 0
+        : selectedTokens?.borrow?.totalDebtInUSD ?? 0;
     // + selectedTokens?.lend?.borrowBalanceFixed ??
     0;
     const healthFactor = selectedTokens?.lend?.healthFactorFixed ?? 0;

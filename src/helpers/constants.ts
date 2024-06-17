@@ -82,14 +82,13 @@ export const compoundCollateralTokens = [
 
 export const aaveBaseTokens = [
   {
-    address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-    symbol: "USDC (PoS)",
-    name: "USD Coin (PoS) ",
-    decimals: 6,
+    address: "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+    symbol: "Matic",
+    name: "Matic",
+    decimals: 18,
     source: "Aave",
-    logo: "https://assets.coingecko.com/coins/images/33000/standard/usdc.png?1700119918",
+    logo: "https://assets.coingecko.com/coins/images/14073/standard/matic.png?1696513797",
   },
-
   {
     address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
     symbol: "USDT",
@@ -107,12 +106,71 @@ export const aaveBaseTokens = [
     logo: "https://assets.coingecko.com/coins/images/33000/standard/usdc.png?1700119918",
   },
   {
-    address: "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
-    symbol: "wMatic",
-    name: "Wrapped Matic",
+    address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+    symbol: "WETH",
+    name: "Wrapped ETH",
     decimals: 18,
     source: "Aave",
-    logo: "https://assets.coingecko.com/coins/images/14073/standard/matic.png?1696513797",
+    logo: "https://assets.coingecko.com/coins/images/17238/small/aWETH_2x.png?1626940782",
+  },
+  {
+    address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    symbol: "USDC (PoS)",
+    name: "USD Coin (PoS) ",
+    decimals: 6,
+    source: "Aave",
+    logo: "https://assets.coingecko.com/coins/images/33000/standard/usdc.png?1700119918",
+  },
+
+  {
+    address: "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
+    symbol: "WBTC",
+    name: "Wrapped BTC",
+    decimals: 8,
+    source: "Aave",
+    logo: "https://assets.coingecko.com/coins/images/7598/small/wrapped_bitcoin_wbtc.png?1548822744",
+  },
+  {
+    address: "0xfa68FB4628DFF1028CFEc22b4162FCcd0d45efb6",
+    symbol: "MaticX",
+    name: "MaticX",
+    decimals: 18,
+    source: "Aave",
+    logo: "https://app.aave.com/icons/tokens/maticx.svg",
+  },
+  // {
+  //   address: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+  //   symbol: "WMATIC",
+  //   name: "Wrapped Matic",
+  //   decimals: 18,
+  //   source: "Aave",
+  //   logo: "https://assets.coingecko.com/coins/images/14073/standard/matic.png?1696513797",
+  // },
+
+  {
+    address: "0x3A58a54C066FdC0f2D55FC9C89F0415C92eBf3C4",
+    symbol: "stMATIC",
+    name: "stMATIC",
+    decimals: 18,
+    source: "Aave",
+    logo: "https://app.aave.com/icons/tokens/stmatic.svg",
+  },
+  {
+    address: "0xD6DF932A45C0f255f85145f286eA0b292B21C90B",
+    symbol: "aave",
+    name: "Aave",
+    decimals: 18,
+    source: "Aave",
+    logo: "https://app.aave.com/icons/tokens/aave.svg",
+  },
+
+  {
+    address: "GHST",
+    symbol: "GHST",
+    name: "GHST",
+    decimals: 18,
+    source: "Aave",
+    logo: "https://app.aave.com/icons/tokens/ghst.svg",
   },
 ];
 
@@ -143,8 +201,8 @@ export const aaveBorrowTokens = [
   },
   {
     address: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
-    symbol: "WMATIC",
-    name: "Wrapped Matic",
+    symbol: "MATIC",
+    name: "Matic",
     decimals: 18,
     source: "Aave",
     logo: "https://assets.coingecko.com/coins/images/14073/standard/matic.png?1696513797",
