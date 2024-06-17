@@ -1093,16 +1093,28 @@ export const getAaveUserData = async (token: any, userAddress: any) => {
       Number(fromBigNumber(getUserAccountData.totalCollateralBase)) / 10 ** 8;
     const totalBorrowInUSD =
       Number(fromBigNumber(getUserAccountData.totalDebtBase)) / 10 ** 8;
+    const AvailableBorrowInUSD =
+      Number(fromBigNumber(getUserAccountData.availableBorrowsBase)) / 10 ** 8;
+    const currentLiquidationThreshold = Number(
+      fromBigNumber(getUserAccountData.currentLiquidationThreshold)
+    );
     const ltv = Number(fromBigNumber(getUserAccountData.ltv)) / 100;
     const healthFactor = fromBigNumber(getUserAccountData.healthFactor);
     const redeemBalanceInUSD = totalCollateralInUSD - totalBorrowInUSD;
-    console.log("redeeminUsd", redeemBalanceInUSD);
+    console.log(
+      "redeeminUsd",
+      redeemBalanceInUSD,
+      currentLiquidationThreshold,
+      AvailableBorrowInUSD
+    );
     return {
       redeemBalanceInUSD,
       totalBorrowInUSD,
       totalCollateralInUSD,
       ltv,
       healthFactor,
+      AvailableBorrowInUSD,
+      currentLiquidationThreshold,
     };
   } catch (error) {
     console.error("Error fetching user repay amount:", error);
