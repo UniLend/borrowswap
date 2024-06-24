@@ -7,6 +7,7 @@ import {
   getButtonAction,
   getCompoundBorrowAmount,
   truncateToDecimals,
+  totalUserData,
 } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
 import { useSelector } from "react-redux";
@@ -43,7 +44,7 @@ enum ActiveOperation {
 
 export default function BorrowCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
-  const { tokenList, poolList } = unilendV2Data;
+  const { tokenList, poolList }: any = unilendV2Data;
   const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState("");
   const [modalMsg, setModalMsg] = useState("");
@@ -339,20 +340,9 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     console.log("selectedTokens", selectedTokens);
   }, [selectedTokens]);
 
-  const calculateData = (selectedTokens: any) => {
-    const totalLend =
-      // selectedTokens?.borrow?.lendBalanceFixed ?? 0 +
-      selectedTokens?.lend?.lendBalanceFixed ?? 0;
-
-    const totalBorrowed = selectedTokens?.borrow?.borrowBalanceFixed ?? 0;
-    // + selectedTokens?.lend?.borrowBalanceFixed ??
-    0;
-    const healthFactor = selectedTokens?.lend?.healthFactorFixed ?? 0;
-    return { totalLend, totalBorrowed, healthFactor };
-  };
   useEffect(() => {
     if (selectedTokens) {
-      const data: any = calculateData(selectedTokens);
+      const data: any = totalUserData(selectedTokens);
       setAnalyticsData(data);
     }
   }, [selectedTokens?.borrow]);

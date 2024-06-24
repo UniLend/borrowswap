@@ -823,6 +823,12 @@ export const getCollateralTokenData = async (token: any, address: any) => {
     "userCollateral",
     [proxy, tokenAddress]
   );
+  const suppliedBaseBal: any = await readContractLib(
+    compoundAddress,
+    compoundABI,
+    "balanceOf",
+    [proxy]
+  );
 
   // const collateralBal = await comet?.userCollateral(proxy, tokenAddress);
   // console.log("collateralBalance", collateralBal);
@@ -839,6 +845,11 @@ export const getCollateralTokenData = async (token: any, address: any) => {
     collateralBalance: fromBigNumber(collateralBal[0]),
     collateralBalanceFixed: fixed2Decimals(
       fromBigNumber(collateralBal[0]),
+      token?.decimals || 18
+    ),
+    lendBalance: fromBigNumber(suppliedBaseBal),
+    lendBalanceFixed: fixed2Decimals(
+      fromBigNumber(suppliedBaseBal),
       token?.decimals || 18
     ),
     // baseToken: fromBigNumber(baseToken),

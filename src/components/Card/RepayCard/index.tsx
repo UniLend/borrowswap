@@ -1,7 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Button, Modal } from "antd";
 import { getAllowance } from "../../../api/contracts/actions";
-import { truncateToDecimals, getRepayBtnActions, mul } from "../../../helpers";
+import {
+  truncateToDecimals,
+  getRepayBtnActions,
+  mul,
+  totalUserData,
+} from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
 
 import { useSelector } from "react-redux";
@@ -343,16 +348,10 @@ export default function RepayCard({ uniSwapTokens }: any) {
     checkLoading(isTokenLoading);
   }, [isTokenLoading]);
 
-  const calculateData = (selectedData: any) => {
-    const totalLend = selectedData?.borrow?.lendBalanceFixed ?? 0;
-
-    const totalBorrowed = selectedData?.borrow?.borrowBalanceFixed ?? 0;
-    const healthFactor = selectedData?.borrow?.healthFactorFixed ?? 0;
-    return { totalLend, totalBorrowed, healthFactor };
-  };
   useEffect(() => {
     if (selectedData) {
-      const data: any = calculateData(selectedData);
+      const data: any = totalUserData(selectedData);
+
       setAnalyticsData(data);
     }
   }, [selectedData?.borrow]);

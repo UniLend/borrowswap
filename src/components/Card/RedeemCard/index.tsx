@@ -7,6 +7,7 @@ import {
   decimal2Fixed,
   fixed2Decimals,
   mul,
+  totalUserData,
 } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
 
@@ -391,16 +392,9 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     checkLoading(isTokenLoading);
   }, [isTokenLoading]);
 
-  const calculateData = (selectedData: any) => {
-    const totalLend = selectedData?.lend?.lendBalanceFixed ?? 0;
-
-    const totalBorrowed = selectedData?.lend?.borrowBalanceFixed ?? 0;
-    const healthFactor = selectedData?.lend?.healthFactorFixed ?? 0;
-    return { totalLend, totalBorrowed, healthFactor };
-  };
   useEffect(() => {
     if (selectedData) {
-      const data: any = calculateData(selectedData);
+      const data: any = totalUserData(selectedData);
       setAnalyticsData(data);
     }
   }, [selectedData?.borrow]);
