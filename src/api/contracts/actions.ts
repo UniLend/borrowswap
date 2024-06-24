@@ -1059,6 +1059,14 @@ export const getBorrowTokenDataAave = async (token: any, userAddress: any) => {
 
       totalCollateralInUSD: totalCollateralInUSD,
       totalDebtInUSD: totalBorrowInUSD,
+      // borrowCap: fixed2Decimals(
+      //   fromBigNumber(userReserveCap.borrowCap),
+      //   token.decimals
+      // ).toFixed(token?.decimals),
+      // SupplyCap: fixed2Decimals(
+      //   fromBigNumber(userReserveCap.supplyCap),
+      //   token.decimals
+      // ).toFixed(token?.decimals),
       borrowCap: fixed2Decimals(
         fromBigNumber(userReserveCap.borrowCap),
         token.decimals

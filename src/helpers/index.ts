@@ -431,6 +431,8 @@ export const getButtonAction = (
   const { lend, borrow, receive } = selectedTokens;
 
   let isLowValueCompound: boolean = false;
+  let isLowValueBorrowAave: boolean = false;
+  let isLowValueLendAave: boolean = false;
   if (selectedTokens?.lend?.source === "Compound") {
     const borrowValueInUsd =
       selectedTokens?.borrow?.borrowBalanceFixed *
@@ -439,6 +441,20 @@ export const getButtonAction = (
     const borrowMin = selectedTokens?.borrow?.borrowMinFixed - borrowValueInUsd;
 
     isLowValueCompound = borrowValue <= borrowMin;
+  } else if (selectedTokens?.borrow?.source === "Aave") {
+    //for borrow AMount
+    const borrowValueInUsd = selectedTokens?.borrow?.borrowBalanceFixed;
+
+    const borrowValue = borrowAmount * selectedTokens?.borrow?.price;
+    const borrowMin = selectedTokens?.borrow?.borrowCap - borrowValueInUsd;
+
+    //for Lend Amount
+    const lendValueInUsd = selectedTokens?.lend?.collateralBalanceFixed;
+
+    const LendValue = Number(lendAmount) * selectedTokens?.lend?.price;
+    const LendMin = selectedTokens?.borrow?.supplyCap - lendValueInUsd;
+    isLowValueLendAave = LendValue <= LendMin;
+    isLowValueBorrowAave = borrowValue <= borrowMin;
   }
 
   if (!connectWallet) {
@@ -465,6 +481,10 @@ export const getButtonAction = (
     btn.text = "Low liquidity";
   } else if (isLowValueCompound) {
     btn.text = "Min. $100 borrow required";
+  } else if (isLowValueBorrowAave) {
+    btn.text = "Min. 0.01 borrow required";
+  } else if (isLowValueLendAave) {
+    btn.text = "Min. .01 Supply required";
   } else if (lendAmount === "" || +lendAmount == 0) {
     if (lend.collateralBalanceFixed === 0) {
       btn.text = "Enter pay token value";
