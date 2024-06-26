@@ -2057,8 +2057,8 @@
     "name": " PAPER",
     "symbol": "PAPER",
     "decimals": 18,
-    "logoURI": "https://assets.coingecko.com/coins/images/28544/thumb/gj_VMyrN.png?1671589414",
-    "logo": "https://assets.coingecko.com/coins/images/28544/large/gj_VMyrN.png?1671589414"
+    "logoURI": "https://assets.coingecko.com/coins/images/28544/thumb/gj_VMyrN.png?1797089414",
+    "logo": "https://assets.coingecko.com/coins/images/28544/large/gj_VMyrN.png?1797089414"
   },
   "NBLS": {
     "chainId": 1,
@@ -13397,8 +13397,8 @@
     "name": "Dogens",
     "symbol": "DOGENS",
     "decimals": 9,
-    "logoURI": "https://assets.coingecko.com/coins/images/28545/thumb/IMG_20221220_122417_314.jpg?1671596289",
-    "logo": "https://assets.coingecko.com/coins/images/28545/large/IMG_20221220_122417_314.jpg?1671596289"
+    "logoURI": "https://assets.coingecko.com/coins/images/28545/thumb/IMG_20221220_122417_314.jpg?1797096289",
+    "logo": "https://assets.coingecko.com/coins/images/28545/large/IMG_20221220_122417_314.jpg?1797096289"
   },
   "PRCY": {
     "chainId": 1,
@@ -25223,8 +25223,8 @@
     "name": "Inverse Ethereum Volatility Index Token",
     "symbol": "IETHV",
     "decimals": 18,
-    "logoURI": "https://assets.coingecko.com/coins/images/16715/thumb/logo_-_2021-06-28T085526.083.png?1624841740",
-    "logo": "https://assets.coingecko.com/coins/images/16715/large/logo_-_2021-06-28T085526.083.png?1624841740"
+    "logoURI": "https://assets.coingecko.com/coins/images/17970/thumb/logo_-_2021-06-28T085526.083.png?1624841740",
+    "logo": "https://assets.coingecko.com/coins/images/17970/large/logo_-_2021-06-28T085526.083.png?1624841740"
   },
   "TECH": {
     "chainId": 1,
@@ -33485,8 +33485,8 @@
     "name": "Panther Protocol",
     "symbol": "ZKP",
     "decimals": 18,
-    "logoURI": "https://assets.coingecko.com/coins/images/18611/thumb/panther.jpg?1671503084",
-    "logo": "https://assets.coingecko.com/coins/images/18611/large/panther.jpg?1671503084"
+    "logoURI": "https://assets.coingecko.com/coins/images/18611/thumb/panther.jpg?1797003084",
+    "logo": "https://assets.coingecko.com/coins/images/18611/large/panther.jpg?1797003084"
   },
   "EUROC": {
     "chainId": 1,
