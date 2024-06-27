@@ -181,7 +181,7 @@ export const handleSelectRepayToken = async (
     setSelectedData({
       ...selectedData,
       ["pool"]: poolData,
-      ["lend"]: tokenData,
+      ["lend"]: null,
       ["receive"]: tokenData,
       ["borrow"]: tokenData,
     });

@@ -859,8 +859,8 @@ export const getCollateralTokenData = async (token: any, address: any) => {
     ltv:
       fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor)) * 100 -
       0.5,
-    borrowBalance: fromBigNumber(BorrowBal),
-    borrowBalanceFixed: fixed2Decimals(
+    TotalBorrowBalance: fromBigNumber(BorrowBal),
+    TotalBorrowBalanceFixed: fixed2Decimals(
       fromBigNumber(BorrowBal),
       token?.decimals || 18
     ),
@@ -869,8 +869,8 @@ export const getCollateralTokenData = async (token: any, address: any) => {
       fromBigNumber(collateralBal[0]),
       token?.decimals || 18
     ),
-    lendBalance: fromBigNumber(suppliedBaseBal),
-    lendBalanceFixed: fixed2Decimals(
+    totalLendBalance: fromBigNumber(suppliedBaseBal),
+    totalLendBalanceFixed: fixed2Decimals(
       fromBigNumber(suppliedBaseBal),
       token?.decimals || 18
     ),
@@ -944,13 +944,18 @@ export const getBorrowTokenData = async (token: any, address: any) => {
         fromBigNumber(BorrowBal),
         token?.decimals || 18
       ),
+      TotalBorrowBalance: fromBigNumber(BorrowBal),
+      TotalBorrowBalanceFixed: fixed2Decimals(
+        fromBigNumber(BorrowBal),
+        token?.decimals || 18
+      ),
       borrowMin: fromBigNumber(borrowMin),
       borrowMinFixed: fixed2Decimals(
         fromBigNumber(borrowMin),
         token?.decimals || 18
       ),
-      lendBalance: fromBigNumber(suppliedBaseBal),
-      lendBalanceFixed: fixed2Decimals(
+      TotalLendBalance: fromBigNumber(suppliedBaseBal),
+      TotalLendBalanceFixed: fixed2Decimals(
         fromBigNumber(suppliedBaseBal),
         token?.decimals || 18
       ),

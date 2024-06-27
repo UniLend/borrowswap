@@ -525,15 +525,14 @@ export const getRepayBtnActionsRedeem = (
 };
 
 export const totalUserData = (selectedTokens: any) => {
-  console.log("selectedtokens", selectedTokens);
   const totalLend =
     selectedTokens?.borrow === "Unilend"
       ? selectedTokens?.lend?.lendBalanceFixed ?? 0
-      : selectedTokens?.lend?.collateralBalanceFixed ?? 0;
+      : selectedTokens?.borrow?.TotalLendBalanceFixed ?? 0;
   const totalBorrowed =
     selectedTokens?.borrow === "Unilend"
       ? selectedTokens?.borrow?.borrowBalanceFixed ?? 0
-      : selectedTokens?.borrow?.borrowBalanceFixed ?? 0;
+      : selectedTokens?.borrow?.TotalBorrowBalanceFixed ?? 0;
   const healthFactor = selectedTokens?.lend?.healthFactorFixed ?? 0;
 
   return { totalLend, totalBorrowed, healthFactor };
