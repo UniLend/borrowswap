@@ -7,14 +7,14 @@ import { fixed2Decimals } from "../../helpers/index";
 export const fetchGraphQlData = async (chainId: number, FILMS_QUERY: any) => {
   const graphURL = {
     80001: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/my_unilend",
-    137: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-polygon",
+    137: "https://api.studio.thegraph.com/query/78424/unilend-polygon/version/latest",
     // 137: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-polygon-2",
     1442: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-zkevm",
     1: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/mainnet-1",
     42161:
       "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-arbritrum",
-    17970:
-      "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-polygon",
+    18401:
+      "https://api.studio.thegraph.com/query/78424/unilend-polygon/version/latest",
   };
 
   if (Object.keys(graphURL).includes(String(chainId))) {
@@ -229,7 +229,7 @@ export const uniswapTokensData = async (chainId: number = 1) => {
     137: "https://tokens.coingecko.com/polygon-pos/all.json",
     56: "https://tokens.coingecko.com/binance-smart-chain/all.json",
     1285: "https://tokens.coingecko.com/moonriver/all.json",
-    17970: "https://tokens.coingecko.com/polygon-pos/all.json",
+    18401: "https://tokens.coingecko.com/polygon-pos/all.json",
   };
 
   const url = graphURL[chainId]; // Default to chainId 1 if not found
