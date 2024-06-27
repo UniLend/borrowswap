@@ -4,7 +4,7 @@ import { ethers } from "ethers";
 import { aggregatorV3InterfaceABI } from "../contracts/abi";
 import { getEthersProvider } from "../contracts/ethers";
 import { fixed2Decimals } from "../../helpers/index";
-export const fetchGraphQlData = async (chainId: any, FILMS_QUERY: any) => {
+export const fetchGraphQlData = async (chainId: number, FILMS_QUERY: any) => {
   const graphURL: any = {
     80001: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/my_unilend",
     // 137: 'https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-polygon',
@@ -23,7 +23,7 @@ export const fetchGraphQlData = async (chainId: any, FILMS_QUERY: any) => {
     1: "https://api.studio.thegraph.com/query/78424/mainnet-1/version/latest",
   };
 
-  const fetchData = async (url: any) => {
+  const fetchData = async (url: string) => {
     try {
       const response = await axios.post(url, { query: FILMS_QUERY });
       return response.data.data;
