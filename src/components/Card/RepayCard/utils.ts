@@ -35,7 +35,7 @@ export const handleQuote = async (
     const borrowDecimals = selectedDataRef.current?.borrow?.decimals;
     const lendAddress = selectedDataRef.current?.lend?.address;
     const borrowAddress = selectedDataRef.current?.borrow?.address;
-    const chainId = 16715 ? 137 : chain?.id;
+    const chainId = 18401 ? 137 : chain?.id;
     let flag = false;
     if (
       String(borrowAddress).toLowerCase() === String(lendAddress).toLowerCase()
@@ -45,7 +45,7 @@ export const handleQuote = async (
       flag = true;
     } else {
       const tokenIn = {
-        chainId: chain?.id == 16715 ? 137 : chain?.id,
+        chainId: chain?.id == 18401 ? 137 : chain?.id,
         address: selectedDataRef.current?.borrow?.address,
         decimals: selectedDataRef.current?.borrow?.decimals,
         symbol: selectedDataRef.current?.borrow?.symbol,
@@ -53,7 +53,7 @@ export const handleQuote = async (
       };
 
       const tokenOut = {
-        chainId: chain?.id == 16715 ? 137 : chain?.id,
+        chainId: chain?.id == 18401 ? 137 : chain?.id,
         address: selectedDataRef.current?.lend?.address,
         decimals: selectedDataRef.current?.lend?.decimals,
         symbol: selectedDataRef.current?.lend?.symbol,

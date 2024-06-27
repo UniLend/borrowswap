@@ -93,7 +93,7 @@ export const handleQuote = async (
       flag = true;
     } else {
       const tokenIn = {
-        chainId: chain?.id == 16715 ? 137 : chain?.id,
+        chainId: chain?.id == 18401 ? 137 : chain?.id,
         address: selectedDataRef.current?.lend?.address,
         decimals: selectedDataRef.current?.lend?.decimals,
         symbol: selectedDataRef.current?.lend?.symbol,
@@ -101,7 +101,7 @@ export const handleQuote = async (
       };
 
       const tokenOut = {
-        chainId: chain?.id == 16715 ? 137 : chain?.id,
+        chainId: chain?.id == 18401 ? 137 : chain?.id,
         address: selectedDataRef.current?.receive?.address,
         decimals: selectedDataRef.current?.receive?.decimals,
         symbol: selectedDataRef.current?.receive?.symbol,
