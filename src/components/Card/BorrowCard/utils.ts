@@ -7,6 +7,7 @@ import {
   handleApproval,
   handleCompoundSwap,
   handleSwap,
+  getCollateralValue,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
 import { quoteWithSdk } from "../../../api/uniswap/quotes";
@@ -463,6 +464,7 @@ export const handleSelectBorrowToken = async (
       selectedTokensRef?.current?.lend,
       address
     );
+    const { totalLendBalanceInUsd }: any = await getCollateralValue(address);
     const borrowedToken = await getBorrowTokenData(token, address);
     setIsTokenLoading({ ...isTokenLoading, pools: false });
     const ltv = getCompoundCurrentLTV(
@@ -475,14 +477,22 @@ export const handleSelectBorrowToken = async (
       ltv,
       borrowedToken?.borrowBalanceFixed,
       collateralToken?.collateralBalanceFixed,
-      collateralToken?.price
+      collateralToken?.price,
+      totalLendBalanceInUsd
     );
 
     setCurrentLTV(ltv);
     setSelectedTokens({
       ...selectedTokens,
-      ["lend"]: { ...selectedTokensRef?.current?.lend, ...collateralToken },
-      ["borrow"]: { ...selectedTokens.borrow, ...borrowedToken },
+      ["lend"]: {
+        ...selectedTokensRef?.current?.lend,
+        ...collateralToken,
+        lendBalanceFixedUSD: totalLendBalanceInUsd,
+      },
+      ["borrow"]: {
+        ...selectedTokens.borrow,
+        ...borrowedToken,
+      },
       ["receive"]: null,
     });
   }

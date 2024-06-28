@@ -1,5 +1,6 @@
 import {
   getCollateralValue,
+  getTotalBorrowBalance,
   handleCompoundRedeem,
   handleRedeem,
 } from "./../../../api/contracts/actions";
@@ -215,12 +216,14 @@ export const handleSelectRepayToken = async (
       );
     }
   } else {
-    const { redeemBalanceInUSD } = await getCollateralValue(address);
+    const { redeemBalanceInUSD, totalLendBalanceInUsd } =
+      await getCollateralValue(address);
+    const { borrowBal } = await getTotalBorrowBalance(address);
     const tokenData = await getCollateralTokenData(
       poolData.borrowToken,
       address
     );
-
+    console.log("token", tokenData);
     let minValue = Math.min(
       Number(tokenData?.collateralBalance),
       Number(
@@ -241,9 +244,13 @@ export const handleSelectRepayToken = async (
         ...tokenData,
         redeemBalance: minValue,
         redeemBalanceFixed: fixed2Decimals(minValue, tokenData.decimals),
+        lendBalanceFixedUSD: totalLendBalanceInUsd,
       },
       ["receive"]: null,
-      ["borrow"]: tokenData,
+      ["borrow"]: {
+        tokenData,
+        TotalBorrowBalanceFixed: borrowBal,
+      },
     });
     setLendAmount(fixed2Decimals(minValue, tokenData.decimals));
   }

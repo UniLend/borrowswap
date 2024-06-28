@@ -528,7 +528,7 @@ export const totalUserData = (selectedTokens: any) => {
   const totalLend =
     selectedTokens?.borrow?.source === "Unilend"
       ? selectedTokens?.lend?.lendBalanceFixed ?? 0
-      : selectedTokens?.borrow?.TotalLendBalanceFixed ?? 0;
+      : selectedTokens?.lend?.lendBalanceFixedUSD ?? 0;
   const totalBorrowed =
     selectedTokens?.borrow?.source === "Unilend"
       ? selectedTokens?.borrow?.borrowBalanceFixed ?? 0
