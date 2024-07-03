@@ -21,6 +21,7 @@ import {
   getCurrentLTV,
   truncateToDecimals,
   mul,
+  getCompoundHealthFactor,
 } from "../../../helpers";
 import NotificationMessage from "../../Common/NotificationMessage";
 
@@ -60,7 +61,7 @@ export const checkLiquidity = (
   }
 };
 
-export const handleLTVSlider = (
+export const handleLTVSlider = async (
   value: number,
   lendAmount: string,
   selectedTokens: any,
@@ -81,13 +82,16 @@ export const handleLTVSlider = (
       selectedTokens.borrow
     );
   } else {
-    borrowAmount = getCompoundBorrowAmount(
-      lendAmount,
-      value,
-      selectedTokens.lend.collateralBalanceFixed,
-      selectedTokens.borrow.borrowBalanceFixed,
-      selectedTokens.lend.price
-    );
+    console.log("selectedDat address", selectedTokens);
+
+    // borrowAmount = getCompoundBorrowAmount(
+    //   lendAmount,
+    //   value,
+    //   selectedTokens.lend.collateralBalanceFixed,
+    //   selectedTokens.borrow.borrowBalanceFixed,
+    //   selectedTokens.lend.price
+    // );
+    borrowAmount = getCompoundBorrowAmount(lendAmount, value, selectedTokens);
   }
 
   setBorrowAmount(borrowAmount);
@@ -464,23 +468,25 @@ export const handleSelectBorrowToken = async (
       selectedTokensRef?.current?.lend,
       address
     );
-    const { totalLendBalanceInUsd }: any = await getCollateralValue(address);
+    const { totalLendBalanceInUsd, totalBorrow, totalCollateral }: any =
+      await getCollateralValue(address);
     const borrowedToken = await getBorrowTokenData(token, address);
     setIsTokenLoading({ ...isTokenLoading, pools: false });
     const ltv = getCompoundCurrentLTV(
-      borrowedToken?.borrowBalanceFixed,
-      collateralToken?.collateralBalanceFixed,
+      totalBorrow,
+      totalCollateral,
       collateralToken?.price
     );
     console.log(
       "LTV",
       ltv,
       borrowedToken?.borrowBalanceFixed,
-      collateralToken?.collateralBalanceFixed,
       collateralToken?.price,
-      totalLendBalanceInUsd
+      totalLendBalanceInUsd,
+      totalBorrow,
+      totalCollateral
     );
-
+    const healthFactor = getCompoundHealthFactor(totalBorrow, totalCollateral);
     setCurrentLTV(ltv);
     setSelectedTokens({
       ...selectedTokens,
@@ -488,6 +494,8 @@ export const handleSelectBorrowToken = async (
         ...selectedTokensRef?.current?.lend,
         ...collateralToken,
         lendBalanceFixedUSD: totalLendBalanceInUsd,
+        healthFactorFixed: healthFactor,
+        totalCollateralInUsd: totalCollateral,
       },
       ["borrow"]: {
         ...selectedTokens.borrow,

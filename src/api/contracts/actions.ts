@@ -443,7 +443,6 @@ export const getPoolBasicData = async (
           ]
         );
         const Price = fixed2Decimals(oracleData, poolData.token0.decimals);
-        console.log("price", Price);
         token1Price = Price;
         token0Price = 1 / Price;
       } else {
@@ -825,13 +824,6 @@ export const getCollateralTokenData = async (token: any, address: any) => {
     ]),
     getAllowance(token, address),
   ]);
-
-  const BorrowBal: any = await readContractLib(
-    compoundAddress,
-    compoundABI,
-    "borrowBalanceOf",
-    [proxy]
-  );
 
   // const price = await readContractLib(
   //   compoundAddress,

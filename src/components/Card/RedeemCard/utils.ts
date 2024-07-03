@@ -248,7 +248,7 @@ export const handleSelectRepayToken = async (
       },
       ["receive"]: null,
       ["borrow"]: {
-        tokenData,
+        ...tokenData,
         TotalBorrowBalanceFixed: borrowBal,
       },
     });

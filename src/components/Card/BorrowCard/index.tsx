@@ -140,9 +140,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
         borrowAmount = getCompoundBorrowAmount(
           lendAmount,
           Number(ltv.toFixed(2)),
-          selectedTokens.lend.collateralBalanceFixed,
-          selectedTokens.borrow.borrowBalanceFixed,
-          selectedTokens.lend.price
+          selectedTokens
         );
       }
       setBorrowAmount(borrowAmount);

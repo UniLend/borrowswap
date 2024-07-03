@@ -23,10 +23,8 @@ export const abiEncode = (path: Array<String>) => {
 };
 
 export const findBorrowToken = (poolList: any, token: any) => {
-  console.log("tokenPools", poolList);
   const tokenPools = Object.values(poolList).filter((pool: any) => {
     if (pool.token0.address == token || pool.token1.address == token) {
-      console.log("tokenPools", token);
       return true;
     }
   });
@@ -106,7 +104,6 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
       "0x84c6d5Df8a5e3ab9859708dA7645cC58176a26C0"
     );
     const data = await fetchGraphQlData(chain?.id, query);
-    console.log("data", data);
     // const allPositions = data?.positions;
     const allPositions = data?.positions?.map((item: any) => ({
       ...item,
@@ -275,10 +272,20 @@ export const getCompoundCurrentLTV = (
 ) => {
   const ltv =
     Number(borrowBal) > 0 && Number(collteralBal) > 0
-      ? Number(borrowBal) / (Number(collteralBal) * Number(priceRatio))
+      ? Number(borrowBal) / Number(collteralBal)
       : 0;
 
   return (Number(ltv.toFixed(4)) * 100).toFixed(2);
+};
+
+export const getCompoundHealthFactor = (
+  borrowedToken: any,
+  collateralToken: any
+): number => {
+  // Health factor calculation
+  const healthFactor: number = collateralToken / borrowedToken;
+
+  return isNaN(healthFactor) ? 0 : healthFactor;
 };
 
 export const getBorrowAmount = (
@@ -296,19 +303,36 @@ export const getBorrowAmount = (
   return borrowAmount > 0 ? borrowAmount : 0;
 };
 
+// export const getCompoundBorrowAmount = (
+//   amount: any,
+//   ltv: any,
+//   collateralTokenBalance: any,
+//   borrowBalanceFixed: any,
+//   priceRatio: any
+// ) => {
+//   const borrowAmount =
+//     (Number(amount) + Number(collateralTokenBalance)) *
+//       Number(priceRatio) *
+//       (ltv / 100) -
+//     Number(borrowBalanceFixed);
+
+//   return borrowAmount > 0 ? borrowAmount : 0;
+// };
+
 export const getCompoundBorrowAmount = (
   amount: any,
   ltv: any,
-  collateralTokenBalance: any,
-  borrowBalanceFixed: any,
-  priceRatio: any
+  selectedTokens: any
 ) => {
+  const lendAmount = Number(amount) * selectedTokens?.lend?.price;
+  const totalCollateral =
+    lendAmount + Number(selectedTokens?.lend?.totalCollateralInUsd);
   const borrowAmount =
-    (Number(amount) + Number(collateralTokenBalance)) *
-      Number(priceRatio) *
-      (ltv / 100) -
-    Number(borrowBalanceFixed);
+    (totalCollateral * (ltv / 100) -
+      Number(selectedTokens?.borrow?.TotalBorrowBalanceFixed)) /
+    selectedTokens?.borrow?.price;
 
+  console.log("borrowAmount compound", borrowAmount);
   return borrowAmount > 0 ? borrowAmount : 0;
 };
 
