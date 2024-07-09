@@ -13,7 +13,7 @@ export const fetchGraphQlData = async (chainId: number, FILMS_QUERY: any) => {
     1: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/mainnet-1",
     42161:
       "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-arbritrum",
-    18401:
+    18731:
       "https://api.studio.thegraph.com/query/78424/unilend-polygon/version/latest",
   };
 
@@ -229,7 +229,7 @@ export const uniswapTokensData = async (chainId: number = 1) => {
     137: "https://tokens.coingecko.com/polygon-pos/all.json",
     56: "https://tokens.coingecko.com/binance-smart-chain/all.json",
     1285: "https://tokens.coingecko.com/moonriver/all.json",
-    18401: "https://tokens.coingecko.com/polygon-pos/all.json",
+    18731: "https://tokens.coingecko.com/polygon-pos/all.json",
   };
 
   const url = graphURL[chainId]; // Default to chainId 1 if not found
