@@ -137,23 +137,23 @@ export const mumbaiTestnet = {
 } as Chain;
 
 export const unilendTestnet = {
-  id: 18401,
+  id: 18731,
   name: "Unilend Test",
   network: "unilendtest",
   iconUrl: MATIC,
   nativeCurrency: { name: "token", symbol: "TOKEN", decimals: 18 },
   rpcUrls: {
     default: {
-      http: ["https://rpc.buildbear.io/arrogant-karma-142e6ce5"],
+      http: ["https://rpc.buildbear.io/liable-cannonball-812580a5"],
     },
     public: {
-      http: ["https://rpc.buildbear.io/arrogant-karma-142e6ce5"],
+      http: ["https://rpc.buildbear.io/liable-cannonball-812580a5"],
     },
   },
   blockExplorers: {
     default: {
       name: "explore",
-      url: "https://explorer.buildbear.io/arrogant-karma-142e6ce5/transactions",
+      url: "https://explorer.buildbear.io/liable-cannonball-812580a5/transactions",
     },
   },
   testnet: true,

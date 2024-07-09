@@ -137,7 +137,7 @@ export const handleQuote = async (
       setSelectedLTV(5);
     } else {
       const tokenIn = {
-        chainId: chain?.id == 18401 ? 137 : chain?.id,
+        chainId: chain?.id == 18731 ? 137 : chain?.id,
         address: selectedTokensRef.current.borrow.address,
         decimals: selectedTokensRef.current.borrow.decimals,
         symbol: selectedTokensRef.current.borrow.symbol,
@@ -145,7 +145,7 @@ export const handleQuote = async (
       };
 
       const tokenOut = {
-        chainId: chain?.id == 18401 ? 137 : chain?.id,
+        chainId: chain?.id == 18731 ? 137 : chain?.id,
         address: selectedTokensRef.current.receive.address,
         decimals: selectedTokensRef.current.receive.decimals,
         symbol: selectedTokensRef.current.receive.symbol,
@@ -156,7 +156,7 @@ export const handleQuote = async (
       //   address,
       //   selectedTokensRef.current.borrow.address,
       //   selectedTokensRef.current.receive.address,
-      //   chain?.id == 18401 ? 137 : chain?.id
+      //   chain?.id == 18731 ? 137 : chain?.id
       // );
       const { quoteValue, quoteFee, quotePath }: any = await quoteWithSdk(
         tokenIn,
