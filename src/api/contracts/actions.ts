@@ -703,6 +703,8 @@ export const getPoolBasicData = async (
   }
 };
 
+// old
+
 export const getCollateralValue = async (address: any) => {
   const chainId = getChainId(wagmiConfig);
   const compoundAddress =
@@ -713,6 +715,8 @@ export const getCollateralValue = async (address: any) => {
   // const tokenAddress = token?.address;
 
   const collateralTokens: any = CompoundBaseTokens[0]?.compoundCollateralTokens;
+
+  const decimals = collateralTokens.map((token: any) => token.decimals);
 
   const values = (
     await Promise.all(
@@ -728,6 +732,12 @@ export const getCollateralValue = async (address: any) => {
       comet?.getAssetInfoByAddress(token.address)
     )
   );
+  console.log("asset", assets, decimals);
+  const userBasicData = await Promise.all(
+    collateralTokens.map((token: any) => comet?.userBasic(token.address))
+  );
+  console.log("userBasic", userBasicData);
+
   const priceFeeds = assets.map((values: any) => values.priceFeed);
   //const quote =  (await Promise.all(collateralTokens.map((token: any)=> comet?.quoteCollateral(token.address, 1)))).map((values: any)=> fromBigNumber(values) )
   const prices = (
@@ -744,6 +754,10 @@ export const getCollateralValue = async (address: any) => {
 
   let totalCollateral: number = 0;
   let totalLendBalanceInUsd: number = 0;
+  let scale: number = 0;
+  let totalCollateralValue: number = 0;
+  let healthFactor: number = 0;
+
   const totalBorrow =
     (Number(fromBigNumber(borrowPrice)) / 10 ** 8) *
     fixed2Decimals(
@@ -752,13 +766,29 @@ export const getCollateralValue = async (address: any) => {
     );
 
   for (let i = 0; i < collateralTokens.length; i++) {
+    console.log("assetinfo", assets[i]);
     const ltv = fixed2Decimals(fromBigNumber(assets[i].borrowCollateralFactor));
+
+    const liquidatble = fixed2Decimals(
+      fromBigNumber(assets[i].liquidateCollateralFactor)
+    );
+    scale = fixed2Decimals(fromBigNumber(assets[i].scale));
     totalLendBalanceInUsd = totalLendBalanceInUsd + values[i] * prices[i];
     totalCollateral = totalCollateral + values[i] * prices[i] * ltv;
+    totalCollateralValue =
+      totalCollateralValue + values[i] * prices[i] * liquidatble;
+    healthFactor = totalCollateralValue / totalBorrow;
   }
 
   const redeemBalanceInUSD = totalCollateral - totalBorrow;
-  console.log("totalCollateal", totalCollateral, totalBorrow);
+  console.log(
+    "totalCollateal",
+    totalCollateral,
+    totalBorrow,
+    scale,
+    totalCollateralValue,
+    healthFactor
+  );
   return {
     totalCollateral,
     totalBorrow,
@@ -768,6 +798,113 @@ export const getCollateralValue = async (address: any) => {
 
   // return { totalCollateral, totalBorrow, redeemBalanceInUSD };
 };
+
+// new
+// export const getCollateralValue = async (
+//   address: any,
+//   redeemTokenAddress: any
+// ) => {
+//   const chainId = getChainId(wagmiConfig);
+//   const compoundAddress =
+//     contractAddresses[chainId as keyof typeof contractAddresses]?.compound;
+//   const comet = await getEtherContract(compoundAddress, compoundABI);
+//   const proxy = await getUserProxy(address);
+
+//   const collateralTokens: any = CompoundBaseTokens[0]?.compoundCollateralTokens;
+//   console.log("collateralTokens", collateralTokens, redeemTokenAddress);
+//   const decimals = collateralTokens.map((token: any) => token.decimals);
+
+//   const values = (
+//     await Promise.all(
+//       collateralTokens.map((token: any) =>
+//         comet?.userCollateral(proxy, token.address)
+//       )
+//     )
+//   ).map((values: any, i: any) =>
+//     fixed2Decimals(fromBigNumber(values.balance), collateralTokens[i].decimals)
+//   );
+
+//   const assets = await Promise.all(
+//     collateralTokens.map((token: any) =>
+//       comet?.getAssetInfoByAddress(token.address)
+//     )
+//   );
+
+//   const priceFeeds = assets.map((values: any) => values.priceFeed);
+
+//   const prices = (
+//     await Promise.all(priceFeeds.map((add: any) => comet?.getPrice(add)))
+//   ).map((value: any) => Number(fromBigNumber(value)) / 10 ** 8);
+
+//   const borrowToken = await Promise.all([
+//     comet?.borrowBalanceOf(proxy),
+//     comet?.baseTokenPriceFeed(),
+//   ]);
+//   const borrowPrice = await comet?.getPrice(borrowToken[1]);
+
+//   const totalBorrow =
+//     (Number(fromBigNumber(borrowPrice)) / 10 ** 8) *
+//     fixed2Decimals(
+//       fromBigNumber(borrowToken[0]),
+//       CompoundBaseTokens[0].decimals
+//     );
+
+//   let totalCollateral = 0;
+//   let totalLendBalanceInUsd = 0;
+//   let totalCollateralValue = 0;
+//   let healthFactor = 0;
+//   let redeemableValueForToken = 0;
+
+//   for (let i = 0; i < collateralTokens.length; i++) {
+//     const ltv = fixed2Decimals(fromBigNumber(assets[i].borrowCollateralFactor));
+//     const liquidatble = fixed2Decimals(
+//       fromBigNumber(assets[i].liquidateCollateralFactor)
+//     );
+//     const scale = fixed2Decimals(fromBigNumber(assets[i].scale));
+
+//     totalLendBalanceInUsd += values[i] * prices[i];
+//     totalCollateral += values[i] * prices[i] * ltv;
+//     totalCollateralValue += values[i] * prices[i] * liquidatble;
+
+//     // Check if this token is the one to redeem
+//     if (collateralTokens[i].address === redeemTokenAddress.address) {
+//       console.log(
+//         "redeemableValueForToken11",
+//         redeemableValueForToken,
+//         values[i],
+//         prices[i],
+//         ltv
+//       );
+//       redeemableValueForToken = values[i] * prices[i] * ltv;
+// const redeemableBalanceInUSD = collateralValue * (collateralFactor / 100) - totalBorrow;
+// const maxRedeemableAmount = redeemableBalanceInUSD / (Number(fromBigNumber(borrowPrice)) / 10 ** 8);
+
+//     }
+//   }
+//   console.log("redeemableValueForToken", redeemableValueForToken);
+//   healthFactor = totalCollateralValue / totalBorrow;
+
+//   // Calculate the redeemable balance in USD for the specific token
+//   const redeemableBalanceInUSD = redeemableValueForToken - totalBorrow;
+
+//   console.log(
+//     "totalCollateal",
+//     totalCollateral,
+//     totalBorrow,
+//     totalCollateralValue,
+//     healthFactor,
+//     redeemableBalanceInUSD
+//   );
+
+//   return {
+//     totalCollateral,
+//     totalBorrow,
+//     redeemableBalanceInUSD:
+//       redeemableBalanceInUSD > 0 ? redeemableBalanceInUSD : 0,
+//     totalLendBalanceInUsd,
+//     healthFactor,
+//   };
+// };
 
 export const getCollateralTokenData = async (token: any, address: any) => {
   const chainId = getChainId(wagmiConfig);

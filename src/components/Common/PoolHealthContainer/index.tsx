@@ -40,10 +40,15 @@ const HealthFactorData: React.FC<HealthFactorDataProps> = ({
     </div>
     <div>
       <span>Health Factor</span>
-      {isNaN(totalLend) ? (
+      {isNaN(healthFactor) ? (
         <h3 className='paragraph04'>-</h3>
       ) : (
-        <h3 className='paragraph04'>
+        <h3
+          className='paragraph04'
+          style={{
+            color: isNaN(healthFactor) || healthFactor < 1 ? "red" : "green",
+          }}
+        >
           {healthFactor > 100 ? 100 : Number(healthFactor).toFixed(2)}
           {/* {healthFactor !== undefined ? Number(healthFactor) : ""} */}
         </h3>
