@@ -3474,6 +3474,75 @@ export const controllerABI = [
     type: "constructor",
   },
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "proxyAddress",
+        type: "address",
+      },
+    ],
+    name: "AccountCreated",
+    type: "event",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "_supplyAsset",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "_borrowAsset",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "_tokenOut",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "_supplyAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "_borrowAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "address",
+            name: "_user",
+            type: "address",
+          },
+          {
+            internalType: "uint24[]",
+            name: "_route",
+            type: "uint24[]",
+          },
+        ],
+        internalType: "struct AaveBorrow",
+        name: "params",
+        type: "tuple",
+      },
+    ],
+    name: "aaveBorrow",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [
       {
         components: [

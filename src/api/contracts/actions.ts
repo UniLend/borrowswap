@@ -1159,7 +1159,7 @@ export const handleAaveSwap = async (
   const controllerAddress =
     contractAddresses[chainId as keyof typeof contractAddresses]?.controller;
   const instance = await getEtherContract(controllerAddress, controllerABI);
-
+  console.log("aave contract", instance);
   const parameters = {
     _supplyAsset: tokenIn,
     _borrowAsset: borrowAsset,
@@ -1171,7 +1171,7 @@ export const handleAaveSwap = async (
   };
   console.log("instance", instance, parameters);
 
-  const { hash } = await instance?.compoundBorrow(parameters);
+  const { hash } = await instance?.aaveBorrow(parameters);
 
   const receipt = await waitForTransaction(hash);
   return hash;
