@@ -198,8 +198,8 @@ export const supportedNetworks: any = {
     quoterContractAddress: "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6",
   },
 
-  16715: {
-    chainId: 16715,
+  18731: {
+    chainId: 18731,
     chainName: "unilendtest",
     nativeCurrency: {
       name: "token",

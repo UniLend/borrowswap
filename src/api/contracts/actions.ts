@@ -815,25 +815,35 @@ export const getCollateralTokenData = async (token: any, address: any) => {
     "getAssetInfoByAddress",
     [tokenAddress]
   );
-  console.log("aasetInfo", assetInfo.borrowCollateralFactor);
-  const price = await readContractLib(
-    compoundAddress,
-    compoundABI,
-    "getPrice",
-    [assetInfo.priceFeed]
-  );
-  const collateralBal: any = await readContractLib(
-    compoundAddress,
-    compoundABI,
-    "userCollateral",
-    [proxy, tokenAddress]
-  );
+
+  const [price, collateralBal, data]: any = await Promise.all([
+    readContractLib(compoundAddress, compoundABI, "getPrice", [
+      assetInfo.priceFeed,
+    ]),
+    readContractLib(compoundAddress, compoundABI, "userCollateral", [
+      proxy,
+      tokenAddress,
+    ]),
+    getAllowance(token, address),
+  ]);
+  // const price = await readContractLib(
+  //   compoundAddress,
+  //   compoundABI,
+  //   "getPrice",
+  //   [assetInfo.priceFeed]
+  // );
+  // const collateralBal: any = await readContractLib(
+  //   compoundAddress,
+  //   compoundABI,
+  //   "userCollateral",
+  //   [proxy, tokenAddress]
+  // );
 
   // const collateralBal = await comet?.userCollateral(proxy, tokenAddress);
   console.log("collateralDataCompound", collateralBal, price, assetInfo);
   //const baseToken = await comet?.getCollateralReserves(tokenAddress)
   // quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
-  const data = await getAllowance(token, address);
+  // const data = await getAllowance(token, address);
 
   const info = {
     ...token,
@@ -862,36 +872,43 @@ export const getBorrowTokenData = async (token: any, address: any) => {
 
     const tokenAddress = token?.address;
 
-    const BorrowBal: any = await readContractLib(
-      compoundAddress,
-      compoundABI,
-      "borrowBalanceOf",
-      [proxy]
-    );
-    console.log("borrow Balance", BorrowBal);
-    //const assetInfo = await comet?.getAssetInfoByAddress(tokenAddress)
-    // const BorrowBal = await comet?.borrowBalanceOf(proxy);
-    //  const Bal = await comet?.balanceOf( proxy)
-    // const quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
+    const [BorrowBal, borrowMin, baseTokenPriceFeed] = await Promise.all([
+      readContractLib(compoundAddress, compoundABI, "borrowBalanceOf", [proxy]),
+      readContractLib(compoundAddress, compoundABI, "baseBorrowMin", []),
+      readContractLib(compoundAddress, compoundABI, "baseTokenPriceFeed", []),
+    ]);
 
-    const borrowMin: any = await readContractLib(
-      compoundAddress,
-      compoundABI,
-      "baseBorrowMin",
-      []
-    );
-    const baseTokenPriceFeed: any = await readContractLib(
-      compoundAddress,
-      compoundABI,
-      "baseTokenPriceFeed",
-      []
-    );
+    // const BorrowBal: any = await readContractLib(
+    //   compoundAddress,
+    //   compoundABI,
+    //   "borrowBalanceOf",
+    //   [proxy]
+    // );
+
+    // //const assetInfo = await comet?.getAssetInfoByAddress(tokenAddress)
+    // // const BorrowBal = await comet?.borrowBalanceOf(proxy);
+    // //  const Bal = await comet?.balanceOf( proxy)
+    // // const quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
+
+    // const borrowMin: any = await readContractLib(
+    //   compoundAddress,
+    //   compoundABI,
+    //   "baseBorrowMin",
+    //   []
+    // );
+    // const baseTokenPriceFeed: any = await readContractLib(
+    //   compoundAddress,
+    //   compoundABI,
+    //   "baseTokenPriceFeed",
+    //   []
+    // );
     const price: any = await readContractLib(
       compoundAddress,
       compoundABI,
       "getPrice",
       [baseTokenPriceFeed]
     );
+    console.log("compoundbroow", BorrowBal, borrowMin, baseTokenPriceFeed);
 
     // const borrowMin = await comet?.baseBorrowMin();
     // const baseTokenPriceFeed = await comet?.baseTokenPriceFeed();

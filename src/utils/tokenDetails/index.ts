@@ -216,7 +216,7 @@ export const chainsBySymbol: { [key: number]: Token } = {
     symbol: "MATIC",
     logo: MATIC,
   },
-  16715: {
+  18731: {
     address: "",
     symbol: "MATIC",
     logo: MATIC,
