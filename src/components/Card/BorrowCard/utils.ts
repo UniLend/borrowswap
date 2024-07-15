@@ -8,6 +8,7 @@ import {
   handleCompoundSwap,
   handleSwap,
   getCollateralValue,
+  findRedeemableValue,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
 import { quoteWithSdk } from "../../../api/uniswap/quotes";
@@ -464,6 +465,11 @@ export const handleSelectBorrowToken = async (
     );
     const { totalLendBalanceInUsd, totalBorrow, totalCollateral }: any =
       await getCollateralValue(address);
+    // const { redeemSelectedToken, totalLendBalanceInUsd, totalBorrow, totalCollateralValue } = await findRedeemableValue(
+    //   address,
+    //   selectedTokensRef?.current?.lend,
+    // );
+    console.log("redeemFunction");
     const borrowedToken = await getBorrowTokenData(token, address);
     setIsTokenLoading({ ...isTokenLoading, pools: false });
     const ltv = getCompoundCurrentLTV(

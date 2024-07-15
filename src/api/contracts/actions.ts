@@ -703,7 +703,143 @@ export const getPoolBasicData = async (
   }
 };
 
-// old
+export const findRedeemableValue = async (
+  address: string,
+  redeemToken: any
+) => {
+  try {
+    const chainId = getChainId(wagmiConfig);
+    const compoundAddress =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.compound;
+    const comet = await getEtherContract(compoundAddress, compoundABI);
+
+    const proxy = await getUserProxy(address);
+
+    const collateralTokens: any =
+      CompoundBaseTokens[0]?.compoundCollateralTokens;
+
+    // Get collateral balances and values
+    const collateralBalances = await Promise.all(
+      collateralTokens.map((token: any) =>
+        comet?.userCollateral(proxy, token.address)
+      )
+    );
+
+    const collateralValues = collateralBalances.map((balance: any, i: any) =>
+      fixed2Decimals(
+        fromBigNumber(balance.balance),
+        collateralTokens[i].decimals
+      )
+    );
+
+    // Get assets info and prices
+    const assets = await Promise.all(
+      collateralTokens.map((token: any) =>
+        comet?.getAssetInfoByAddress(token.address)
+      )
+    );
+
+    const priceFeeds = assets.map((asset: any) => asset.priceFeed);
+    const prices = await Promise.all(
+      priceFeeds.map((feed: any) => comet?.getPrice(feed))
+    );
+
+    const pricesInUSD = prices.map(
+      (price: any) => Number(fromBigNumber(price)) / 10 ** 8
+    );
+
+    // Get borrow info
+    const borrowInfo = await Promise.all([
+      comet?.borrowBalanceOf(proxy),
+      comet?.baseTokenPriceFeed(),
+    ]);
+
+    const borrowPrice = await comet?.getPrice(borrowInfo[1]);
+    const totalBorrow =
+      (Number(fromBigNumber(borrowPrice)) / 10 ** 8) *
+      fixed2Decimals(
+        fromBigNumber(borrowInfo[0]),
+        CompoundBaseTokens[0].decimals
+      );
+
+    let totalCollateralValue = 0;
+    let totalLendBalanceInUsd = 0;
+    const redeemableAmounts: { [key: string]: number } = {};
+    let redeemSelectedToken = 0;
+
+    // Calculate total collateral value and max redeemable value
+    for (let i = 0; i < collateralTokens.length; i++) {
+      const ltv = fixed2Decimals(
+        fromBigNumber(assets[i].borrowCollateralFactor)
+      );
+      totalLendBalanceInUsd =
+        totalLendBalanceInUsd + collateralValues[i] * pricesInUSD[i];
+      const collateralValueInUSD = collateralValues[i] * pricesInUSD[i];
+      totalCollateralValue += collateralValueInUSD;
+      redeemableAmounts[collateralTokens[i].address] = await getRedeem(
+        totalBorrow,
+        collateralValueInUSD,
+        ltv
+      );
+    }
+
+    // Adjust max redeemable value based on total collateral value and borrow amount
+    for (let i = 0; i < collateralTokens.length; i++) {
+      if (collateralTokens[i].address === redeemToken.address) {
+        redeemSelectedToken = isNaN(
+          redeemableAmounts[collateralTokens[i].address]
+        )
+          ? 0
+          : redeemableAmounts[collateralTokens[i].address];
+      }
+    }
+
+    console.log("Total Collateral Value:", totalCollateralValue);
+    console.log("Total Borrow Value:", totalBorrow);
+    console.log("redemable amounts", redeemableAmounts);
+    return {
+      totalCollateralValue,
+      totalBorrow,
+      redeemableAmounts,
+      redeemSelectedToken,
+      totalLendBalanceInUsd,
+    };
+  } catch (error) {
+    console.error("Error calculating redeemable value:", error);
+    return {
+      totalCollateralValue: 0,
+      totalBorrow: 0,
+      redeemableAmounts: {},
+      redeemSelectedToken: 0,
+      totalLendBalanceInUsd: 0,
+    };
+  }
+};
+
+export const getRedeem = (
+  borrowAmountInUSD: any,
+  lendAmountInUSD: any,
+  ltv: any
+) => {
+  if (borrowAmountInUSD === 0) {
+    return lendAmountInUSD;
+  }
+  const borrowData = borrowAmountInUSD / ltv;
+
+  let maxRedeem = lendAmountInUSD - borrowData;
+  if (maxRedeem < 0) {
+    maxRedeem = 0;
+  }
+  console.log(
+    "reserveAmountnew",
+    ltv,
+    borrowAmountInUSD,
+    lendAmountInUSD,
+    maxRedeem
+  );
+
+  return isNaN(maxRedeem) ? 0 : maxRedeem;
+};
 
 export const getCollateralValue = async (address: any) => {
   const chainId = getChainId(wagmiConfig);
@@ -789,136 +925,6 @@ export const getCollateralValue = async (address: any) => {
   };
 
   // return { totalCollateral, totalBorrow, redeemBalanceInUSD };
-};
-
-export const calculateRedeemableValue = async (
-  address: string,
-  redeemToken: any
-) => {
-  try {
-    const chainId = getChainId(wagmiConfig);
-    const compoundAddress =
-      contractAddresses[chainId as keyof typeof contractAddresses]?.compound;
-    const comet = await getEtherContract(compoundAddress, compoundABI);
-
-    const proxy = await getUserProxy(address);
-
-    const collateralTokens: any =
-      CompoundBaseTokens[0]?.compoundCollateralTokens;
-
-    const collateralBalances = await Promise.all(
-      collateralTokens.map((token: any) =>
-        comet?.userCollateral(proxy, token.address)
-      )
-    );
-
-    const collateralValues = collateralBalances.map((balance: any, i: any) =>
-      fixed2Decimals(
-        fromBigNumber(balance.balance),
-        collateralTokens[i].decimals
-      )
-    );
-
-    const assets = await Promise.all(
-      collateralTokens.map((token: any) =>
-        comet?.getAssetInfoByAddress(token.address)
-      )
-    );
-
-    const priceFeeds = assets.map((asset: any) => asset.priceFeed);
-    const prices = await Promise.all(
-      priceFeeds.map((feed: any) => comet?.getPrice(feed))
-    );
-
-    const pricesInUSD = prices.map(
-      (price: any) => Number(fromBigNumber(price)) / 10 ** 8
-    );
-
-    const borrowInfo = await Promise.all([
-      comet?.borrowBalanceOf(proxy),
-      comet?.baseTokenPriceFeed(),
-    ]);
-
-    const borrowPrice = await comet?.getPrice(borrowInfo[1]);
-    const totalBorrow =
-      (Number(fromBigNumber(borrowPrice)) / 10 ** 8) *
-      fixed2Decimals(
-        fromBigNumber(borrowInfo[0]),
-        CompoundBaseTokens[0].decimals
-      );
-
-    let totalCollateralValue = 0;
-    let maxRedeemableValueInUSD = 0;
-    const redeemableAmounts: { [key: string]: number } = {};
-    const maxBorrowAmounts: { [key: string]: number } = {};
-    let redeemSelectedToken = 0;
-
-    for (let i = 0; i < collateralTokens.length; i++) {
-      const ltv = fixed2Decimals(
-        fromBigNumber(assets[i].borrowCollateralFactor)
-      );
-      const collateralValueInUSD = collateralValues[i] * pricesInUSD[i];
-      const lendBalanceInUSD = collateralValues[i] * pricesInUSD[i];
-      const maxBorrowVal = collateralValueInUSD * ltv;
-      totalCollateralValue += collateralValueInUSD;
-
-      const colleteral =
-        totalBorrow / (ltv / 100) - Number(collateralValues[i]);
-
-      console.log("lend value", lendBalanceInUSD);
-      redeemableAmounts[collateralTokens[i].address] = await getRedeem1(
-        colleteral,
-        lendBalanceInUSD,
-        ltv
-      );
-
-      maxBorrowAmounts[collateralTokens[i].address] =
-        collateralValueInUSD * ltv;
-      maxRedeemableValueInUSD = totalCollateralValue - totalBorrow / ltv;
-    }
-
-    for (let i = 0; i < collateralTokens.length; i++) {
-      const collateralValueInUSD = collateralValues[i] * pricesInUSD[i];
-      const maxRedeemableForToken = Math.min(
-        collateralValueInUSD,
-        (collateralValueInUSD / totalCollateralValue) * maxRedeemableValueInUSD
-      );
-
-      redeemableAmounts[collateralTokens[i].address] = isNaN(
-        maxRedeemableForToken
-      )
-        ? 0
-        : maxRedeemableForToken;
-
-      if (collateralTokens[i].address == redeemToken.address) {
-        redeemSelectedToken = redeemableAmounts[collateralTokens[i].address];
-      }
-    }
-
-    console.log("Max Borrow Amounts:", maxBorrowAmounts);
-    console.log("Total Collateral Value:", totalCollateralValue);
-    console.log("Total Borrow Value:", totalBorrow);
-    console.log("Max Redeemable Value in USD:", maxRedeemableValueInUSD);
-    console.log("Redeemable Amounts:", redeemableAmounts);
-    console.log("Redeemable selected:", redeemSelectedToken);
-
-    return {
-      totalCollateralValue,
-      totalBorrow,
-      maxRedeemableValueInUSD,
-      redeemableAmounts,
-      redeemSelectedToken,
-    };
-  } catch (error) {
-    console.error("Error calculating redeemable value:", error);
-    return {
-      totalCollateralValue: 0,
-      totalBorrow: 0,
-      maxRedeemableValueInUSD: 0,
-      redeemableAmounts: {},
-      redeemSelectedToken: 0,
-    };
-  }
 };
 
 export const getCollateralTokenData = async (token: any, address: any) => {
@@ -1099,52 +1105,4 @@ export const getTotalBorrowBalance = async (address: any) => {
   return {
     borrowBal: fixed2Decimals(fromBigNumber(borrowBal), 6),
   };
-};
-
-export const getRedeem = (
-  borrowAmountInUSD: any,
-  lendAmountInUSD: any,
-  ltv: any
-) => {
-  //  const reserveAmount = borrowAmount * price +  (lendAmount * price * 100 - LTV)
-  if (borrowAmountInUSD === 0) {
-    return lendAmountInUSD;
-  }
-  const perLtv = ltv / 100;
-  const reserveAmount = borrowAmountInUSD + (lendAmountInUSD * 100 - ltv);
-  const maxRedeem = lendAmountInUSD - borrowAmountInUSD / perLtv;
-  console.log(
-    "reserveAmount",
-    reserveAmount,
-    ltv,
-    borrowAmountInUSD,
-    lendAmountInUSD,
-    maxRedeem
-  );
-  return maxRedeem;
-};
-
-export const getRedeem1 = (
-  borrowAmountInUSD: any,
-  lendAmountInUSD: any,
-  ltv: any
-) => {
-  if (borrowAmountInUSD === 0) {
-    return lendAmountInUSD;
-  }
-
-  const perLtv = ltv / 100;
-  const reserveAmount = borrowAmountInUSD + (lendAmountInUSD * 100 - ltv);
-  const maxRedeem = lendAmountInUSD - borrowAmountInUSD / perLtv;
-
-  console.log(
-    "reserveAmountnew",
-    reserveAmount,
-    ltv,
-    borrowAmountInUSD,
-    lendAmountInUSD,
-    maxRedeem
-  );
-
-  return isNaN(maxRedeem) ? 0 : maxRedeem;
 };

@@ -14,7 +14,7 @@ import {
   handleApproval,
   handleCompoundRepay,
   handleRepay,
-  calculateRedeemableValue,
+  findRedeemableValue,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
 import {
@@ -217,15 +217,8 @@ export const handleSelectRepayToken = async (
       );
     }
   } else {
-    const { redeemBalanceInUSD, totalLendBalanceInUsd } =
-      await getCollateralValue(address);
-
-    const {
-      totalCollateralValue,
-      totalBorrow,
-      maxRedeemableValueInUSD,
-      redeemSelectedToken,
-    } = await calculateRedeemableValue(address, poolData.borrowToken);
+    const { redeemSelectedToken, totalLendBalanceInUsd } =
+      await findRedeemableValue(address, poolData.borrowToken);
 
     const { borrowBal } = await getTotalBorrowBalance(address);
     const tokenData = await getCollateralTokenData(
@@ -233,41 +226,12 @@ export const handleSelectRepayToken = async (
       address
     );
 
-    // const redeemValue = await getRedeem(borrowBal,  )
-    // let minValue = Math.min(
-    //   Number(tokenData?.collateralBalance),
-    //   Number(
-    //     decimal2Fixed(
-    //       Number(redeemBalanceInUSD / tokenData.price),
-    //       Number(tokenData.decimals)
-    //     )
-    //   )
-    // );
-    // let minRedeemValue = Number(
-    //   decimal2Fixed(
-    //     Number(maxRedeemableValueInUSD / tokenData.price),
-    //     Number(tokenData.decimals)
-    //   )
-    // );
-
-    // const RedeemBal = await getRedeem(
-    //   totalBorrow,
-    //   totalLendBalanceInUsd,
-    //   tokenData.ltv
-    // );
-
     let minRedeemValuenew = Number(
       decimal2Fixed(
         Number(redeemSelectedToken / tokenData.price),
         Number(tokenData.decimals)
       )
     );
-    console.log("RedeemBal", redeemSelectedToken);
-
-    // console.log("minRedeemValue", minRedeemValue, tokenData);
-    // if (minValue != Number(tokenData?.collateralBalance)) {
-    //   minValue = minValue * (tokenData.ltv / 100);
-    // }
 
     setSelectedData({
       ...selectedData,
@@ -295,8 +259,6 @@ export const handleSelectRepayToken = async (
   }
   setIsTokenLoading({ ...isTokenLoading, pool: false });
 };
-
-const getCompoundData = () => {};
 
 export const handleSelectReceiveToken = async (
   data: any,
