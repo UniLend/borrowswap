@@ -84,14 +84,8 @@ export const handleLTVSlider = async (
   } else {
     console.log("selectedDat address", selectedTokens);
 
-    // borrowAmount = getCompoundBorrowAmount(
-    //   lendAmount,
-    //   value,
-    //   selectedTokens.lend.collateralBalanceFixed,
-    //   selectedTokens.borrow.borrowBalanceFixed,
-    //   selectedTokens.lend.price
-    // );
     borrowAmount = getCompoundBorrowAmount(lendAmount, value, selectedTokens);
+    // borrowAmount = getCompoundBorrowAmount(lendAmount, value, selectedTokens);
   }
 
   setBorrowAmount(borrowAmount);
@@ -162,7 +156,7 @@ export const handleQuote = async (
         tokenIn,
         tokenOut
       );
-
+      console.log("quoteValue", quoteValue);
       if (quoteValue) {
         setb2rRatio(Number(quoteValue));
         setAccordionModal(true);
@@ -477,6 +471,7 @@ export const handleSelectBorrowToken = async (
       totalCollateral,
       collateralToken?.price
     );
+
     console.log(
       "LTV",
       ltv,

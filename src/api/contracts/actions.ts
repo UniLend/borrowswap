@@ -716,8 +716,6 @@ export const getCollateralValue = async (address: any) => {
 
   const collateralTokens: any = CompoundBaseTokens[0]?.compoundCollateralTokens;
 
-  const decimals = collateralTokens.map((token: any) => token.decimals);
-
   const values = (
     await Promise.all(
       collateralTokens.map((token: any) =>
@@ -732,11 +730,6 @@ export const getCollateralValue = async (address: any) => {
       comet?.getAssetInfoByAddress(token.address)
     )
   );
-  console.log("asset", assets, decimals);
-  const userBasicData = await Promise.all(
-    collateralTokens.map((token: any) => comet?.userBasic(token.address))
-  );
-  console.log("userBasic", userBasicData);
 
   const priceFeeds = assets.map((values: any) => values.priceFeed);
   //const quote =  (await Promise.all(collateralTokens.map((token: any)=> comet?.quoteCollateral(token.address, 1)))).map((values: any)=> fromBigNumber(values) )
@@ -766,7 +759,6 @@ export const getCollateralValue = async (address: any) => {
     );
 
   for (let i = 0; i < collateralTokens.length; i++) {
-    console.log("assetinfo", assets[i]);
     const ltv = fixed2Decimals(fromBigNumber(assets[i].borrowCollateralFactor));
 
     const liquidatble = fixed2Decimals(
@@ -799,112 +791,135 @@ export const getCollateralValue = async (address: any) => {
   // return { totalCollateral, totalBorrow, redeemBalanceInUSD };
 };
 
-// new
-// export const getCollateralValue = async (
-//   address: any,
-//   redeemTokenAddress: any
-// ) => {
-//   const chainId = getChainId(wagmiConfig);
-//   const compoundAddress =
-//     contractAddresses[chainId as keyof typeof contractAddresses]?.compound;
-//   const comet = await getEtherContract(compoundAddress, compoundABI);
-//   const proxy = await getUserProxy(address);
+export const calculateRedeemableValue = async (
+  address: string,
+  redeemToken: any
+) => {
+  try {
+    const chainId = getChainId(wagmiConfig);
+    const compoundAddress =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.compound;
+    const comet = await getEtherContract(compoundAddress, compoundABI);
 
-//   const collateralTokens: any = CompoundBaseTokens[0]?.compoundCollateralTokens;
-//   console.log("collateralTokens", collateralTokens, redeemTokenAddress);
-//   const decimals = collateralTokens.map((token: any) => token.decimals);
+    const proxy = await getUserProxy(address);
 
-//   const values = (
-//     await Promise.all(
-//       collateralTokens.map((token: any) =>
-//         comet?.userCollateral(proxy, token.address)
-//       )
-//     )
-//   ).map((values: any, i: any) =>
-//     fixed2Decimals(fromBigNumber(values.balance), collateralTokens[i].decimals)
-//   );
+    const collateralTokens: any =
+      CompoundBaseTokens[0]?.compoundCollateralTokens;
 
-//   const assets = await Promise.all(
-//     collateralTokens.map((token: any) =>
-//       comet?.getAssetInfoByAddress(token.address)
-//     )
-//   );
+    const collateralBalances = await Promise.all(
+      collateralTokens.map((token: any) =>
+        comet?.userCollateral(proxy, token.address)
+      )
+    );
 
-//   const priceFeeds = assets.map((values: any) => values.priceFeed);
+    const collateralValues = collateralBalances.map((balance: any, i: any) =>
+      fixed2Decimals(
+        fromBigNumber(balance.balance),
+        collateralTokens[i].decimals
+      )
+    );
 
-//   const prices = (
-//     await Promise.all(priceFeeds.map((add: any) => comet?.getPrice(add)))
-//   ).map((value: any) => Number(fromBigNumber(value)) / 10 ** 8);
+    const assets = await Promise.all(
+      collateralTokens.map((token: any) =>
+        comet?.getAssetInfoByAddress(token.address)
+      )
+    );
 
-//   const borrowToken = await Promise.all([
-//     comet?.borrowBalanceOf(proxy),
-//     comet?.baseTokenPriceFeed(),
-//   ]);
-//   const borrowPrice = await comet?.getPrice(borrowToken[1]);
+    const priceFeeds = assets.map((asset: any) => asset.priceFeed);
+    const prices = await Promise.all(
+      priceFeeds.map((feed: any) => comet?.getPrice(feed))
+    );
 
-//   const totalBorrow =
-//     (Number(fromBigNumber(borrowPrice)) / 10 ** 8) *
-//     fixed2Decimals(
-//       fromBigNumber(borrowToken[0]),
-//       CompoundBaseTokens[0].decimals
-//     );
+    const pricesInUSD = prices.map(
+      (price: any) => Number(fromBigNumber(price)) / 10 ** 8
+    );
 
-//   let totalCollateral = 0;
-//   let totalLendBalanceInUsd = 0;
-//   let totalCollateralValue = 0;
-//   let healthFactor = 0;
-//   let redeemableValueForToken = 0;
+    const borrowInfo = await Promise.all([
+      comet?.borrowBalanceOf(proxy),
+      comet?.baseTokenPriceFeed(),
+    ]);
 
-//   for (let i = 0; i < collateralTokens.length; i++) {
-//     const ltv = fixed2Decimals(fromBigNumber(assets[i].borrowCollateralFactor));
-//     const liquidatble = fixed2Decimals(
-//       fromBigNumber(assets[i].liquidateCollateralFactor)
-//     );
-//     const scale = fixed2Decimals(fromBigNumber(assets[i].scale));
+    const borrowPrice = await comet?.getPrice(borrowInfo[1]);
+    const totalBorrow =
+      (Number(fromBigNumber(borrowPrice)) / 10 ** 8) *
+      fixed2Decimals(
+        fromBigNumber(borrowInfo[0]),
+        CompoundBaseTokens[0].decimals
+      );
 
-//     totalLendBalanceInUsd += values[i] * prices[i];
-//     totalCollateral += values[i] * prices[i] * ltv;
-//     totalCollateralValue += values[i] * prices[i] * liquidatble;
+    let totalCollateralValue = 0;
+    let maxRedeemableValueInUSD = 0;
+    const redeemableAmounts: { [key: string]: number } = {};
+    const maxBorrowAmounts: { [key: string]: number } = {};
+    let redeemSelectedToken = 0;
 
-//     // Check if this token is the one to redeem
-//     if (collateralTokens[i].address === redeemTokenAddress.address) {
-//       console.log(
-//         "redeemableValueForToken11",
-//         redeemableValueForToken,
-//         values[i],
-//         prices[i],
-//         ltv
-//       );
-//       redeemableValueForToken = values[i] * prices[i] * ltv;
-// const redeemableBalanceInUSD = collateralValue * (collateralFactor / 100) - totalBorrow;
-// const maxRedeemableAmount = redeemableBalanceInUSD / (Number(fromBigNumber(borrowPrice)) / 10 ** 8);
+    for (let i = 0; i < collateralTokens.length; i++) {
+      const ltv = fixed2Decimals(
+        fromBigNumber(assets[i].borrowCollateralFactor)
+      );
+      const collateralValueInUSD = collateralValues[i] * pricesInUSD[i];
+      const lendBalanceInUSD = collateralValues[i] * pricesInUSD[i];
+      const maxBorrowVal = collateralValueInUSD * ltv;
+      totalCollateralValue += collateralValueInUSD;
 
-//     }
-//   }
-//   console.log("redeemableValueForToken", redeemableValueForToken);
-//   healthFactor = totalCollateralValue / totalBorrow;
+      const colleteral =
+        totalBorrow / (ltv / 100) - Number(collateralValues[i]);
 
-//   // Calculate the redeemable balance in USD for the specific token
-//   const redeemableBalanceInUSD = redeemableValueForToken - totalBorrow;
+      console.log("lend value", lendBalanceInUSD);
+      redeemableAmounts[collateralTokens[i].address] = await getRedeem1(
+        colleteral,
+        lendBalanceInUSD,
+        ltv
+      );
 
-//   console.log(
-//     "totalCollateal",
-//     totalCollateral,
-//     totalBorrow,
-//     totalCollateralValue,
-//     healthFactor,
-//     redeemableBalanceInUSD
-//   );
+      maxBorrowAmounts[collateralTokens[i].address] =
+        collateralValueInUSD * ltv;
+      maxRedeemableValueInUSD = totalCollateralValue - totalBorrow / ltv;
+    }
 
-//   return {
-//     totalCollateral,
-//     totalBorrow,
-//     redeemableBalanceInUSD:
-//       redeemableBalanceInUSD > 0 ? redeemableBalanceInUSD : 0,
-//     totalLendBalanceInUsd,
-//     healthFactor,
-//   };
-// };
+    for (let i = 0; i < collateralTokens.length; i++) {
+      const collateralValueInUSD = collateralValues[i] * pricesInUSD[i];
+      const maxRedeemableForToken = Math.min(
+        collateralValueInUSD,
+        (collateralValueInUSD / totalCollateralValue) * maxRedeemableValueInUSD
+      );
+
+      redeemableAmounts[collateralTokens[i].address] = isNaN(
+        maxRedeemableForToken
+      )
+        ? 0
+        : maxRedeemableForToken;
+
+      if (collateralTokens[i].address == redeemToken.address) {
+        redeemSelectedToken = redeemableAmounts[collateralTokens[i].address];
+      }
+    }
+
+    console.log("Max Borrow Amounts:", maxBorrowAmounts);
+    console.log("Total Collateral Value:", totalCollateralValue);
+    console.log("Total Borrow Value:", totalBorrow);
+    console.log("Max Redeemable Value in USD:", maxRedeemableValueInUSD);
+    console.log("Redeemable Amounts:", redeemableAmounts);
+    console.log("Redeemable selected:", redeemSelectedToken);
+
+    return {
+      totalCollateralValue,
+      totalBorrow,
+      maxRedeemableValueInUSD,
+      redeemableAmounts,
+      redeemSelectedToken,
+    };
+  } catch (error) {
+    console.error("Error calculating redeemable value:", error);
+    return {
+      totalCollateralValue: 0,
+      totalBorrow: 0,
+      maxRedeemableValueInUSD: 0,
+      redeemableAmounts: {},
+      redeemSelectedToken: 0,
+    };
+  }
+};
 
 export const getCollateralTokenData = async (token: any, address: any) => {
   const chainId = getChainId(wagmiConfig);
@@ -915,34 +930,6 @@ export const getCollateralTokenData = async (token: any, address: any) => {
   const proxy = await getUserProxy(address);
 
   const tokenAddress = token?.address;
-
-  // const contracts: any = [
-  //   {
-  //     address: compoundAddress,
-  //     abi: compoundABI,
-  //     functionName: "getAssetInfoByAddress",
-  //     args: [tokenAddress],
-  //   },
-  //   {
-  //     address: compoundAddress,
-  //     abi: compoundABI,
-  //     functionName: "getPrice",
-  //     args: [contracts[0].result.priceFeed],
-  //   },
-  //   {
-  //     address: compoundAddress,
-  //     abi: compoundABI,
-  //     functionName: "userCollateral",
-  //     args: [await getUserProxy(address), tokenAddress],
-  //   },
-  // ];
-
-  // const results = await readContracts(wagmiConfig, { contracts });
-  // const assetInfo = results[0].result;
-  // const price = results[1].result;
-  // const collateralBal = results[2].result;
-
-  // console.log("price", results);
 
   const assetInfo: any = await readContractLib(
     compoundAddress,
@@ -962,40 +949,30 @@ export const getCollateralTokenData = async (token: any, address: any) => {
     getAllowance(token, address),
   ]);
 
-  // const price = await readContractLib(
-  //   compoundAddress,
-  //   compoundABI,
-  //   "getPrice",
-  //   [assetInfo.priceFeed]
-  // );
-  // const collateralBal: any = await readContractLib(
-  //   compoundAddress,
-  //   compoundABI,
-  //   "userCollateral",
-  //   [proxy, tokenAddress]
-  // );
-
-  // const collateralBal = await comet?.userCollateral(proxy, tokenAddress);
-  // console.log("collateralBalance", collateralBal);
-  //const baseToken = await comet?.getCollateralReserves(tokenAddress)
-  // quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
-  // const data = await getAllowance(token, address);
-
   const info = {
     ...token,
     ...data,
-    ltv:
-      fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor)) * 100 -
-      0.5,
+    // ltv:
+    //   fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor)) * 100 -
+    //   0.5,
+    ltv: fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor)) * 100,
+    lendBalance: fromBigNumber(collateralBal[0]),
+    lendBalanceFixed: fixed2Decimals(
+      fromBigNumber(collateralBal[0]),
+      token?.decimals || 18
+    ),
     collateralBalance: fromBigNumber(collateralBal[0]),
     collateralBalanceFixed: fixed2Decimals(
       fromBigNumber(collateralBal[0]),
       token?.decimals || 18
     ),
-
     // baseToken: fromBigNumber(baseToken),
     price: Number(fromBigNumber(price)) / 10 ** 8,
     //quote: fixed2Decimals(fromBigNumber(quote))
+    lendBalanceUSD:
+      (fixed2Decimals(fromBigNumber(collateralBal[0]), token?.decimals || 18) *
+        Number(fromBigNumber(price))) /
+      10 ** 8,
   };
   return info;
 };
@@ -1122,4 +1099,52 @@ export const getTotalBorrowBalance = async (address: any) => {
   return {
     borrowBal: fixed2Decimals(fromBigNumber(borrowBal), 6),
   };
+};
+
+export const getRedeem = (
+  borrowAmountInUSD: any,
+  lendAmountInUSD: any,
+  ltv: any
+) => {
+  //  const reserveAmount = borrowAmount * price +  (lendAmount * price * 100 - LTV)
+  if (borrowAmountInUSD === 0) {
+    return lendAmountInUSD;
+  }
+  const perLtv = ltv / 100;
+  const reserveAmount = borrowAmountInUSD + (lendAmountInUSD * 100 - ltv);
+  const maxRedeem = lendAmountInUSD - borrowAmountInUSD / perLtv;
+  console.log(
+    "reserveAmount",
+    reserveAmount,
+    ltv,
+    borrowAmountInUSD,
+    lendAmountInUSD,
+    maxRedeem
+  );
+  return maxRedeem;
+};
+
+export const getRedeem1 = (
+  borrowAmountInUSD: any,
+  lendAmountInUSD: any,
+  ltv: any
+) => {
+  if (borrowAmountInUSD === 0) {
+    return lendAmountInUSD;
+  }
+
+  const perLtv = ltv / 100;
+  const reserveAmount = borrowAmountInUSD + (lendAmountInUSD * 100 - ltv);
+  const maxRedeem = lendAmountInUSD - borrowAmountInUSD / perLtv;
+
+  console.log(
+    "reserveAmountnew",
+    reserveAmount,
+    ltv,
+    borrowAmountInUSD,
+    lendAmountInUSD,
+    maxRedeem
+  );
+
+  return isNaN(maxRedeem) ? 0 : maxRedeem;
 };

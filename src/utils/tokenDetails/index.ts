@@ -181,7 +181,7 @@ export const tokensBYSymbol: { [key: string]: Token } = {
   stMATIC: {
     address: "0x3A58a54C066FdC0f2D55FC9C89F0415C92eBf3C4",
     symbol: "stMATIC",
-    logo: "https://app.compound.finance/images/assets/asset_STMATIC.svg",
+    logo: "https://assets.coingecko.com/coins/images/25383/standard/maticx.png?1696524516",
   },
   WMATIC: {
     address: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",

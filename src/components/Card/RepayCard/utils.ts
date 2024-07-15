@@ -241,6 +241,9 @@ export const handleRepayTransaction = async (
     console.log(
       "repayapproval",
       lendToken,
+      lendAmount,
+      borrowAmount,
+      receiveAmount,
       Number(lendAmount) > Number(lendToken.allowanceFixed)
     );
 
