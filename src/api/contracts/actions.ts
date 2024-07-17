@@ -776,6 +776,7 @@ export const findRedeemableValue = async (
         totalLendBalanceInUsd + collateralValues[i] * pricesInUSD[i];
       const collateralValueInUSD = collateralValues[i] * pricesInUSD[i];
       totalCollateralValue += collateralValueInUSD;
+
       redeemableAmounts[collateralTokens[i].address] = await getRedeem(
         totalBorrow,
         collateralValueInUSD,
@@ -793,7 +794,6 @@ export const findRedeemableValue = async (
           : redeemableAmounts[collateralTokens[i].address];
       }
     }
-
     console.log("Total Collateral Value:", totalCollateralValue);
     console.log("Total Borrow Value:", totalBorrow);
     console.log("redemable amounts", redeemableAmounts);
@@ -827,9 +827,7 @@ export const getRedeem = (
   const borrowData = borrowAmountInUSD / ltv;
 
   let maxRedeem = lendAmountInUSD - borrowData;
-  if (maxRedeem < 0) {
-    maxRedeem = 0;
-  }
+
   console.log(
     "reserveAmountnew",
     ltv,
@@ -838,7 +836,7 @@ export const getRedeem = (
     maxRedeem
   );
 
-  return isNaN(maxRedeem) ? 0 : maxRedeem;
+  return isNaN(maxRedeem) || maxRedeem < 0 ? 0 : maxRedeem;
 };
 
 export const getCollateralValue = async (address: any) => {
@@ -902,7 +900,7 @@ export const getCollateralValue = async (address: any) => {
     );
     scale = fixed2Decimals(fromBigNumber(assets[i].scale));
     totalLendBalanceInUsd = totalLendBalanceInUsd + values[i] * prices[i];
-    totalCollateral = totalCollateral + values[i] * prices[i] * ltv;
+    totalCollateral = totalCollateral + values[i] * prices[i];
     totalCollateralValue =
       totalCollateralValue + values[i] * prices[i] * liquidatble;
     healthFactor = totalCollateralValue / totalBorrow;
@@ -992,11 +990,15 @@ export const getBorrowTokenData = async (token: any, address: any) => {
 
     const tokenAddress = token?.address;
 
-    const [BorrowBal, borrowMin, baseTokenPriceFeed] = await Promise.all([
-      readContractLib(compoundAddress, compoundABI, "borrowBalanceOf", [proxy]),
-      readContractLib(compoundAddress, compoundABI, "baseBorrowMin", []),
-      readContractLib(compoundAddress, compoundABI, "baseTokenPriceFeed", []),
-    ]);
+    const [BorrowBal, borrowMin, baseTokenPriceFeed, balanceOf] =
+      await Promise.all([
+        readContractLib(compoundAddress, compoundABI, "borrowBalanceOf", [
+          proxy,
+        ]),
+        readContractLib(compoundAddress, compoundABI, "baseBorrowMin", []),
+        readContractLib(compoundAddress, compoundABI, "baseTokenPriceFeed", []),
+        readContractLib(compoundAddress, compoundABI, "balanceOf", [proxy]),
+      ]);
 
     //const assetInfo = await comet?.getAssetInfoByAddress(tokenAddress)
     // const BorrowBal = await comet?.borrowBalanceOf(proxy);
@@ -1026,7 +1028,13 @@ export const getBorrowTokenData = async (token: any, address: any) => {
       "getPrice",
       [baseTokenPriceFeed]
     );
-    console.log("compoundbroow", BorrowBal, borrowMin, baseTokenPriceFeed);
+    console.log(
+      "compoundbroow",
+      BorrowBal,
+      borrowMin,
+      baseTokenPriceFeed,
+      balanceOf
+    );
 
     // const borrowMin = await comet?.baseBorrowMin();
     // const baseTokenPriceFeed = await comet?.baseTokenPriceFeed();
@@ -1047,6 +1055,10 @@ export const getBorrowTokenData = async (token: any, address: any) => {
       borrowMin: fromBigNumber(borrowMin),
       borrowMinFixed: fixed2Decimals(
         fromBigNumber(borrowMin),
+        token?.decimals || 18
+      ),
+      baseBalance: fixed2Decimals(
+        fromBigNumber(balanceOf),
         token?.decimals || 18
       ),
       price: Number(fromBigNumber(price)) / 10 ** 8,
