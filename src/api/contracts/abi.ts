@@ -3548,6 +3548,41 @@ export const controllerABI = [
         components: [
           {
             internalType: "address",
+            name: "_borrowedToken",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "_tokenIn",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "_repayAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint24[]",
+            name: "_route",
+            type: "uint24[]",
+          },
+        ],
+        internalType: "struct AaveRepay",
+        name: "params",
+        type: "tuple",
+      },
+    ],
+    name: "aaveRepay",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "address",
             name: "_user",
             type: "address",
           },
@@ -3835,6 +3870,380 @@ export const controllerABI = [
     type: "function",
   },
 ];
+// export const controllerABI = [
+//   {
+//     inputs: [
+//       {
+//         internalType: "address",
+//         name: "_logicAddress",
+//         type: "address",
+//       },
+//     ],
+//     stateMutability: "nonpayable",
+//     type: "constructor",
+//   },
+//   {
+//     anonymous: false,
+//     inputs: [
+//       {
+//         indexed: true,
+//         internalType: "address",
+//         name: "user",
+//         type: "address",
+//       },
+//       {
+//         indexed: true,
+//         internalType: "address",
+//         name: "proxyAddress",
+//         type: "address",
+//       },
+//     ],
+//     name: "AccountCreated",
+//     type: "event",
+//   },
+//   {
+//     inputs: [
+//       {
+//         components: [
+//           {
+//             internalType: "address",
+//             name: "_supplyAsset",
+//             type: "address",
+//           },
+//           {
+//             internalType: "address",
+//             name: "_borrowAsset",
+//             type: "address",
+//           },
+//           {
+//             internalType: "address",
+//             name: "_tokenOut",
+//             type: "address",
+//           },
+//           {
+//             internalType: "uint256",
+//             name: "_supplyAmount",
+//             type: "uint256",
+//           },
+//           {
+//             internalType: "uint256",
+//             name: "_borrowAmount",
+//             type: "uint256",
+//           },
+//           {
+//             internalType: "address",
+//             name: "_user",
+//             type: "address",
+//           },
+//           {
+//             internalType: "uint24[]",
+//             name: "_route",
+//             type: "uint24[]",
+//           },
+//         ],
+//         internalType: "struct AaveBorrow",
+//         name: "params",
+//         type: "tuple",
+//       },
+//     ],
+//     name: "aaveBorrow",
+//     outputs: [],
+//     stateMutability: "nonpayable",
+//     type: "function",
+//   },
+//   {
+//     inputs: [
+//       {
+//         components: [
+//           {
+//             internalType: "address",
+//             name: "_user",
+//             type: "address",
+//           },
+//           {
+//             internalType: "address",
+//             name: "_collateralToken",
+//             type: "address",
+//           },
+//           {
+//             internalType: "uint256",
+//             name: "_collateralAmount",
+//             type: "uint256",
+//           },
+//           {
+//             internalType: "address",
+//             name: "_tokenOut",
+//             type: "address",
+//           },
+//           {
+//             internalType: "uint24[]",
+//             name: "_route",
+//             type: "uint24[]",
+//           },
+//         ],
+//         internalType: "struct CompRedeem",
+//         name: "params",
+//         type: "tuple",
+//       },
+//     ],
+//     name: "compRedeem",
+//     outputs: [],
+//     stateMutability: "nonpayable",
+//     type: "function",
+//   },
+//   {
+//     inputs: [
+//       {
+//         components: [
+//           {
+//             internalType: "address",
+//             name: "_borrowedToken",
+//             type: "address",
+//           },
+//           {
+//             internalType: "address",
+//             name: "_tokenIn",
+//             type: "address",
+//           },
+//           {
+//             internalType: "uint256",
+//             name: "_repayAmount",
+//             type: "uint256",
+//           },
+//           {
+//             internalType: "uint24[]",
+//             name: "_route",
+//             type: "uint24[]",
+//           },
+//         ],
+//         internalType: "struct CompRepay",
+//         name: "params",
+//         type: "tuple",
+//       },
+//     ],
+//     name: "compRepay",
+//     outputs: [],
+//     stateMutability: "nonpayable",
+//     type: "function",
+//   },
+//   {
+//     inputs: [
+//       {
+//         components: [
+//           {
+//             internalType: "address",
+//             name: "_supplyAsset",
+//             type: "address",
+//           },
+//           {
+//             internalType: "address",
+//             name: "_borrowAsset",
+//             type: "address",
+//           },
+//           {
+//             internalType: "address",
+//             name: "_tokenOut",
+//             type: "address",
+//           },
+//           {
+//             internalType: "uint256",
+//             name: "_supplyAmount",
+//             type: "uint256",
+//           },
+//           {
+//             internalType: "uint256",
+//             name: "_borrowAmount",
+//             type: "uint256",
+//           },
+//           {
+//             internalType: "address",
+//             name: "_user",
+//             type: "address",
+//           },
+//           {
+//             internalType: "uint24[]",
+//             name: "_route",
+//             type: "uint24[]",
+//           },
+//         ],
+//         internalType: "struct CompBorrow",
+//         name: "params",
+//         type: "tuple",
+//       },
+//     ],
+//     name: "compoundBorrow",
+//     outputs: [],
+//     stateMutability: "nonpayable",
+//     type: "function",
+//   },
+//   {
+//     inputs: [],
+//     name: "logicAddress",
+//     outputs: [
+//       {
+//         internalType: "address",
+//         name: "",
+//         type: "address",
+//       },
+//     ],
+//     stateMutability: "view",
+//     type: "function",
+//   },
+//   {
+//     inputs: [
+//       {
+//         internalType: "address",
+//         name: "",
+//         type: "address",
+//       },
+//     ],
+//     name: "proxyAddress",
+//     outputs: [
+//       {
+//         internalType: "address",
+//         name: "",
+//         type: "address",
+//       },
+//     ],
+//     stateMutability: "view",
+//     type: "function",
+//   },
+//   {
+//     inputs: [
+//       {
+//         components: [
+//           {
+//             internalType: "address",
+//             name: "_pool",
+//             type: "address",
+//           },
+//           {
+//             internalType: "address",
+//             name: "_supplyAsset",
+//             type: "address",
+//           },
+//           {
+//             internalType: "address",
+//             name: "_tokenOUt",
+//             type: "address",
+//           },
+//           {
+//             internalType: "uint256",
+//             name: "_collateral_amount",
+//             type: "uint256",
+//           },
+//           {
+//             internalType: "int256",
+//             name: "_amount",
+//             type: "int256",
+//           },
+//           {
+//             internalType: "address",
+//             name: "_user",
+//             type: "address",
+//           },
+//           {
+//             internalType: "uint24[]",
+//             name: "_route",
+//             type: "uint24[]",
+//           },
+//         ],
+//         internalType: "struct UniBorrow",
+//         name: "params",
+//         type: "tuple",
+//       },
+//     ],
+//     name: "uniBorrow",
+//     outputs: [],
+//     stateMutability: "nonpayable",
+//     type: "function",
+//   },
+//   {
+//     inputs: [
+//       {
+//         components: [
+//           {
+//             internalType: "address",
+//             name: "_pool",
+//             type: "address",
+//           },
+//           {
+//             internalType: "address",
+//             name: "_user",
+//             type: "address",
+//           },
+//           {
+//             internalType: "int256",
+//             name: "_amount",
+//             type: "int256",
+//           },
+//           {
+//             internalType: "address",
+//             name: "_tokenOut",
+//             type: "address",
+//           },
+//           {
+//             internalType: "uint24[]",
+//             name: "_route",
+//             type: "uint24[]",
+//           },
+//         ],
+//         internalType: "struct UniRedeem",
+//         name: "params",
+//         type: "tuple",
+//       },
+//     ],
+//     name: "uniRedeem",
+//     outputs: [],
+//     stateMutability: "nonpayable",
+//     type: "function",
+//   },
+//   {
+//     inputs: [
+//       {
+//         components: [
+//           {
+//             internalType: "address",
+//             name: "_pool",
+//             type: "address",
+//           },
+//           {
+//             internalType: "address",
+//             name: "_tokenIn",
+//             type: "address",
+//           },
+//           {
+//             internalType: "address",
+//             name: "_user",
+//             type: "address",
+//           },
+//           {
+//             internalType: "address",
+//             name: "_borrowAddress",
+//             type: "address",
+//           },
+//           {
+//             internalType: "uint256",
+//             name: "_repayAmount",
+//             type: "uint256",
+//           },
+//           {
+//             internalType: "uint24[]",
+//             name: "_route",
+//             type: "uint24[]",
+//           },
+//         ],
+//         internalType: "struct UniRepay",
+//         name: "params",
+//         type: "tuple",
+//       },
+//     ],
+//     name: "uniRepay",
+//     outputs: [],
+//     stateMutability: "nonpayable",
+//     type: "function",
+//   },
+// ];
 export const erc20Abi = [
   {
     constant: true,
