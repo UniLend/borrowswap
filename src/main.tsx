@@ -34,7 +34,7 @@ const { wallets } = getDefaultWallets();
 export const wagmiConfig = getDefaultConfig({
   appName: "BorrowSwap",
   projectId: "YOUR_PROJECT_ID",
-  chains: [polygon, unilendTestnet],
+  chains: [polygon, unilendTestnet, mainnet],
   wallets: [
     ...wallets,
     {

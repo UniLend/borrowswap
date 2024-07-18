@@ -35,6 +35,8 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
   CompoundBaseTokens,
   compoundCollateralTokens,
+  CompoundBaseTokensMainnet,
+  compoundCollateralTokensMainnet,
 } from "../../../helpers/constants";
 
 enum ActiveOperation {
@@ -63,6 +65,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     borrow: null,
     receive: null,
   });
+  console.log("chainID", chain?.id);
   const selectedTokensRef = useRef(selectedTokens);
   selectedTokensRef.current = selectedTokens;
   const [selectedLTV, setSelectedLTV] = useState<number>(5);
@@ -111,6 +114,29 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     borrowAmount
   );
 
+  const getTokenListByChainId = (chainId: number) => {
+    switch (chainId) {
+      case 137:
+      case 18731:
+        return {
+          baseTokens: CompoundBaseTokens,
+          collateralTokens: compoundCollateralTokens,
+        };
+      case 1:
+        return {
+          baseTokens: CompoundBaseTokensMainnet,
+          collateralTokens: compoundCollateralTokensMainnet,
+        };
+      default:
+        return {
+          baseTokens: [],
+          collateralTokens: [],
+        };
+    }
+  };
+  const chainId = chain?.id ?? 137;
+  const compoundList = getTokenListByChainId(chainId);
+  console.log("compoundList", compoundList);
   const handleLendAmount = (amount: string) => {
     setLendAmount(amount);
   };
@@ -264,10 +290,10 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     return getOprationToken(
       tokenListStatus,
       lendingTokens,
-      compoundCollateralTokens,
+      compoundList.collateralTokens,
       selectedTokens,
       borrowingTokens,
-      CompoundBaseTokens,
+      compoundList.baseTokens,
       uniSwapTokens
     );
   };
