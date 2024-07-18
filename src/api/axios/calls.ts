@@ -5,35 +5,55 @@ import { aggregatorV3InterfaceABI } from "../contracts/abi";
 import { getEthersProvider } from "../contracts/ethers";
 import { fixed2Decimals } from "../../helpers/index";
 export const fetchGraphQlData = async (chainId: number, FILMS_QUERY: any) => {
-  const graphURL = {
+  const graphURL: any = {
     80001: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/my_unilend",
     137: "https://api.studio.thegraph.com/query/78424/unilend-polygon/version/latest",
     // 137: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-polygon-2",
     1442: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-zkevm",
-    1: "https://api.thegraph.com/subgraphs/name/shubham-rathod1/mainnet-1",
+    // 1: 'https://api.thegraph.com/subgraphs/name/shubham-rathod1/mainnet-1',
+    // 1: 'https://api.studio.thegraph.com/query/78424/mainnet-1/version/latest',
+    1: "https://gateway-arbitrum.network.thegraph.com/api/e0902970e4a444dc4b0ae6c08b7ff802/subgraphs/id/FGE3FvB4dzGN2yFgUpVCSCYDwBCn74XLSwgs7mkajAhW",
+    // 42161:'https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-arbritrum',
     42161:
       "https://api.thegraph.com/subgraphs/name/shubham-rathod1/unilend-arbritrum",
     18731:
       "https://api.studio.thegraph.com/query/78424/unilend-polygon/version/latest",
   };
 
-  if (Object.keys(graphURL).includes(String(chainId))) {
+  const fallbackURL: any = {
+    1: "https://api.studio.thegraph.com/query/78424/mainnet-1/version/latest",
+  };
+
+  const fetchData = async (url: string) => {
     try {
-      const data = await axios({
-        url: graphURL[(chainId as keyof typeof graphURL) || 1],
-        method: "POST",
-        data: {
-          query: FILMS_QUERY,
-        },
-      });
-
-      return data.data.data;
-    } catch (err) {
-      console.log("Graph Error:", err);
+      const response = await axios.post(url, { query: FILMS_QUERY });
+      return response.data.data;
+    } catch (error) {
+      console.error(`Request to ${url} failed`, error);
+      return undefined;
     }
-  }
-};
+  };
 
+  if (!Object.keys(graphURL).includes(String(chainId))) {
+    throw new Error("Invalid chainId provided");
+  }
+
+  const primaryURL = graphURL[chainId] || 1;
+  const data = await fetchData(primaryURL);
+
+  if (data === undefined) {
+    const fallbackURLLink: any = fallbackURL[chainId] || 1;
+    const fallbackData = await fetchData(fallbackURLLink);
+    if (fallbackData === undefined) {
+      throw new Error(
+        "Failed to fetch data from both primary and fallback URLs"
+      );
+    }
+    return fallbackData;
+  }
+
+  return data;
+};
 export const getEthToUsd = async () => {
   const url = "https://api.coinbase.com/v2/exchange-rates?currency=ETH";
 

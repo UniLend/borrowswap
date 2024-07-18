@@ -443,7 +443,6 @@ export const getPoolBasicData = async (
           ]
         );
         const Price = fixed2Decimals(oracleData, poolData.token0.decimals);
-        console.log("price", Price);
         token1Price = Price;
         token0Price = 1 / Price;
       } else {
@@ -704,12 +703,147 @@ export const getPoolBasicData = async (
   }
 };
 
+export const findRedeemableValue = async (
+  address: string,
+  redeemToken: any
+) => {
+  try {
+    const chainId = getChainId(wagmiConfig);
+    const compoundAddress =
+      contractAddresses[chainId as keyof typeof contractAddresses]?.compound;
+    const comet = await getEtherContract(compoundAddress, compoundABI);
+
+    const proxy = await getUserProxy(address);
+
+    const collateralTokens: any =
+      CompoundBaseTokens[0]?.compoundCollateralTokens;
+
+    // Get collateral balances and values
+    const collateralBalances = await Promise.all(
+      collateralTokens.map((token: any) =>
+        comet?.userCollateral(proxy, token.address)
+      )
+    );
+
+    const collateralValues = collateralBalances.map((balance: any, i: any) =>
+      fixed2Decimals(
+        fromBigNumber(balance.balance),
+        collateralTokens[i].decimals
+      )
+    );
+
+    // Get assets info and prices
+    const assets = await Promise.all(
+      collateralTokens.map((token: any) =>
+        comet?.getAssetInfoByAddress(token.address)
+      )
+    );
+
+    const priceFeeds = assets.map((asset: any) => asset.priceFeed);
+    const prices = await Promise.all(
+      priceFeeds.map((feed: any) => comet?.getPrice(feed))
+    );
+
+    const pricesInUSD = prices.map(
+      (price: any) => Number(fromBigNumber(price)) / 10 ** 8
+    );
+
+    // Get borrow info
+    const borrowInfo = await Promise.all([
+      comet?.borrowBalanceOf(proxy),
+      comet?.baseTokenPriceFeed(),
+    ]);
+
+    const borrowPrice = await comet?.getPrice(borrowInfo[1]);
+    const totalBorrow =
+      (Number(fromBigNumber(borrowPrice)) / 10 ** 8) *
+      fixed2Decimals(
+        fromBigNumber(borrowInfo[0]),
+        CompoundBaseTokens[0].decimals
+      );
+
+    let totalCollateralValue = 0;
+    let totalLendBalanceInUsd = 0;
+    const redeemableAmounts: { [key: string]: number } = {};
+    let redeemSelectedToken = 0;
+
+    // Calculate total collateral value and max redeemable value
+    for (let i = 0; i < collateralTokens.length; i++) {
+      const ltv = fixed2Decimals(
+        fromBigNumber(assets[i].borrowCollateralFactor)
+      );
+      totalLendBalanceInUsd =
+        totalLendBalanceInUsd + collateralValues[i] * pricesInUSD[i];
+      const collateralValueInUSD = collateralValues[i] * pricesInUSD[i];
+      totalCollateralValue += collateralValueInUSD;
+
+      redeemableAmounts[collateralTokens[i].address] = await getRedeem(
+        totalBorrow,
+        collateralValueInUSD,
+        ltv
+      );
+    }
+
+    // Adjust max redeemable value based on total collateral value and borrow amount
+    for (let i = 0; i < collateralTokens.length; i++) {
+      if (collateralTokens[i].address === redeemToken.address) {
+        redeemSelectedToken = isNaN(
+          redeemableAmounts[collateralTokens[i].address]
+        )
+          ? 0
+          : redeemableAmounts[collateralTokens[i].address];
+      }
+    }
+    console.log("Total Collateral Value:", totalCollateralValue);
+    console.log("Total Borrow Value:", totalBorrow);
+    console.log("redemable amounts", redeemableAmounts);
+    return {
+      totalCollateralValue,
+      totalBorrow,
+      redeemableAmounts,
+      redeemSelectedToken,
+      totalLendBalanceInUsd,
+    };
+  } catch (error) {
+    console.error("Error calculating redeemable value:", error);
+    return {
+      totalCollateralValue: 0,
+      totalBorrow: 0,
+      redeemableAmounts: {},
+      redeemSelectedToken: 0,
+      totalLendBalanceInUsd: 0,
+    };
+  }
+};
+
+export const getRedeem = (
+  borrowAmountInUSD: any,
+  lendAmountInUSD: any,
+  ltv: any
+) => {
+  if (borrowAmountInUSD === 0) {
+    return lendAmountInUSD;
+  }
+  const borrowData = borrowAmountInUSD / ltv;
+
+  let maxRedeem = lendAmountInUSD - borrowData;
+
+  console.log(
+    "reserveAmountnew",
+    ltv,
+    borrowAmountInUSD,
+    lendAmountInUSD,
+    maxRedeem
+  );
+
+  return isNaN(maxRedeem) || maxRedeem < 0 ? 0 : maxRedeem;
+};
+
 export const getCollateralValue = async (address: any) => {
   const chainId = getChainId(wagmiConfig);
   const compoundAddress =
     contractAddresses[chainId as keyof typeof contractAddresses]?.compound;
   const comet = await getEtherContract(compoundAddress, compoundABI);
-
   const proxy = await getUserProxy(address);
 
   // const tokenAddress = token?.address;
@@ -730,6 +864,7 @@ export const getCollateralValue = async (address: any) => {
       comet?.getAssetInfoByAddress(token.address)
     )
   );
+
   const priceFeeds = assets.map((values: any) => values.priceFeed);
   //const quote =  (await Promise.all(collateralTokens.map((token: any)=> comet?.quoteCollateral(token.address, 1)))).map((values: any)=> fromBigNumber(values) )
   const prices = (
@@ -744,7 +879,11 @@ export const getCollateralValue = async (address: any) => {
   ]);
   const borrowPrice = await comet?.getPrice(borrowToken[1]);
 
-  let totalCollateral = 0;
+  let totalCollateral: number = 0;
+  let totalLendBalanceInUsd: number = 0;
+  let scale: number = 0;
+  let totalCollateralValue: number = 0;
+  let healthFactor: number = 0;
 
   const totalBorrow =
     (Number(fromBigNumber(borrowPrice)) / 10 ** 8) *
@@ -756,12 +895,32 @@ export const getCollateralValue = async (address: any) => {
   for (let i = 0; i < collateralTokens.length; i++) {
     const ltv = fixed2Decimals(fromBigNumber(assets[i].borrowCollateralFactor));
 
-    totalCollateral = totalCollateral + values[i] * prices[i] * ltv;
+    const liquidatble = fixed2Decimals(
+      fromBigNumber(assets[i].liquidateCollateralFactor)
+    );
+    scale = fixed2Decimals(fromBigNumber(assets[i].scale));
+    totalLendBalanceInUsd = totalLendBalanceInUsd + values[i] * prices[i];
+    totalCollateral = totalCollateral + values[i] * prices[i];
+    totalCollateralValue =
+      totalCollateralValue + values[i] * prices[i] * liquidatble;
+    healthFactor = totalCollateralValue / totalBorrow;
   }
 
   const redeemBalanceInUSD = totalCollateral - totalBorrow;
-
-  return { totalCollateral, totalBorrow, redeemBalanceInUSD };
+  console.log(
+    "totalCollateal",
+    totalCollateral,
+    totalBorrow,
+    scale,
+    totalCollateralValue,
+    healthFactor
+  );
+  return {
+    totalCollateral,
+    totalBorrow,
+    redeemBalanceInUSD,
+    totalLendBalanceInUsd,
+  };
 
   // return { totalCollateral, totalBorrow, redeemBalanceInUSD };
 };
@@ -776,34 +935,6 @@ export const getCollateralTokenData = async (token: any, address: any) => {
 
   const tokenAddress = token?.address;
 
-  // const contracts: any = [
-  //   {
-  //     address: compoundAddress,
-  //     abi: compoundABI,
-  //     functionName: "getAssetInfoByAddress",
-  //     args: [tokenAddress],
-  //   },
-  //   {
-  //     address: compoundAddress,
-  //     abi: compoundABI,
-  //     functionName: "getPrice",
-  //     args: [contracts[0].result.priceFeed],
-  //   },
-  //   {
-  //     address: compoundAddress,
-  //     abi: compoundABI,
-  //     functionName: "userCollateral",
-  //     args: [await getUserProxy(address), tokenAddress],
-  //   },
-  // ];
-
-  // const results = await readContracts(wagmiConfig, { contracts });
-  // const assetInfo = results[0].result;
-  // const price = results[1].result;
-  // const collateralBal = results[2].result;
-
-  // console.log("price", results);
-
   const assetInfo: any = await readContractLib(
     compoundAddress,
     compoundABI,
@@ -811,7 +942,7 @@ export const getCollateralTokenData = async (token: any, address: any) => {
     [tokenAddress]
   );
 
-  const [price, collateralBal, data] = await Promise.all([
+  const [price, collateralBal, data]: any = await Promise.all([
     readContractLib(compoundAddress, compoundABI, "getPrice", [
       assetInfo.priceFeed,
     ]),
@@ -821,31 +952,19 @@ export const getCollateralTokenData = async (token: any, address: any) => {
     ]),
     getAllowance(token, address),
   ]);
-  // const price = await readContractLib(
-  //   compoundAddress,
-  //   compoundABI,
-  //   "getPrice",
-  //   [assetInfo.priceFeed]
-  // );
-  // const collateralBal: any = await readContractLib(
-  //   compoundAddress,
-  //   compoundABI,
-  //   "userCollateral",
-  //   [proxy, tokenAddress]
-  // );
-
-  // const collateralBal = await comet?.userCollateral(proxy, tokenAddress);
-  // console.log("collateralBalance", collateralBal);
-  //const baseToken = await comet?.getCollateralReserves(tokenAddress)
-  // quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
-  // const data = await getAllowance(token, address);
 
   const info = {
     ...token,
     ...data,
-    ltv:
-      fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor)) * 100 -
-      0.5,
+    // ltv:
+    //   fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor)) * 100 -
+    //   0.5,
+    ltv: fixed2Decimals(fromBigNumber(assetInfo.borrowCollateralFactor)) * 100,
+    lendBalance: fromBigNumber(collateralBal[0]),
+    lendBalanceFixed: fixed2Decimals(
+      fromBigNumber(collateralBal[0]),
+      token?.decimals || 18
+    ),
     collateralBalance: fromBigNumber(collateralBal[0]),
     collateralBalanceFixed: fixed2Decimals(
       fromBigNumber(collateralBal[0]),
@@ -854,6 +973,10 @@ export const getCollateralTokenData = async (token: any, address: any) => {
     // baseToken: fromBigNumber(baseToken),
     price: Number(fromBigNumber(price)) / 10 ** 8,
     //quote: fixed2Decimals(fromBigNumber(quote))
+    lendBalanceUSD:
+      (fixed2Decimals(fromBigNumber(collateralBal[0]), token?.decimals || 18) *
+        Number(fromBigNumber(price))) /
+      10 ** 8,
   };
   return info;
 };
@@ -867,18 +990,20 @@ export const getBorrowTokenData = async (token: any, address: any) => {
 
     const tokenAddress = token?.address;
 
-    const [BorrowBal, borrowMin, baseTokenPriceFeed] = await Promise.all([
-      readContractLib(compoundAddress, compoundABI, "borrowBalanceOf", [proxy]),
-      readContractLib(compoundAddress, compoundABI, "baseBorrowMin", []),
-      readContractLib(compoundAddress, compoundABI, "baseTokenPriceFeed", []),
-    ]);
+    const [BorrowBal, borrowMin, baseTokenPriceFeed, balanceOf] =
+      await Promise.all([
+        readContractLib(compoundAddress, compoundABI, "borrowBalanceOf", [
+          proxy,
+        ]),
+        readContractLib(compoundAddress, compoundABI, "baseBorrowMin", []),
+        readContractLib(compoundAddress, compoundABI, "baseTokenPriceFeed", []),
+        readContractLib(compoundAddress, compoundABI, "balanceOf", [proxy]),
+      ]);
 
-    // const BorrowBal: any = await readContractLib(
-    //   compoundAddress,
-    //   compoundABI,
-    //   "borrowBalanceOf",
-    //   [proxy]
-    // );
+    //const assetInfo = await comet?.getAssetInfoByAddress(tokenAddress)
+    // const BorrowBal = await comet?.borrowBalanceOf(proxy);
+    //  const Bal = await comet?.balanceOf( proxy)
+    // const quote = await comet?.quoteCollateral(tokenAddress, '1000000000000000000')
 
     // //const assetInfo = await comet?.getAssetInfoByAddress(tokenAddress)
     // // const BorrowBal = await comet?.borrowBalanceOf(proxy);
@@ -903,7 +1028,13 @@ export const getBorrowTokenData = async (token: any, address: any) => {
       "getPrice",
       [baseTokenPriceFeed]
     );
-    console.log("compoundbroow", BorrowBal, borrowMin, baseTokenPriceFeed);
+    console.log(
+      "compoundbroow",
+      BorrowBal,
+      borrowMin,
+      baseTokenPriceFeed,
+      balanceOf
+    );
 
     // const borrowMin = await comet?.baseBorrowMin();
     // const baseTokenPriceFeed = await comet?.baseTokenPriceFeed();
@@ -917,9 +1048,17 @@ export const getBorrowTokenData = async (token: any, address: any) => {
         fromBigNumber(BorrowBal),
         token?.decimals || 18
       ),
+      TotalBorrowBalanceFixed: fixed2Decimals(
+        fromBigNumber(BorrowBal),
+        token?.decimals || 18
+      ),
       borrowMin: fromBigNumber(borrowMin),
       borrowMinFixed: fixed2Decimals(
         fromBigNumber(borrowMin),
+        token?.decimals || 18
+      ),
+      baseBalance: fixed2Decimals(
+        fromBigNumber(balanceOf),
         token?.decimals || 18
       ),
       price: Number(fromBigNumber(price)) / 10 ** 8,
@@ -960,4 +1099,22 @@ export const handleCompoundSwap = async (
 
   const receipt = await waitForTransaction(hash);
   return hash;
+};
+
+export const getTotalBorrowBalance = async (address: any) => {
+  const chainId = getChainId(wagmiConfig);
+  const compoundAddress =
+    contractAddresses[chainId as keyof typeof contractAddresses]?.compound;
+  // const comet = await getEtherContract(compoundAddress, compoundABI);
+  const proxy = await getUserProxy(address);
+  const borrowBal: any = await readContractLib(
+    compoundAddress,
+    compoundABI,
+    "borrowBalanceOf",
+    [proxy]
+  );
+
+  return {
+    borrowBal: fixed2Decimals(fromBigNumber(borrowBal), 6),
+  };
 };

@@ -9,6 +9,7 @@ import {
   handleCompoundRepay,
   handleRepay,
   waitForTransaction,
+  getCollateralValue,
   // checkTxnStatus,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
@@ -155,7 +156,7 @@ export const handleSelectRepayToken = async (
       setSelectedData({
         ...selectedData,
         ["pool"]: poolData,
-        ["lend"]: null,
+        ["lend"]: data.token1,
         ["receive"]: data.token1,
         ["borrow"]: data.token0,
       });
@@ -168,7 +169,7 @@ export const handleSelectRepayToken = async (
       setSelectedData({
         ...selectedData,
         ["pool"]: poolData,
-        ["lend"]: null,
+        ["lend"]: data.token0,
         ["receive"]: data.token0,
         ["borrow"]: data.token1,
       });
@@ -177,13 +178,12 @@ export const handleSelectRepayToken = async (
     console.log("No Pool Data");
 
     const tokenData = await getBorrowTokenData(poolData.borrowToken, address);
-
-    console.log("tokenData", tokenData);
-
+    const { redeemBalanceInUSD, totalLendBalanceInUsd } =
+      await getCollateralValue(address);
     setSelectedData({
       ...selectedData,
       ["pool"]: poolData,
-      ["lend"]: null,
+      ["lend"]: { lendBalanceFixedUSD: totalLendBalanceInUsd },
       ["receive"]: tokenData,
       ["borrow"]: tokenData,
     });
@@ -241,6 +241,9 @@ export const handleRepayTransaction = async (
     console.log(
       "repayapproval",
       lendToken,
+      lendAmount,
+      borrowAmount,
+      receiveAmount,
       Number(lendAmount) > Number(lendToken.allowanceFixed)
     );
 

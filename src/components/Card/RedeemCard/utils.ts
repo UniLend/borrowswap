@@ -1,5 +1,6 @@
 import {
   getCollateralValue,
+  getTotalBorrowBalance,
   handleCompoundRedeem,
   handleRedeem,
 } from "./../../../api/contracts/actions";
@@ -13,6 +14,7 @@ import {
   handleApproval,
   handleCompoundRepay,
   handleRepay,
+  findRedeemableValue,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
 import {
@@ -182,8 +184,6 @@ export const handleSelectRepayToken = async (
       address
     );
 
-    console.log("data", data, poolData);
-
     if (data.token0.address === poolData.borrowToken.id) {
       setSelectedData({
         ...selectedData,
@@ -217,42 +217,48 @@ export const handleSelectRepayToken = async (
       );
     }
   } else {
-    const { redeemBalanceInUSD } = await getCollateralValue(address);
+    const { redeemSelectedToken, totalLendBalanceInUsd } =
+      await findRedeemableValue(address, poolData.borrowToken);
+
+    const { borrowBal } = await getTotalBorrowBalance(address);
     const tokenData = await getCollateralTokenData(
       poolData.borrowToken,
       address
     );
 
-    let minValue = Math.min(
-      Number(tokenData?.collateralBalance),
-      Number(
-        decimal2Fixed(
-          Number(redeemBalanceInUSD / tokenData.price),
-          Number(tokenData.decimals)
-        )
+    let minRedeemValuenew = Number(
+      decimal2Fixed(
+        Number(redeemSelectedToken / tokenData.price),
+        Number(tokenData.decimals)
       )
     );
-    if (minValue != Number(tokenData?.collateralBalance)) {
-      minValue = minValue * (tokenData.ltv / 100);
-    }
 
     setSelectedData({
       ...selectedData,
       ["pool"]: poolData,
       ["lend"]: {
         ...tokenData,
-        redeemBalance: minValue,
-        redeemBalanceFixed: fixed2Decimals(minValue, tokenData.decimals),
+        redeemBalance: minRedeemValuenew,
+        redeemBalanceFixed: fixed2Decimals(
+          minRedeemValuenew,
+          tokenData.decimals
+        ),
+        redeemBalanceFixedNew: fixed2Decimals(
+          minRedeemValuenew,
+          tokenData.decimals
+        ),
+        lendBalanceFixedUSD: totalLendBalanceInUsd,
       },
       ["receive"]: null,
-      ["borrow"]: tokenData,
+      ["borrow"]: {
+        ...tokenData,
+        TotalBorrowBalanceFixed: borrowBal,
+      },
     });
-    setLendAmount(fixed2Decimals(minValue, tokenData.decimals));
+    setLendAmount(fixed2Decimals(minRedeemValuenew, tokenData.decimals));
   }
   setIsTokenLoading({ ...isTokenLoading, pool: false });
 };
-
-const getCompoundData = () => {};
 
 export const handleSelectReceiveToken = async (
   data: any,
@@ -330,6 +336,14 @@ export const handleRepayTransaction = async (
     //     "-" +
     //     selectedData.receive.symbol
     // );
+
+    console.log(
+      "redeem Data",
+      redeemAmount,
+      address,
+      selectedData,
+      borrowAmount
+    );
     setOperationProgress(1);
     let hash;
     if (selectedData.borrow.source == "Unilend") {

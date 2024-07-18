@@ -7,6 +7,8 @@ import {
   handleApproval,
   handleCompoundSwap,
   handleSwap,
+  getCollateralValue,
+  findRedeemableValue,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
 import { quoteWithSdk } from "../../../api/uniswap/quotes";
@@ -20,6 +22,7 @@ import {
   getCurrentLTV,
   truncateToDecimals,
   mul,
+  getCompoundHealthFactor,
 } from "../../../helpers";
 import NotificationMessage from "../../Common/NotificationMessage";
 
@@ -59,7 +62,7 @@ export const checkLiquidity = (
   }
 };
 
-export const handleLTVSlider = (
+export const handleLTVSlider = async (
   value: number,
   lendAmount: string,
   selectedTokens: any,
@@ -80,13 +83,10 @@ export const handleLTVSlider = (
       selectedTokens.borrow
     );
   } else {
-    borrowAmount = getCompoundBorrowAmount(
-      lendAmount,
-      value,
-      selectedTokens.lend.collateralBalanceFixed,
-      selectedTokens.borrow.borrowBalanceFixed,
-      selectedTokens.lend.price
-    );
+    console.log("selectedDat address", selectedTokens);
+
+    borrowAmount = getCompoundBorrowAmount(lendAmount, value, selectedTokens);
+    // borrowAmount = getCompoundBorrowAmount(lendAmount, value, selectedTokens);
   }
 
   setBorrowAmount(borrowAmount);
@@ -157,7 +157,7 @@ export const handleQuote = async (
         tokenIn,
         tokenOut
       );
-
+      console.log("quoteValue", quoteValue);
       if (quoteValue) {
         setb2rRatio(Number(quoteValue));
         setAccordionModal(true);
@@ -463,26 +463,45 @@ export const handleSelectBorrowToken = async (
       selectedTokensRef?.current?.lend,
       address
     );
+    const { totalLendBalanceInUsd, totalBorrow, totalCollateral }: any =
+      await getCollateralValue(address);
+    // const { redeemSelectedToken, totalLendBalanceInUsd, totalBorrow, totalCollateralValue } = await findRedeemableValue(
+    //   address,
+    //   selectedTokensRef?.current?.lend,
+    // );
+    console.log("redeemFunction");
     const borrowedToken = await getBorrowTokenData(token, address);
     setIsTokenLoading({ ...isTokenLoading, pools: false });
     const ltv = getCompoundCurrentLTV(
-      borrowedToken?.borrowBalanceFixed,
-      collateralToken?.collateralBalanceFixed,
+      totalBorrow,
+      totalCollateral,
       collateralToken?.price
     );
+
     console.log(
       "LTV",
       ltv,
       borrowedToken?.borrowBalanceFixed,
-      collateralToken?.collateralBalanceFixed,
-      collateralToken?.price
+      collateralToken?.price,
+      totalLendBalanceInUsd,
+      totalBorrow,
+      totalCollateral
     );
-
+    const healthFactor = getCompoundHealthFactor(totalBorrow, totalCollateral);
     setCurrentLTV(ltv);
     setSelectedTokens({
       ...selectedTokens,
-      ["lend"]: { ...selectedTokensRef?.current?.lend, ...collateralToken },
-      ["borrow"]: { ...selectedTokens.borrow, ...borrowedToken },
+      ["lend"]: {
+        ...selectedTokensRef?.current?.lend,
+        ...collateralToken,
+        lendBalanceFixedUSD: totalLendBalanceInUsd,
+        healthFactorFixed: healthFactor,
+        totalCollateralInUsd: totalCollateral,
+      },
+      ["borrow"]: {
+        ...selectedTokens.borrow,
+        ...borrowedToken,
+      },
       ["receive"]: null,
     });
   }

@@ -7,6 +7,7 @@ import {
   decimal2Fixed,
   fixed2Decimals,
   mul,
+  totalUserData,
 } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
 
@@ -18,6 +19,7 @@ import {
   AmountContainer,
   ButtonWithDropdown,
   AccordionContainer,
+  PoolHealthContainer,
 } from "../../Common";
 import BorrowLoader from "../../Loader/BorrowLoader";
 import {
@@ -123,6 +125,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     receive: null,
     borrow: null,
   });
+  console.log("selectedData", selectedData);
   //open  diffrent modal dynamically
   const [tokenListStatus, setTokenListStatus] = useState({
     isOpen: false,
@@ -144,6 +147,12 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     totalFee: 0,
     slippage: 0,
     path: [],
+  });
+
+  const [analyticsData, setAnalyticsData] = useState({
+    totalBorrowed: 0,
+    totalLend: 0,
+    healthFactor: 0,
   });
 
   //sorted Specific tokens acording to our choice
@@ -384,6 +393,13 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     checkLoading(isTokenLoading);
   }, [isTokenLoading]);
 
+  useEffect(() => {
+    if (selectedData) {
+      const data: any = totalUserData(selectedData);
+      setAnalyticsData(data);
+    }
+  }, [selectedData?.borrow]);
+
   return (
     <>
       <div className='repay_container'>
@@ -458,6 +474,13 @@ export default function RedeemCard({ uniSwapTokens }: any) {
               ? "disable_btn"
               : "visible"
           }
+        />
+        <PoolHealthContainer
+          selectedTokens={selectedData}
+          totalBorrow={analyticsData.totalBorrowed}
+          totalLend={analyticsData.totalLend}
+          healthFactor={analyticsData.healthFactor}
+          showAccordion={accordionModal}
         />
         {isConnected ? (
           <Button

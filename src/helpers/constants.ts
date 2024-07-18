@@ -31,7 +31,7 @@ export const CompoundBaseTokens: any = [
         name: "Staked Matic",
         decimals: 18,
         source: "Compound",
-        logo: "https://app.compound.finance/images/assets/asset_STMATIC.svg",
+        logo: "https://assets.coingecko.com/coins/images/25383/standard/maticx.png?1696524516",
       },
       {
         address: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
@@ -68,7 +68,7 @@ export const compoundCollateralTokens = [
     name: "Staked Matic",
     decimals: 18,
     source: "Compound",
-    logo: "https://app.compound.finance/images/assets/asset_STMATIC.svg",
+    logo: "https://assets.coingecko.com/coins/images/25383/standard/maticx.png?1696524516",
   },
   {
     address: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",

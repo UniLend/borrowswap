@@ -7,6 +7,7 @@ import {
   getButtonAction,
   getCompoundBorrowAmount,
   truncateToDecimals,
+  totalUserData,
 } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
 import { useSelector } from "react-redux";
@@ -17,6 +18,7 @@ import {
   TokenListModal,
   AmountContainer,
   ButtonWithDropdown,
+  PoolHealthContainer,
 } from "../../Common";
 import BorrowLoader from "../../Loader/BorrowLoader";
 import {
@@ -42,7 +44,7 @@ enum ActiveOperation {
 
 export default function BorrowCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
-  const { tokenList, poolList } = unilendV2Data;
+  const { tokenList, poolList }: any = unilendV2Data;
   const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState("");
   const [modalMsg, setModalMsg] = useState("");
@@ -85,6 +87,12 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     totalFee: 0,
     slippage: 0,
     path: [],
+  });
+
+  const [analyticsData, setAnalyticsData] = useState({
+    totalBorrowed: 0,
+    totalLend: 0,
+    healthFactor: 0,
   });
 
   const isLowBal: boolean = +lendAmount > selectedTokens?.lend?.balanceFixed;
@@ -132,9 +140,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
         borrowAmount = getCompoundBorrowAmount(
           lendAmount,
           Number(ltv.toFixed(2)),
-          selectedTokens.lend.collateralBalanceFixed,
-          selectedTokens.borrow.borrowBalanceFixed,
-          selectedTokens.lend.price
+          selectedTokens
         );
       }
       setBorrowAmount(borrowAmount);
@@ -332,6 +338,13 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     console.log("selectedTokens", selectedTokens);
   }, [selectedTokens]);
 
+  useEffect(() => {
+    if (selectedTokens) {
+      const data: any = totalUserData(selectedTokens);
+      setAnalyticsData(data);
+    }
+  }, [selectedTokens?.borrow]);
+
   return (
     <>
       <div className='borrow_container'>
@@ -416,6 +429,13 @@ export default function BorrowCard({ uniSwapTokens }: any) {
             }
           />
         </div>
+        <PoolHealthContainer
+          selectedTokens={selectedTokens}
+          totalBorrow={analyticsData.totalBorrowed}
+          totalLend={analyticsData.totalLend}
+          healthFactor={analyticsData.healthFactor}
+          showAccordion={accordionModal}
+        />
         {isConnected ? (
           <Button
             disabled={borrowBtn.disable}

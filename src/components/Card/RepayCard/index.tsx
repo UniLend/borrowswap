@@ -1,7 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Button, Modal } from "antd";
 import { getAllowance } from "../../../api/contracts/actions";
-import { truncateToDecimals, getRepayBtnActions, mul } from "../../../helpers";
+import {
+  truncateToDecimals,
+  getRepayBtnActions,
+  mul,
+  totalUserData,
+} from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
 
 import { useSelector } from "react-redux";
@@ -12,6 +17,7 @@ import {
   AmountContainer,
   ButtonWithDropdown,
   AccordionContainer,
+  PoolHealthContainer,
 } from "../../Common";
 import BorrowLoader from "../../Loader/BorrowLoader";
 import {
@@ -138,6 +144,11 @@ export default function RepayCard({ uniSwapTokens }: any) {
     path: [],
   });
 
+  const [analyticsData, setAnalyticsData] = useState({
+    totalBorrowed: 0,
+    totalLend: 0,
+    healthFactor: 0,
+  });
   const handleLendAmount = (amount: string) => {
     setLendAmount(amount);
   };
@@ -337,6 +348,14 @@ export default function RepayCard({ uniSwapTokens }: any) {
     checkLoading(isTokenLoading);
   }, [isTokenLoading]);
 
+  useEffect(() => {
+    if (selectedData) {
+      const data: any = totalUserData(selectedData);
+
+      setAnalyticsData(data);
+    }
+  }, [selectedData?.borrow]);
+
   return (
     <>
       <div className='repay_container'>
@@ -417,7 +436,13 @@ export default function RepayCard({ uniSwapTokens }: any) {
               : "disable_btn"
           }
         />
-
+        <PoolHealthContainer
+          selectedTokens={selectedData}
+          totalBorrow={analyticsData.totalBorrowed}
+          totalLend={analyticsData.totalLend}
+          healthFactor={analyticsData.healthFactor}
+          showAccordion={accordionModal}
+        />
         {isConnected ? (
           <Button
             disabled={repayButton.disable}
