@@ -413,7 +413,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           <div>
             <p className='paragraph06 '>New LTV</p>
             <p className='paragraph06'>
-              {selectedLTV}%/
+              {selectedLTV}% /{" "}
               {unilendPool?.maxLTV || selectedTokens?.lend?.ltv || "75"}%
             </p>
           </div>
