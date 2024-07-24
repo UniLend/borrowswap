@@ -464,7 +464,8 @@ export default function RepayCard({ uniSwapTokens }: any) {
           </div>
         )}
         <AccordionContainer
-          selectedTokens={selectedData}
+          tokenIn={selectedData?.borrow?.symbol}
+          tokenOut={selectedData?.lend?.symbol}
           b2rRatio={b2rRatio}
           fee={uniQuote.totalFee}
           slippage={uniQuote.slippage}

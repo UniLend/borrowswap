@@ -452,7 +452,8 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           </div>
         )}
         <AccordionContainer
-          selectedTokens={selectedTokens}
+          tokenIn={selectedTokens?.borrow?.symbol}
+          tokenOut={selectedTokens?.receive?.symbol}
           b2rRatio={b2rRatio}
           fee={uniQuote.totalFee}
           slippage={uniQuote.slippage}
