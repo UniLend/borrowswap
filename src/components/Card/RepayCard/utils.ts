@@ -36,7 +36,7 @@ export const handleQuote = async (
     const borrowDecimals = selectedDataRef.current?.borrow?.decimals;
     const lendAddress = selectedDataRef.current?.lend?.address;
     const borrowAddress = selectedDataRef.current?.borrow?.address;
-    const chainId = 18731 ? 137 : chain?.id;
+    // const chainId = 18731 ? 137 : chain?.id;
     let flag = false;
     if (
       String(borrowAddress).toLowerCase() === String(lendAddress).toLowerCase()
@@ -67,19 +67,12 @@ export const handleQuote = async (
       //   lendAddress,
       //   chainId
       // );
-      console.log("tokenDataQuoteTokenIn", tokenIn);
-      console.log("tokenDataQuotetokenOut", tokenOut);
       const { quoteValue, quoteFee, quotePath }: any = await quoteWithSdk(
         tokenIn,
         tokenOut
       );
 
       if (quoteValue) {
-        console.log(
-          "quotevalue",
-          quoteValue,
-          selectedDataRef.current?.borrow?.borrowBalanceFixed
-        );
         // const coveredValue = Number(quoteValue) + 0.05;
         setb2rRatio(Number(quoteValue));
         setUniQuote({
@@ -219,7 +212,7 @@ export const handleSelectReceiveToken = async (
     selectedData.pool.borrowToken,
     address
   );
-  console.log("tokennew", data);
+  console.log("tokennew", data, selectedData);
   setSelectedData({
     ...selectedData,
     ["lend"]: null,
