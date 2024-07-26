@@ -1,4 +1,4 @@
-import { getQuote } from "../../../api/axios/calls";
+import { getQuote, getTokenPrice } from "../../../api/axios/calls";
 import {
   getAllowance,
   getBorrowTokenData,
@@ -7,6 +7,8 @@ import {
   handleApproval,
   handleCompoundSwap,
   handleSwap,
+  getCollateralValue,
+  findRedeemableValue,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
 import { quoteWithSdk } from "../../../api/uniswap/quotes";
@@ -20,6 +22,7 @@ import {
   getCurrentLTV,
   truncateToDecimals,
   mul,
+  getCompoundHealthFactor,
 } from "../../../helpers";
 import NotificationMessage from "../../Common/NotificationMessage";
 
@@ -59,16 +62,18 @@ export const checkLiquidity = (
   }
 };
 
-export const handleLTVSlider = (
+export const handleLTVSlider = async (
   value: number,
   lendAmount: string,
   selectedTokens: any,
   b2rRatio: number,
   setSelectedLTV: (value: number) => void,
   setBorrowAmount: (amount: number) => void,
-  setReceiveAmount: (amount: string) => void
+  setReceiveAmount: (amount: string) => void,
+  setLtvError: (amount: boolean) => void
 ) => {
   setSelectedLTV(value);
+  setLtvError(false);
   let borrowAmount = 0;
   if (selectedTokens.borrow.source === "Unilend") {
     borrowAmount = getBorrowAmount(
@@ -78,13 +83,10 @@ export const handleLTVSlider = (
       selectedTokens.borrow
     );
   } else {
-    borrowAmount = getCompoundBorrowAmount(
-      lendAmount,
-      value,
-      selectedTokens.lend.collateralBalanceFixed,
-      selectedTokens.borrow.borrowBalanceFixed,
-      selectedTokens.lend.price
-    );
+    console.log("selectedDat address", selectedTokens);
+
+    borrowAmount = getCompoundBorrowAmount(lendAmount, value, selectedTokens);
+    // borrowAmount = getCompoundBorrowAmount(lendAmount, value, selectedTokens);
   }
 
   setBorrowAmount(borrowAmount);
@@ -115,9 +117,11 @@ export const handleQuote = async (
   setSelectedLTV: (value: number) => void,
   setQuoteError: (value: boolean) => void,
   setIsTokenLoading: (value: any) => void,
-  setUniQuote: (quoteData: any) => void
+  setUniQuote: (quoteData: any) => void,
+  setAccordionModal: (value: any) => void
 ) => {
   try {
+    setAccordionModal(false);
     if (
       String(selectedTokensRef.current.borrow.address).toLowerCase() ===
       String(selectedTokensRef.current.receive.address).toLowerCase()
@@ -128,7 +132,7 @@ export const handleQuote = async (
       setSelectedLTV(5);
     } else {
       const tokenIn = {
-        chainId: chain?.id == 16715 ? 137 : chain?.id,
+        chainId: chain?.id == 18731 ? 137 : chain?.id,
         address: selectedTokensRef.current.borrow.address,
         decimals: selectedTokensRef.current.borrow.decimals,
         symbol: selectedTokensRef.current.borrow.symbol,
@@ -136,7 +140,7 @@ export const handleQuote = async (
       };
 
       const tokenOut = {
-        chainId: chain?.id == 16715 ? 137 : chain?.id,
+        chainId: chain?.id == 18731 ? 137 : chain?.id,
         address: selectedTokensRef.current.receive.address,
         decimals: selectedTokensRef.current.receive.decimals,
         symbol: selectedTokensRef.current.receive.symbol,
@@ -147,16 +151,16 @@ export const handleQuote = async (
       //   address,
       //   selectedTokensRef.current.borrow.address,
       //   selectedTokensRef.current.receive.address,
-      //   chain?.id == 16715 ? 137 : chain?.id
+      //   chain?.id == 18731 ? 137 : chain?.id
       // );
       const { quoteValue, quoteFee, quotePath }: any = await quoteWithSdk(
         tokenIn,
         tokenOut
       );
-
+      console.log("quoteValue", quoteValue);
       if (quoteValue) {
         setb2rRatio(Number(quoteValue));
-
+        setAccordionModal(true);
         setUniQuote({
           totalFee: quoteFee,
           slippage: 0.5,
@@ -220,7 +224,7 @@ export const handleSwapTransaction = async (
         );
       }, 3000);
     } else {
-      setOperationProgress(2);
+      setOperationProgress(1);
       setModalMsg(
         selectedTokens.lend.symbol +
           "-" +
@@ -267,11 +271,11 @@ export const handleSwapTransaction = async (
   } catch (error: any) {
     setIsBorrowProgressModal(false);
     handleClear();
-    if (error.reason) {
-      NotificationMessage("error", `${error.reason}`);
-    } else {
-      NotificationMessage("error", `${error}`);
-    }
+    const msg =
+      error?.code === "ACTION_REJECTED"
+        ? "Transaction Denied"
+        : "Something went wrong, Refresh and Try again";
+    NotificationMessage("error", msg);
     console.log("Error1", { error });
   }
 };
@@ -290,7 +294,10 @@ export const handleTokenSelection = async (
   handleQuoteValue: () => void,
   handleSelectLendToken: (value: any) => void,
   handleSelectBorrowToken: (value: any) => void,
-  setSelectedLTV: (value: any) => void
+  setSelectedLTV: (value: any) => void,
+  setAccordionModal: (value: any) => void,
+  setIsLowLiquidity: (value: any) => void,
+  chain: any
 ) => {
   setSelectedTokens({
     ...selectedTokens,
@@ -305,23 +312,26 @@ export const handleTokenSelection = async (
       ["borrow"]: null,
       ["receive"]: null,
     });
+    setAccordionModal(false);
     setReceiveAmount("");
     setLendAmount("");
     setSelectedLTV(5);
+    setIsLowLiquidity(false);
   } else if (tokenListStatus.operation == "borrow") {
-    console.log(token.address);
     handleSelectBorrowToken(token);
     setSelectedTokens({
       ...selectedTokens,
       [tokenListStatus.operation]: { ...token, ...tokenBal },
-      ["receive"]: null,
     });
+
+    setAccordionModal(false);
     setReceiveAmount("");
   } else if (tokenListStatus.operation == "receive") {
     setSelectedTokens({
       ...selectedTokens,
       [tokenListStatus.operation]: { ...token, ...tokenBal },
     });
+    setAccordionModal(false);
     setIsTokenLoading({ ...isTokenLoading, rangeSlider: true });
     setReceiveAmount("");
     handleQuoteValue();
@@ -423,6 +433,7 @@ export const handleSelectBorrowToken = async (
         ...selectedTokens,
         ["lend"]: { ...selectedTokens.lend, ...data.token0 },
         ["borrow"]: data.token1,
+        ["receive"]: null,
       });
       const currentLtv = getCurrentLTV(data.token1, data.token0);
 
@@ -436,6 +447,7 @@ export const handleSelectBorrowToken = async (
         ...selectedTokens,
         ["lend"]: { ...selectedTokens.lend, ...data.token1 },
         ["borrow"]: data.token0,
+        ["receive"]: null,
       });
       const currentLtv = getCurrentLTV(data.token0, data.token1);
       setCurrentLTV(currentLtv);
@@ -451,26 +463,65 @@ export const handleSelectBorrowToken = async (
       selectedTokensRef?.current?.lend,
       address
     );
+    const { totalLendBalanceInUsd, totalBorrow, totalCollateral }: any =
+      await getCollateralValue(address);
+    // const { redeemSelectedToken, totalLendBalanceInUsd, totalBorrow, totalCollateralValue } = await findRedeemableValue(
+    //   address,
+    //   selectedTokensRef?.current?.lend,
+    // );
+    console.log("redeemFunction");
     const borrowedToken = await getBorrowTokenData(token, address);
     setIsTokenLoading({ ...isTokenLoading, pools: false });
     const ltv = getCompoundCurrentLTV(
-      borrowedToken?.borrowBalanceFixed,
-      collateralToken?.collateralBalanceFixed,
+      totalBorrow,
+      totalCollateral,
       collateralToken?.price
     );
+
     console.log(
       "LTV",
       ltv,
       borrowedToken?.borrowBalanceFixed,
-      collateralToken?.collateralBalanceFixed,
-      collateralToken?.price
+      collateralToken?.price,
+      totalLendBalanceInUsd,
+      totalBorrow,
+      totalCollateral
     );
-
+    const healthFactor = getCompoundHealthFactor(totalBorrow, totalCollateral);
     setCurrentLTV(ltv);
     setSelectedTokens({
       ...selectedTokens,
-      ["lend"]: { ...selectedTokensRef?.current?.lend, ...collateralToken },
-      ["borrow"]: { ...selectedTokens.borrow, ...borrowedToken },
+      ["lend"]: {
+        ...selectedTokensRef?.current?.lend,
+        ...collateralToken,
+        lendBalanceFixedUSD: totalLendBalanceInUsd,
+        healthFactorFixed: healthFactor,
+        totalCollateralInUsd: totalCollateral,
+      },
+      ["borrow"]: {
+        ...selectedTokens.borrow,
+        ...borrowedToken,
+      },
+      ["receive"]: null,
     });
   }
+};
+
+export const calculateLTVFromReceiveAmount = (
+  receiveAmount: number,
+  lendAmount: string,
+  lendToken: any,
+  b2rRatio: number
+) => {
+  const lendAmountNum =
+    Number(lendAmount) +
+    Number(lendToken?.lendBalanceFixed || lendToken?.collateralBalanceFixed);
+  if (isNaN(lendAmountNum) || isNaN(receiveAmount) || b2rRatio === 0) {
+    return 0;
+  }
+  const borrowAmount = receiveAmount / b2rRatio;
+  const lendPrice = lendToken?.price || lendToken?.priceRatio || 1;
+  const collateralValue = lendAmountNum * lendPrice;
+  const ltv = (borrowAmount / collateralValue) * 100;
+  return Math.max(Number(ltv.toFixed(2)), 0);
 };

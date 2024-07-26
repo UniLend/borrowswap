@@ -1,5 +1,6 @@
 import {
   getCollateralValue,
+  getTotalBorrowBalance,
   handleCompoundRedeem,
   handleRedeem,
 } from "./../../../api/contracts/actions";
@@ -13,6 +14,7 @@ import {
   handleApproval,
   handleCompoundRepay,
   handleRepay,
+  findRedeemableValue,
 } from "../../../api/contracts/actions";
 import { contractAddresses } from "../../../api/contracts/address";
 import {
@@ -61,6 +63,7 @@ import { quoteWithSdk } from "../../../api/uniswap/quotes";
 // };
 
 export const handleQuote = async (
+  selectedDataRef: any,
   selectedData: any,
   chain: any,
   address: any,
@@ -71,13 +74,13 @@ export const handleQuote = async (
   setReceiveAmount: (value: string) => void,
   setQuoteError: (value: boolean) => void,
   setIsTokenLoading: (value: any) => void,
-  setUniQuote: (value: any) => void
+  setUniQuote: (value: any) => void,
+  setAccordionModal: (value: any) => void
 ) => {
   try {
-    const borrowDecimals = selectedData?.lend?.decimals;
-    const lendAddress = selectedData?.lend?.address;
-    const borrowAddress = selectedData?.receive?.address;
-    const chainId = 16715 ? 137 : chain?.id;
+    setAccordionModal(false);
+    const lendAddress = selectedDataRef.current?.lend?.address;
+    const borrowAddress = selectedDataRef.current?.receive?.address;
     let flag = false;
     if (
       String(borrowAddress).toLowerCase() === String(lendAddress).toLowerCase()
@@ -85,35 +88,28 @@ export const handleQuote = async (
       setb2rRatio(1);
       setReceiveAmount(
         truncateToDecimals(
-          Number(selectedData?.lend?.redeemBalanceFixed),
-          selectedData?.lend?.decimals
+          Number(selectedDataRef.current?.lend?.redeemBalanceFixed),
+          selectedDataRef.current?.lend?.decimals
         ).toString()
       );
-      // setReceiveAmount(selectedData?.lend?.redeemBalanceFixed);
       flag = true;
     } else {
       const tokenIn = {
-        chainId: chain?.id == 16715 ? 137 : chain?.id,
-        address: selectedData?.lend?.address,
-        decimals: selectedData?.lend?.decimals,
-        symbol: selectedData?.lend?.symbol,
-        name: selectedData?.lend?.name,
+        chainId: chain?.id == 18731 ? 137 : chain?.id,
+        address: selectedDataRef.current?.lend?.address,
+        decimals: selectedDataRef.current?.lend?.decimals,
+        symbol: selectedDataRef.current?.lend?.symbol,
+        name: selectedDataRef.current?.lend?.name,
       };
 
       const tokenOut = {
-        chainId: chain?.id == 16715 ? 137 : chain?.id,
-        address: selectedData?.receive?.address,
-        decimals: selectedData?.receive?.decimals,
-        symbol: selectedData?.receive?.symbol,
-        name: selectedData?.receive?.name,
+        chainId: chain?.id == 18731 ? 137 : chain?.id,
+        address: selectedDataRef.current?.receive?.address,
+        decimals: selectedDataRef.current?.receive?.decimals,
+        symbol: selectedDataRef.current?.receive?.symbol,
+        name: selectedDataRef.current?.receive?.name,
       };
-      //   const value = await getQuote(
-      //     decimal2Fixed(1, borrowDecimals),
-      //     address,
-      //     lendAddress,
-      //     borrowAddress,
-      //     chainId
-      //   );
+
       const { quoteValue, quoteFee, quotePath }: any = await quoteWithSdk(
         tokenIn,
         tokenOut
@@ -126,30 +122,22 @@ export const handleQuote = async (
           slippage: 0.5,
           path: quotePath,
         });
-        // const payLendAmount =
-        //   quoteValue * (selectedData?.lend?.redeemBalanceFixed || 0);
         const payLendAmount = mul(
           quoteValue,
-          selectedData?.lend?.redeemBalanceFixed || 0
+          selectedDataRef.current?.lend?.redeemBalanceFixed || 0
         );
-        // quoteValue * (selectedData?.lend?.redeemBalanceFixed || 0);
-
         console.log(
           "pay amount",
-          selectedData,
+          selectedDataRef.current,
           payLendAmount,
-          selectedData?.lend?.redeemBalanceFixed,
+          selectedDataRef.current?.lend?.redeemBalanceFixed,
           quoteValue
         );
-        // setReceiveAmount(
-        //   truncateToDecimals(
-        //     Number(payLendAmount),
-        //     selectedData?.receive?.decimals
-        //   ).toString()
-        // );
+
         setReceiveAmount(payLendAmount.toString());
-        setLendAmount(selectedData?.lend?.redeemBalanceFixed);
+        setLendAmount(selectedDataRef.current?.lend?.redeemBalanceFixed);
         flag = true;
+        setAccordionModal(true);
       }
     }
 
@@ -158,11 +146,9 @@ export const handleQuote = async (
   } catch (error: any) {
     setQuoteError(true);
     setIsTokenLoading({ ...isTokenLoading, quotation: false });
-    console.error("Error in handleQuote:", error);
-
     NotificationMessage(
       "error",
-      error?.message || "Error occurred in handleQuote"
+      `Swap is not available for ${selectedDataRef.current?.receive.symbol}, please select different receive token.`
     );
   } finally {
     // setIsTokenLoading({ ...isTokenLoading, quotation: false });
@@ -198,8 +184,6 @@ export const handleSelectRepayToken = async (
       address
     );
 
-    console.log("data", data, poolData);
-
     if (data.token0.address === poolData.borrowToken.id) {
       setSelectedData({
         ...selectedData,
@@ -233,42 +217,48 @@ export const handleSelectRepayToken = async (
       );
     }
   } else {
-    const { redeemBalanceInUSD } = await getCollateralValue(address);
+    const { redeemSelectedToken, totalLendBalanceInUsd } =
+      await findRedeemableValue(address, poolData.borrowToken);
+
+    const { borrowBal } = await getTotalBorrowBalance(address);
     const tokenData = await getCollateralTokenData(
       poolData.borrowToken,
       address
     );
 
-    let minValue = Math.min(
-      Number(tokenData?.collateralBalance),
-      Number(
-        decimal2Fixed(
-          Number(redeemBalanceInUSD / tokenData.price),
-          Number(tokenData.decimals)
-        )
+    let minRedeemValuenew = Number(
+      decimal2Fixed(
+        Number(redeemSelectedToken / tokenData.price),
+        Number(tokenData.decimals)
       )
     );
-    if (minValue != Number(tokenData?.collateralBalance)) {
-      minValue = minValue * (tokenData.ltv / 100);
-    }
 
     setSelectedData({
       ...selectedData,
       ["pool"]: poolData,
       ["lend"]: {
         ...tokenData,
-        redeemBalance: minValue,
-        redeemBalanceFixed: fixed2Decimals(minValue, tokenData.decimals),
+        redeemBalance: minRedeemValuenew,
+        redeemBalanceFixed: fixed2Decimals(
+          minRedeemValuenew,
+          tokenData.decimals
+        ),
+        redeemBalanceFixedNew: fixed2Decimals(
+          minRedeemValuenew,
+          tokenData.decimals
+        ),
+        lendBalanceFixedUSD: totalLendBalanceInUsd,
       },
       ["receive"]: null,
-      ["borrow"]: tokenData,
+      ["borrow"]: {
+        ...tokenData,
+        TotalBorrowBalanceFixed: borrowBal,
+      },
     });
-    setLendAmount(fixed2Decimals(minValue, tokenData.decimals));
+    setLendAmount(fixed2Decimals(minRedeemValuenew, tokenData.decimals));
   }
   setIsTokenLoading({ ...isTokenLoading, pool: false });
 };
-
-const getCompoundData = () => {};
 
 export const handleSelectReceiveToken = async (
   data: any,
@@ -346,7 +336,15 @@ export const handleRepayTransaction = async (
     //     "-" +
     //     selectedData.receive.symbol
     // );
-    setOperationProgress(2);
+
+    console.log(
+      "redeem Data",
+      redeemAmount,
+      address,
+      selectedData,
+      borrowAmount
+    );
+    setOperationProgress(1);
     let hash;
     if (selectedData.borrow.source == "Unilend") {
       hash = await handleRedeem(
@@ -373,18 +371,15 @@ export const handleRepayTransaction = async (
       setModalMsg("Transaction is Success!");
       handleClear();
       NotificationMessage("success", `Redeem is Successful`);
-      // setTimeout(() => {
-      //   setIsBorrowProgressModal(false);
-      // }, 1000);
     }
   } catch (error: any) {
     setIsBorrowProgressModal(false);
     handleClear();
-    if (error.reason) {
-      NotificationMessage("error", `${error.reason}`);
-    } else {
-      NotificationMessage("error", `${error}`);
-    }
+    const msg =
+      error?.code === "ACTION_REJECTED"
+        ? "Transaction Denied"
+        : "Something went wrong, Refresh and Try again";
+    NotificationMessage("error", msg);
     console.log("Error1", { error });
   }
 };

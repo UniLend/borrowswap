@@ -6,7 +6,6 @@ import { setPools, setTokens, setPositions } from "../states/unilendV2Reducer";
 import { getTokenLogo } from "../utils";
 import { getPoolCreatedGraphQuery } from "../api/axios/query";
 import { getUserProxy } from "../api/contracts/actions";
-
 const READABLE_FORM_LEN = 8;
 
 export const isZeroAddress = (address: any) => {
@@ -24,10 +23,8 @@ export const abiEncode = (path: Array<String>) => {
 };
 
 export const findBorrowToken = (poolList: any, token: any) => {
-  console.log("tokenPools", poolList);
   const tokenPools = Object.values(poolList).filter((pool: any) => {
     if (pool.token0.address == token || pool.token1.address == token) {
-      console.log("tokenPools", token);
       return true;
     }
   });
@@ -107,7 +104,6 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
       "0x84c6d5Df8a5e3ab9859708dA7645cC58176a26C0"
     );
     const data = await fetchGraphQlData(chain?.id, query);
-    console.log("data", data);
     // const allPositions = data?.positions;
     const allPositions = data?.positions?.map((item: any) => ({
       ...item,
@@ -276,10 +272,20 @@ export const getCompoundCurrentLTV = (
 ) => {
   const ltv =
     Number(borrowBal) > 0 && Number(collteralBal) > 0
-      ? Number(borrowBal) / (Number(collteralBal) * Number(priceRatio))
+      ? Number(borrowBal) / Number(collteralBal)
       : 0;
 
   return (Number(ltv.toFixed(4)) * 100).toFixed(2);
+};
+
+export const getCompoundHealthFactor = (
+  borrowedToken: any,
+  collateralToken: any
+): number => {
+  // Health factor calculation
+  const healthFactor: number = collateralToken / borrowedToken;
+
+  return isNaN(healthFactor) ? 0 : healthFactor;
 };
 
 export const getBorrowAmount = (
@@ -297,19 +303,36 @@ export const getBorrowAmount = (
   return borrowAmount > 0 ? borrowAmount : 0;
 };
 
+// export const getCompoundBorrowAmount = (
+//   amount: any,
+//   ltv: any,
+//   collateralTokenBalance: any,
+//   borrowBalanceFixed: any,
+//   priceRatio: any
+// ) => {
+//   const borrowAmount =
+//     (Number(amount) + Number(collateralTokenBalance)) *
+//       Number(priceRatio) *
+//       (ltv / 100) -
+//     Number(borrowBalanceFixed);
+
+//   return borrowAmount > 0 ? borrowAmount : 0;
+// };
+
 export const getCompoundBorrowAmount = (
   amount: any,
   ltv: any,
-  collateralTokenBalance: any,
-  borrowBalanceFixed: any,
-  priceRatio: any
+  selectedTokens: any
 ) => {
+  const lendAmount = Number(amount) * selectedTokens?.lend?.price;
+  const totalCollateral =
+    lendAmount + Number(selectedTokens?.lend?.totalCollateralInUsd);
   const borrowAmount =
-    (Number(amount) + Number(collateralTokenBalance)) *
-      Number(priceRatio) *
-      (ltv / 100) -
-    Number(borrowBalanceFixed);
+    (totalCollateral * (ltv / 100) -
+      Number(selectedTokens?.borrow?.TotalBorrowBalanceFixed)) /
+    selectedTokens?.borrow?.price;
 
+  console.log("borrowAmount compound", borrowAmount);
   return borrowAmount > 0 ? borrowAmount : 0;
 };
 
@@ -376,7 +399,9 @@ export const getButtonAction = (
   isLowLiquidity: boolean,
   isLowBal: boolean,
   connectWallet: any,
-  receiveAmount: string
+  receiveAmount: string,
+  ltvError: boolean,
+  borrowAmount: any
 ) => {
   let btn = {
     text: "Borrow",
@@ -390,16 +415,10 @@ export const getButtonAction = (
     const borrowValueInUsd =
       selectedTokens?.borrow?.borrowBalanceFixed *
       selectedTokens?.borrow?.price;
-    // const receiveAmountInUSd =  selectedTokens?.Receive?.borrowBalanceFixed *
-    // selectedTokens?.borrow?.price;
+    const borrowValue = borrowAmount;
     const borrowMin = selectedTokens?.borrow?.borrowMinFixed - borrowValueInUsd;
-    const lendValueInUsd =
-      Number(lendAmount ?? 1) * selectedTokens?.lend?.price;
-    console.log("lendValueInUsd", lendValueInUsd);
-    console.log("borrowValue", borrowValueInUsd);
-    console.log("borrowMin", borrowMin);
-    console.log("receiveAmount", receiveAmount);
-    isLowValueCompound = lendValueInUsd <= borrowMin;
+
+    isLowValueCompound = borrowValue <= borrowMin;
   }
 
   if (!connectWallet) {
@@ -420,17 +439,18 @@ export const getButtonAction = (
     btn.text = "Receive Amount must not 0";
   } else if (quoteError) {
     btn.text = "Swap not available";
+  } else if (ltvError) {
+    btn.text = "Exceeds LTV Limit";
   } else if (isLowLiquidity) {
     btn.text = "Low liquidity";
+  } else if (isLowValueCompound) {
+    btn.text = "Min. $100 borrow required";
   } else if (lendAmount === "" || +lendAmount == 0) {
     if (lend.collateralBalanceFixed === 0) {
       btn.text = "Enter pay token value";
     }
-  } else if (isLowValueCompound) {
-    btn.text = "Min. $100 borrow required";
   }
 
-  // btn.disable = !!(btn.text !== "Borrow");
   btn.disable = !!(btn.text !== "Borrow" && btn.text !== "Connect Wallet");
 
   return btn;
@@ -526,4 +546,18 @@ export const getRepayBtnActionsRedeem = (
 
   btn.disable = !!(btn.text !== "Redeem" && btn.text !== "Connect Wallet");
   return btn;
+};
+
+export const totalUserData = (selectedTokens: any) => {
+  const totalLend =
+    selectedTokens?.borrow?.source === "Unilend"
+      ? selectedTokens?.lend?.lendBalanceFixed ?? 0
+      : selectedTokens?.lend?.lendBalanceFixedUSD ?? 0;
+  const totalBorrowed =
+    selectedTokens?.borrow?.source === "Unilend"
+      ? selectedTokens?.borrow?.borrowBalanceFixed ?? 0
+      : selectedTokens?.borrow?.TotalBorrowBalanceFixed ?? 0;
+  const healthFactor = selectedTokens?.lend?.healthFactorFixed ?? 0;
+
+  return { totalLend, totalBorrowed, healthFactor };
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Button, Modal } from "antd";
 import { getAllowance } from "../../../api/contracts/actions";
 import {
@@ -7,6 +7,7 @@ import {
   decimal2Fixed,
   fixed2Decimals,
   mul,
+  totalUserData,
 } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
 
@@ -18,6 +19,7 @@ import {
   AmountContainer,
   ButtonWithDropdown,
   AccordionContainer,
+  PoolHealthContainer,
 } from "../../Common";
 import BorrowLoader from "../../Loader/BorrowLoader";
 import {
@@ -28,7 +30,7 @@ import {
   // checkLiquidity
 } from "./utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { CompoundBaseTokens } from "../../../helpers/constants";
+// import { compoundCollateralTokens } from "../../../helpers/constants";
 
 enum ActiveOperation {
   BRROW = "Borrow_Swap",
@@ -123,6 +125,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     receive: null,
     borrow: null,
   });
+  console.log("selectedData", selectedData);
   //open  diffrent modal dynamically
   const [tokenListStatus, setTokenListStatus] = useState({
     isOpen: false,
@@ -135,12 +138,21 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     receive: false,
     quotation: false,
   });
+  const selectedDataRef = useRef(selectedData);
+  selectedDataRef.current = selectedData;
+  const [accordionModal, setAccordionModal] = useState<boolean>(false);
   const [unilendPool, setUnilendPool] = useState(null as any | null);
   const [operationProgress, setOperationProgress] = useState(1);
   const [uniQuote, setUniQuote] = useState({
     totalFee: 0,
     slippage: 0,
     path: [],
+  });
+
+  const [analyticsData, setAnalyticsData] = useState({
+    totalBorrowed: 0,
+    totalLend: 0,
+    healthFactor: 0,
   });
 
   //sorted Specific tokens acording to our choice
@@ -171,12 +183,12 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   }
 
   const handleLendAmount = (amount: string) => {
-    const TrunAmount = truncateToDecimals(
-      Number(amount),
-      selectedData?.lend?.decimals
-    );
+    // const TrunAmount = truncateToDecimals(
+    //   Number(amount),
+    //   selectedData?.lend?.decimals
+    // );
 
-    // setLendAmount(TrunAmount);
+    setLendAmount(amount);
 
     setReceiveAmount(mul(Number(amount), b2rRatio).toString());
     setIsMax(false);
@@ -209,7 +221,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
 
   const getOprationToken = () => {
     if (tokenListStatus.operation === "pool") {
-      return [...pools, ...CompoundBaseTokens];
+      return [...pools, ...compoundCollateralTokens];
     } else if (tokenListStatus.operation === "receive") {
       return tokens;
     } else if (tokenListStatus.operation === "lend") {
@@ -247,6 +259,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   //handle quote for Uniswap
   const handleQuoteValue = async () => {
     await handleQuote(
+      selectedDataRef,
       selectedData,
       chain,
       address,
@@ -257,7 +270,8 @@ export default function RedeemCard({ uniSwapTokens }: any) {
       handleReceiveAmount,
       setQuoteError,
       setIsTokenLoading,
-      setUniQuote
+      setUniQuote,
+      setAccordionModal
     );
     setIsMax(true);
   };
@@ -314,6 +328,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
       handleRepayToken(data);
       setReceiveAmount("");
       setLendAmount("");
+      setAccordionModal(false);
       // if(data.source == 'Compound'){
       //   const tokenBal = await getAllowance(data.borrowToken, address);
       //   setSelectedData({
@@ -338,6 +353,9 @@ export default function RedeemCard({ uniSwapTokens }: any) {
         ...selectedData,
         [tokenListStatus.operation]: { ...data, ...tokenBal },
       });
+      setIsTokenLoading({ ...isTokenLoading, quotation: true });
+      setReceiveAmount("");
+      handleQuoteValue();
     }
   };
 
@@ -346,20 +364,16 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   };
 
   // Loading Quote Data based on lend State
-  useEffect(() => {
-    if (
-      selectedData?.pool &&
-      selectedData?.receive &&
-      !tokenListStatus.isOpen
-    ) {
-      setIsTokenLoading({ ...isTokenLoading, quotation: true });
-      handleQuoteValue();
-    }
-  }, [selectedData?.receive]);
-
-  useEffect(() => {
-    console.log("selectedData", receiveAmount);
-  }, [receiveAmount]);
+  // useEffect(() => {
+  //   if (
+  //     selectedData?.pool &&
+  //     selectedData?.receive &&
+  //     !tokenListStatus.isOpen
+  //   ) {
+  //     setIsTokenLoading({ ...isTokenLoading, quotation: true });
+  //     handleQuoteValue();
+  //   }
+  // }, [selectedData?.receive]);
 
   // useEffect(() => {
   //     if(selectedData?.pool?.source === 'compound'){
@@ -378,6 +392,13 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   useEffect(() => {
     checkLoading(isTokenLoading);
   }, [isTokenLoading]);
+
+  useEffect(() => {
+    if (selectedData) {
+      const data: any = totalUserData(selectedData);
+      setAnalyticsData(data);
+    }
+  }, [selectedData?.borrow]);
 
   return (
     <>
@@ -400,35 +421,23 @@ export default function RedeemCard({ uniSwapTokens }: any) {
         <AmountContainer
           balance={selectedData?.lend?.balanceFixed}
           value={Number(lendAmount) > 0 ? lendAmount : "0"}
-          onChange={(e: any) => handleLendAmount(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            handleLendAmount(e.target.value)
+          }
           onMaxClick={() => {
-            // console.log(selectedData);
-            setLendAmount(
-              truncateToDecimals(
-                Number(selectedData?.lend?.redeemBalanceFixed),
-                selectedData?.lend?.decimals
-              )
-            );
-
-            setReceiveAmount(
-              mul(Number(selectedData?.lend?.redeemBalanceFixed), b2rRatio)
-            );
+            const maxAmount = (
+              selectedData?.borrow?.redeemBalanceFixed || "0"
+            ).toString();
+            setLendAmount(maxAmount);
+            setReceiveAmount((Number(maxAmount) * b2rRatio).toString());
             setIsMax(true);
           }}
-          // buttonText={selectedData?.pool?.otherToken?.symbol}
           buttonText={
             selectedData?.pool?.source === "Compound"
               ? selectedData?.lend?.symbol
               : selectedData?.pool?.borrowToken?.symbol
           }
           isShowMaxBtn
-          // onClick={
-          //   selectedData?.pool !== null &&
-          //   selectedData.pool.source !== "Compound" &&
-          //   selectedData.pool.source !== "Unilend"
-          //     ? () => handleOpenTokenList("receive")
-          //     : () => {}
-          // }
           onClick={() => {}}
           btnClass={
             selectedData?.pool === null ||
@@ -441,6 +450,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           //   selectedData?.pool?.source === "Compound" ? "" : "disable_btn"
           // }
         />
+
         <p className='paragraph06 label'>You Receive</p>
         <AmountContainer
           balance={truncateToDecimals(
@@ -465,6 +475,13 @@ export default function RedeemCard({ uniSwapTokens }: any) {
               : "visible"
           }
         />
+        <PoolHealthContainer
+          selectedTokens={selectedData}
+          totalBorrow={analyticsData.totalBorrowed}
+          totalLend={analyticsData.totalLend}
+          healthFactor={analyticsData.healthFactor}
+          showAccordion={accordionModal}
+        />
         {isConnected ? (
           <Button
             disabled={redeemButton.disable}
@@ -479,11 +496,13 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           <ConnectButton />
         )}
         <AccordionContainer
-          selectedTokens={selectedData}
+          tokenIn={selectedData?.borrow?.symbol}
+          tokenOut={selectedData?.receive?.symbol}
           b2rRatio={b2rRatio}
           fee={uniQuote.totalFee}
           slippage={uniQuote.slippage}
           lendAmount={lendAmount}
+          showAccordion={accordionModal}
         />
       </div>
 

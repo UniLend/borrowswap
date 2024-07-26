@@ -3,8 +3,11 @@ import { Button, Slider, Modal } from "antd";
 import { getUserProxy } from "../../../api/contracts/actions";
 import {
   findBorrowToken,
+  getBorrowAmount,
   getButtonAction,
+  getCompoundBorrowAmount,
   truncateToDecimals,
+  totalUserData,
 } from "../../../helpers";
 import type { UnilendV2State } from "../../../states/store";
 import { useSelector } from "react-redux";
@@ -15,9 +18,11 @@ import {
   TokenListModal,
   AmountContainer,
   ButtonWithDropdown,
+  PoolHealthContainer,
 } from "../../Common";
 import BorrowLoader from "../../Loader/BorrowLoader";
 import {
+  calculateLTVFromReceiveAmount,
   checkLiquidity,
   getOprationToken,
   handleLTVSlider,
@@ -39,7 +44,7 @@ enum ActiveOperation {
 
 export default function BorrowCard({ uniSwapTokens }: any) {
   const unilendV2Data = useSelector((state: UnilendV2State) => state.unilendV2);
-  const { tokenList, poolList } = unilendV2Data;
+  const { tokenList, poolList }: any = unilendV2Data;
   const { address, isConnected, chain } = useWalletHook();
   const [lendAmount, setLendAmount] = useState("");
   const [modalMsg, setModalMsg] = useState("");
@@ -66,7 +71,8 @@ export default function BorrowCard({ uniSwapTokens }: any) {
   const [b2rRatio, setb2rRatio] = useState(1);
   const [userProxy, setUserProxy] = useState<any>(address);
   const [quoteError, setQuoteError] = useState<boolean>(false);
-  const [isLowLiquidity, setIsLowLiquidity] = useState(false);
+  const [isLowLiquidity, setIsLowLiquidity] = useState<boolean>(false);
+  const [ltvError, setLtvError] = useState<boolean>(false);
   const [isTokenLoading, setIsTokenLoading] = useState({
     lend: true,
     borrow: false,
@@ -74,13 +80,21 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     pools: false,
     rangeSlider: false,
   });
-  const [operationProgress, setOperationProgress] = useState(1);
+  const [operationProgress, setOperationProgress] = useState(0);
 
+  const [accordionModal, setAccordionModal] = useState<boolean>(false);
   const [uniQuote, setUniQuote] = useState({
     totalFee: 0,
     slippage: 0,
     path: [],
   });
+
+  const [analyticsData, setAnalyticsData] = useState({
+    totalBorrowed: 0,
+    totalLend: 0,
+    healthFactor: 0,
+  });
+
   const isLowBal: boolean = +lendAmount > selectedTokens?.lend?.balanceFixed;
   const connectWallet = isConnected;
 
@@ -92,7 +106,9 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     isLowLiquidity,
     isLowBal,
     connectWallet,
-    receiveAmount
+    receiveAmount,
+    ltvError,
+    borrowAmount
   );
 
   const handleLendAmount = (amount: string) => {
@@ -101,6 +117,34 @@ export default function BorrowCard({ uniSwapTokens }: any) {
 
   const handleReceiveAmount = (amount: string) => {
     setReceiveAmount(amount);
+    const ltv = calculateLTVFromReceiveAmount(
+      Number(amount),
+      lendAmount,
+      selectedTokens?.lend,
+      b2rRatio
+    );
+    if (ltv > unilendPool?.maxLTV || ltv > selectedTokens?.lend?.ltv) {
+      setLtvError(true);
+    } else {
+      setLtvError(false);
+      setSelectedLTV(Number(ltv.toFixed(2)));
+      let borrowAmount = 0;
+      if (selectedTokens.borrow.source === "Unilend") {
+        borrowAmount = getBorrowAmount(
+          lendAmount,
+          Number(ltv.toFixed(2)),
+          selectedTokens.lend,
+          selectedTokens.borrow
+        );
+      } else {
+        borrowAmount = getCompoundBorrowAmount(
+          lendAmount,
+          Number(ltv.toFixed(2)),
+          selectedTokens
+        );
+      }
+      setBorrowAmount(borrowAmount);
+    }
   };
 
   const handleBorrowModal = (visible: boolean) => {
@@ -141,7 +185,8 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       b2rRatio,
       setSelectedLTV,
       setBorrowAmount,
-      setReceiveAmount
+      setReceiveAmount,
+      setLtvError
     );
   };
 
@@ -156,7 +201,8 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       setSelectedLTV,
       setQuoteError,
       setIsTokenLoading,
-      setUniQuote
+      setUniQuote,
+      setAccordionModal
     );
   };
 
@@ -207,7 +253,10 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       handleQuoteValue,
       handleSelectLendToken,
       handleBorrowToken,
-      setSelectedLTV
+      setSelectedLTV,
+      setAccordionModal,
+      setIsLowLiquidity,
+      chain
     );
   };
 
@@ -237,8 +286,9 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     setSelectedLTV(5);
     setTimeout(() => {
       setIsBorrowProgressModal(false);
-      setOperationProgress(1);
+      setOperationProgress(0);
     }, 3000);
+    setAccordionModal(false);
   };
 
   useEffect(() => {
@@ -252,18 +302,13 @@ export default function BorrowCard({ uniSwapTokens }: any) {
         setIsLowLiquidity
       );
     }
-    if (selectedTokens?.lend?.priceRatio) {
-      handleLTVSlider(
-        selectedLTV,
-        lendAmount,
-        selectedTokens,
-        b2rRatio,
-        setSelectedLTV,
-        setBorrowAmount,
-        setReceiveAmount
-      );
+  }, [selectedLTV]);
+
+  useEffect(() => {
+    if (selectedTokens?.lend?.priceRatio || selectedTokens?.lend?.price) {
+      handleLTVSliderWithValue(selectedLTV);
     }
-  }, [lendAmount, selectedLTV]);
+  }, [lendAmount]);
 
   useEffect(() => {
     const tokensArray = Object.values(tokenList);
@@ -278,6 +323,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       handleLTVSliderWithValue(currentLTV ? +currentLTV : 5);
       setSelectedLTV(currentLTV ? +currentLTV : 5);
     }
+    console.log("b2rRatio", b2rRatio);
   }, [b2rRatio]);
 
   const checkLoading = (isTokenLoading: object) => {
@@ -291,6 +337,13 @@ export default function BorrowCard({ uniSwapTokens }: any) {
   useEffect(() => {
     console.log("selectedTokens", selectedTokens);
   }, [selectedTokens]);
+
+  useEffect(() => {
+    if (selectedTokens) {
+      const data: any = totalUserData(selectedTokens);
+      setAnalyticsData(data);
+    }
+  }, [selectedTokens?.borrow]);
 
   return (
     <>
@@ -360,7 +413,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           <div>
             <p className='paragraph06 '>New LTV</p>
             <p className='paragraph06'>
-              {selectedLTV}%/
+              {selectedLTV}% /{" "}
               {unilendPool?.maxLTV || selectedTokens?.lend?.ltv || "75"}%
             </p>
           </div>
@@ -376,6 +429,13 @@ export default function BorrowCard({ uniSwapTokens }: any) {
             }
           />
         </div>
+        <PoolHealthContainer
+          selectedTokens={selectedTokens}
+          totalBorrow={analyticsData.totalBorrowed}
+          totalLend={analyticsData.totalLend}
+          healthFactor={analyticsData.healthFactor}
+          showAccordion={accordionModal}
+        />
         {isConnected ? (
           <Button
             disabled={borrowBtn.disable}
@@ -392,11 +452,13 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           </div>
         )}
         <AccordionContainer
-          selectedTokens={selectedTokens}
+          tokenIn={selectedTokens?.borrow?.symbol}
+          tokenOut={selectedTokens?.receive?.symbol}
           b2rRatio={b2rRatio}
           fee={uniQuote.totalFee}
           slippage={uniQuote.slippage}
           lendAmount={lendAmount}
+          showAccordion={accordionModal}
         />
       </div>
       <Modal
