@@ -19,7 +19,7 @@ export const contractAddresses = {
     compound: "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
     // controller: '0x6a77Cd94D78FAEC6edd0D5cc6EACF921FA72574F',//'0x4Fb5192Cb570E71F30A50c479E5aea139730256C',// '0x602F61e5cb3FD81B81Ab0FB3a3969321c0bFf328',
     // controller: "0xbb2f627FCcD208fEDac3935bbDaa9e680337c744",
-    controller: "0x54acceE6d6c8E85B9ff2D0Db5492054829D0Dd73", //latest
+    controller: "0xe4eaA43EF8fC671aa994522ACD3594b9cFd72eF4", //latest
     borrowswap: "0xD31F2869Fd5e4422c128064b2EaDa33C6390bf6E",
     helperAddress: "0x4F57c40D3dAA7BF2EC970Dd157B1268982158720",
 

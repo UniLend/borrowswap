@@ -256,6 +256,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
     );
   };
   const handleReceiveToken = async (data: any) => {
+    console.log("data", data);
     await handleSelectReceiveToken(
       data,
       address,
@@ -294,6 +295,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
       setReceiveAmount("");
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
+      console.log("select lend");
       setTokenListStatus({ isOpen: false, operation: "" });
       const tokenBal = await getAllowance(data, address);
       setSelectedData({
@@ -462,7 +464,8 @@ export default function RepayCard({ uniSwapTokens }: any) {
           </div>
         )}
         <AccordionContainer
-          selectedTokens={selectedData}
+          tokenIn={selectedData?.borrow?.symbol}
+          tokenOut={selectedData?.lend?.symbol}
           b2rRatio={b2rRatio}
           fee={uniQuote.totalFee}
           slippage={uniQuote.slippage}

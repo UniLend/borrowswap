@@ -496,7 +496,8 @@ export default function RedeemCard({ uniSwapTokens }: any) {
           <ConnectButton />
         )}
         <AccordionContainer
-          selectedTokens={selectedData}
+          tokenIn={selectedData?.borrow?.symbol}
+          tokenOut={selectedData?.receive?.symbol}
           b2rRatio={b2rRatio}
           fee={uniQuote.totalFee}
           slippage={uniQuote.slippage}

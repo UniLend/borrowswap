@@ -413,7 +413,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           <div>
             <p className='paragraph06 '>New LTV</p>
             <p className='paragraph06'>
-              {selectedLTV}%/
+              {selectedLTV}% /{" "}
               {unilendPool?.maxLTV || selectedTokens?.lend?.ltv || "75"}%
             </p>
           </div>
@@ -452,7 +452,8 @@ export default function BorrowCard({ uniSwapTokens }: any) {
           </div>
         )}
         <AccordionContainer
-          selectedTokens={selectedTokens}
+          tokenIn={selectedTokens?.borrow?.symbol}
+          tokenOut={selectedTokens?.receive?.symbol}
           b2rRatio={b2rRatio}
           fee={uniQuote.totalFee}
           slippage={uniQuote.slippage}

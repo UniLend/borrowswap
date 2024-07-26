@@ -29,8 +29,9 @@ const LiquidityFactors: React.FC<LiquidityFactorsProps> = ({
 );
 
 interface AccordionProps {
-  selectedTokens: any;
   b2rRatio: any;
+  tokenIn: any;
+  tokenOut: any;
   fee: number;
   slippage: number;
   lendAmount: string;
@@ -38,7 +39,8 @@ interface AccordionProps {
 }
 
 const AccordionContainer: React.FC<AccordionProps> = ({
-  selectedTokens,
+  tokenIn,
+  tokenOut,
   b2rRatio,
   fee,
   slippage,
@@ -58,10 +60,10 @@ const AccordionContainer: React.FC<AccordionProps> = ({
             <div className='toggle_div' onClick={toggleLiquidityFactors}>
               <p>
                 <span className='bold'>
-                  {`1 ${selectedTokens?.borrow?.symbol} = ${truncateToDecimals(
+                  {`1 ${tokenIn} = ${truncateToDecimals(
                     b2rRatio,
                     6
-                  )} ${selectedTokens?.receive?.symbol}`}
+                  )} ${tokenOut}`}
                 </span>
                 <span className='dropdown'>
                   {isLiquidityFactorsOpen ? <FaChevronUp /> : <FaChevronDown />}

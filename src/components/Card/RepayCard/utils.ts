@@ -16,7 +16,7 @@ import { contractAddresses } from "../../../api/contracts/address";
 import { decimal2Fixed } from "../../../helpers";
 import NotificationMessage from "../../Common/NotificationMessage";
 import { quoteWithSdk } from "../../../api/uniswap/quotes";
-
+import { mul } from "../../../helpers";
 export const handleQuote = async (
   selectedDataRef: any,
   selectedData: any,
@@ -36,7 +36,7 @@ export const handleQuote = async (
     const borrowDecimals = selectedDataRef.current?.borrow?.decimals;
     const lendAddress = selectedDataRef.current?.lend?.address;
     const borrowAddress = selectedDataRef.current?.borrow?.address;
-    const chainId = 18731 ? 137 : chain?.id;
+    // const chainId = 18731 ? 137 : chain?.id;
     let flag = false;
     if (
       String(borrowAddress).toLowerCase() === String(lendAddress).toLowerCase()
@@ -67,28 +67,35 @@ export const handleQuote = async (
       //   lendAddress,
       //   chainId
       // );
-
       const { quoteValue, quoteFee, quotePath }: any = await quoteWithSdk(
         tokenIn,
         tokenOut
       );
+
       if (quoteValue) {
-        const coveredValue = Number(quoteValue) + 0.05;
-        setb2rRatio(Number(coveredValue));
+        // const coveredValue = Number(quoteValue) + 0.05;
+        setb2rRatio(Number(quoteValue));
         setUniQuote({
           totalFee: quoteFee,
           slippage: 0.5,
           path: quotePath,
         });
         const payLendAmount =
-          coveredValue *
+          quoteValue *
           (selectedDataRef.current?.borrow?.borrowBalanceFixed || 0);
+        const payLendValue = mul(
+          quoteValue,
+          selectedDataRef.current?.borrow?.borrowBalanceFixed
+        );
         console.log(
           "pay amount",
           selectedData,
-          payLendAmount.toFixed(selectedDataRef.current?.lend.decimals),
+          payLendValue,
+          payLendAmount,
+          selectedDataRef.current?.lend?.decimals,
+          payLendAmount.toFixed(selectedDataRef.current?.borrow?.decimals),
           selectedDataRef.current?.borrow?.borrowBalanceFixed,
-          coveredValue,
+          // coveredValue,
           quoteValue
         );
 
@@ -205,6 +212,7 @@ export const handleSelectReceiveToken = async (
     selectedData.pool.borrowToken,
     address
   );
+  console.log("tokennew", data, selectedData);
   setSelectedData({
     ...selectedData,
     ["lend"]: null,
