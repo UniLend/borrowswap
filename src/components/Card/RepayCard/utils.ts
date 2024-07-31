@@ -87,17 +87,6 @@ export const handleQuote = async (
           quoteValue,
           selectedDataRef.current?.borrow?.borrowBalanceFixed
         );
-        console.log(
-          "pay amount",
-          selectedData,
-          payLendValue,
-          payLendAmount,
-          selectedDataRef.current?.lend?.decimals,
-          payLendAmount.toFixed(selectedDataRef.current?.borrow?.decimals),
-          selectedDataRef.current?.borrow?.borrowBalanceFixed,
-          // coveredValue,
-          quoteValue
-        );
 
         setLendAmount(
           payLendAmount.toFixed(selectedDataRef.current?.borrow.decimals)
@@ -154,7 +143,6 @@ export const handleSelectRepayToken = async (
       tokenPool,
       address
     );
-    console.log("handleSelectRepayToken", data);
 
     if (
       // data.token0.borrowBalanceFixed > 0 &&
@@ -182,8 +170,6 @@ export const handleSelectRepayToken = async (
       });
     }
   } else {
-    console.log("No Pool Data");
-
     const tokenData = await getBorrowTokenData(poolData.borrowToken, address);
     const { redeemBalanceInUSD, totalLendBalanceInUsd } =
       await getCollateralValue(address);
@@ -212,7 +198,7 @@ export const handleSelectReceiveToken = async (
     selectedData.pool.borrowToken,
     address
   );
-  console.log("tokennew", data, selectedData);
+
   setSelectedData({
     ...selectedData,
     ["lend"]: null,
@@ -245,15 +231,6 @@ export const handleRepayTransaction = async (
     const lendToken = await getAllowance(selectedData?.lend, address);
     // const borrowToken = await getAllowance(selectedData?.borrow, address);
     setIsBorrowProgressModal(true);
-
-    console.log(
-      "repayapproval",
-      lendToken,
-      lendAmount,
-      borrowAmount,
-      receiveAmount,
-      Number(lendAmount) > Number(lendToken.allowanceFixed)
-    );
 
     if (Number(lendAmount) > Number(lendToken.allowanceFixed)) {
       setModalMsg("Spend Aprroval for " + selectedData.lend.symbol);
@@ -310,7 +287,6 @@ export const handleRepayTransaction = async (
         handleClear();
         NotificationMessage("success", `Repay is successful`);
         // checkTxnStatus(hash, txnData, setIsBorrowProgressModal)
-        console.log("reciept", hash);
       }
     }
   } catch (error: any) {

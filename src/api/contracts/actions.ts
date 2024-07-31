@@ -43,7 +43,7 @@ export const waitForTransaction = async (hash: any) => {
     });
     const status = await watchBlock(receipt.blockNumber);
     // const status = await transaction(hash);
-    console.log("status", status);
+
     return receipt;
   } catch (error) {
     throw error;
@@ -104,7 +104,6 @@ export const getUserProxy = async (user: any) => {
       [user]
     );
 
-    console.log("proxy", proxy);
     return proxy;
   } catch (error) {
     return "0x0000000000000000000000000000000000000000"; //if no proxy just use the users address as
@@ -139,7 +138,6 @@ export const handleSwap = async (
       _user: user,
       _route: path,
     };
-    console.log("BorrowTsransaction", parameters);
 
     //     _pool: '0x784c4a12f82204e5fb713b055de5e8008d5916b6',
     // _supplyAsset: '0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a',
@@ -421,7 +419,7 @@ export const getPoolBasicData = async (
       //   proxy
       // )
       // const token0 = await getAllowance(pool.token0.address, userAddress)
-      console.log("getPoolData", data);
+
       let token0Price = 0;
       let token1Price = 0;
 

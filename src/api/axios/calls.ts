@@ -105,7 +105,6 @@ export const fetchEthRateForAddresses = async (
 
 export const getTokenPrice = async (data: any, chain: any) => {
   const usdPrice = await getEthToUsd();
-  console.log("getTokenPrice", data?.assetOracles);
 
   const temp: any = await fetchEthRateForAddresses(
     data?.assetOracles,
@@ -167,8 +166,6 @@ const findQuoteAmount = (
     }
   }
 
-  console.log("decode", decode);
-
   return { quoteValue, quoteDecimals, totalFee, decode };
 };
 
@@ -184,7 +181,6 @@ export const getQuote = async (
   //   cancelPreviousRequest();
   // }
 
-  console.log("QuoteData", { amountIn, user, tokenIn, tokenOut, chainId });
   try {
     const response = await axios({
       method: "post",
@@ -222,7 +218,7 @@ export const getQuote = async (
         cancelPreviousRequest = c;
       }),
     });
-    console.log("QUOTE_API_DATA", response.data.quote);
+
     const { quoteValue, quoteDecimals, totalFee, decode } = findQuoteAmount(
       response.data.quote
     );

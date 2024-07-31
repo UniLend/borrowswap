@@ -126,13 +126,6 @@ export const handleQuote = async (
           quoteValue,
           selectedDataRef.current?.lend?.redeemBalanceFixed || 0
         );
-        console.log(
-          "pay amount",
-          selectedDataRef.current,
-          payLendAmount,
-          selectedDataRef.current?.lend?.redeemBalanceFixed,
-          quoteValue
-        );
 
         setReceiveAmount(payLendAmount.toString());
         setLendAmount(selectedDataRef.current?.lend?.redeemBalanceFixed);
@@ -207,7 +200,6 @@ export const handleSelectRepayToken = async (
         ["receive"]: null,
         ["borrow"]: data.token1,
       });
-      console.log("else");
 
       setLendAmount(
         truncateToDecimals(
@@ -337,13 +329,6 @@ export const handleRepayTransaction = async (
     //     selectedData.receive.symbol
     // );
 
-    console.log(
-      "redeem Data",
-      redeemAmount,
-      address,
-      selectedData,
-      borrowAmount
-    );
     setOperationProgress(1);
     let hash;
     if (selectedData.borrow.source == "Unilend") {

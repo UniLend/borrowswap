@@ -99,7 +99,7 @@ export const checkOpenPosition = (position: any) => {
 export const loadPoolsWithGraph = async (chain: any, address: any) => {
   if (true) {
     const proxy = await getUserProxy(address);
-    console.log("PROXY", proxy);
+
     const query = getPoolCreatedGraphQuery(
       "0x84c6d5Df8a5e3ab9859708dA7645cC58176a26C0"
     );
@@ -186,7 +186,6 @@ export const loadPoolsWithGraph = async (chain: any, address: any) => {
     store.dispatch(setPools(poolData));
     store.dispatch(setTokens(tokenList));
     store.dispatch(setPositions(allPositions));
-    console.log("graphEnd", { poolData, tokenList, allPositions, data });
   }
 };
 
@@ -332,7 +331,6 @@ export const getCompoundBorrowAmount = (
       Number(selectedTokens?.borrow?.TotalBorrowBalanceFixed)) /
     selectedTokens?.borrow?.price;
 
-  console.log("borrowAmount compound", borrowAmount);
   return borrowAmount > 0 ? borrowAmount : 0;
 };
 

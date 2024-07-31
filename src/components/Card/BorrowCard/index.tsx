@@ -173,7 +173,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
   // TODO: check and remove
   const getProxy = async () => {
     const proxy = await getUserProxy(address);
-    console.log("userProxyContract", proxy);
+
     setUserProxy(proxy);
   };
 
@@ -323,7 +323,6 @@ export default function BorrowCard({ uniSwapTokens }: any) {
       handleLTVSliderWithValue(currentLTV ? +currentLTV : 5);
       setSelectedLTV(currentLTV ? +currentLTV : 5);
     }
-    console.log("b2rRatio", b2rRatio);
   }, [b2rRatio]);
 
   const checkLoading = (isTokenLoading: object) => {
@@ -334,9 +333,7 @@ export default function BorrowCard({ uniSwapTokens }: any) {
     checkLoading(isTokenLoading);
   }, [isTokenLoading]);
 
-  useEffect(() => {
-    console.log("selectedTokens", selectedTokens);
-  }, [selectedTokens]);
+  useEffect(() => {}, [selectedTokens]);
 
   useEffect(() => {
     if (selectedTokens) {

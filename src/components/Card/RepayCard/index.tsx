@@ -186,8 +186,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
 
   const getOprationToken = () => {
     if (tokenListStatus.operation === "pool") {
-      console.log("poos", pools);
-
       return [...pools, ...CompoundBaseTokens];
     } else if (tokenListStatus.operation === "lend") {
       return uniSwapTokens;
@@ -239,9 +237,7 @@ export default function RepayCard({ uniSwapTokens }: any) {
       setAccordionModal
     );
   };
-  useEffect(() => {
-    console.log("selectedData", selectedData);
-  }, [selectedData]);
+  useEffect(() => {}, [selectedData]);
 
   const handleRepayToken = async (poolData: any) => {
     await handleSelectRepayToken(
@@ -256,7 +252,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
     );
   };
   const handleReceiveToken = async (data: any) => {
-    console.log("data", data);
     await handleSelectReceiveToken(
       data,
       address,
@@ -295,7 +290,6 @@ export default function RepayCard({ uniSwapTokens }: any) {
       setReceiveAmount("");
       setLendAmount("");
     } else if (tokenListStatus.operation == "lend") {
-      console.log("select lend");
       setTokenListStatus({ isOpen: false, operation: "" });
       const tokenBal = await getAllowance(data, address);
       setSelectedData({

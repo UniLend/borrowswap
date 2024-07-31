@@ -125,7 +125,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
     receive: null,
     borrow: null,
   });
-  console.log("selectedData", selectedData);
+
   //open  diffrent modal dynamically
   const [tokenListStatus, setTokenListStatus] = useState({
     isOpen: false,
@@ -196,7 +196,7 @@ export default function RedeemCard({ uniSwapTokens }: any) {
 
   const handleReceiveAmount = (amount: string) => {
     // const amountConvert = decimal2Fixed(amount, selectedData.receive.decimals);
-    // console.log("amountConverted", amountConvert);
+
     setReceiveAmount(amount);
   };
 
@@ -318,7 +318,6 @@ export default function RedeemCard({ uniSwapTokens }: any) {
   };
 
   const handleTokenSelection = async (data: any) => {
-    console.log("handletokendata", data, tokenListStatus);
     setTokenListStatus({ isOpen: false, operation: "" });
     setSelectedData({
       ...selectedData,
